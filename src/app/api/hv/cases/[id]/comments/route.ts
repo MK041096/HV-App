@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createServerSupabaseClient } from '@/lib/supabase-server'
+import { createServerSupabaseClient, createAdminClient } from '@/lib/supabase-server'
 import { hvCommentCreateSchema } from '@/lib/validations/hv-case-management'
+import { sendNewCommentEmail } from '@/lib/email'
 
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
@@ -163,7 +164,7 @@ export async function POST(
     // Verify case belongs to org
     const { data: report } = await supabase
       .from('damage_reports')
-      .select('id')
+      .select('id, reporter_id, case_number, title')
       .eq('id', id)
       .eq('organization_id', profile.organization_id)
       .eq('is_deleted', false)
@@ -220,6 +221,39 @@ export async function POST(
         is_internal: parsed.data.is_internal,
       },
     })
+
+    // Send email for public comments (fire-and-forget)
+    if (!parsed.data.is_internal && report.reporter_id) {
+      try {
+        const adminClient = createAdminClient()
+        const [reporterResult, orgResult, reporterProfile] = await Promise.all([
+          adminClient.auth.admin.getUserById(report.reporter_id),
+          supabase.from('organizations').select('name').eq('id', profile.organization_id).single(),
+          supabase.from('profiles').select('first_name, last_name').eq('id', report.reporter_id).single(),
+        ])
+
+        const email = reporterResult.data?.user?.email
+        const name = reporterProfile.data
+          ? `${reporterProfile.data.first_name || ''} ${reporterProfile.data.last_name || ''}`.trim()
+          : 'Mieter'
+        const authorName = `${profile.first_name || ''} ${profile.last_name || ''}`.trim() || 'Hausverwaltung'
+        const org = orgResult.data?.name || 'Hausverwaltung'
+
+        if (email) {
+          sendNewCommentEmail({
+            to: email,
+            tenantName: name,
+            caseNumber: report.case_number,
+            caseTitle: report.title,
+            comment: parsed.data.content,
+            authorName,
+            orgName: org,
+          }).catch((err) => console.error('Email send failed:', err))
+        }
+      } catch (err) {
+        console.error('Email notification error:', err)
+      }
+    }
 
     return NextResponse.json(
       {

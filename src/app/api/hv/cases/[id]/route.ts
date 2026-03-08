@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createServerSupabaseClient } from '@/lib/supabase-server'
+import { createServerSupabaseClient, createAdminClient } from '@/lib/supabase-server'
 import {
   hvStatusUpdateSchema,
   hvAssignmentSchema,
@@ -8,6 +8,7 @@ import {
 } from '@/lib/validations/hv-case-management'
 import { CATEGORY_LABELS, URGENCY_LABELS } from '@/lib/validations/damage-report'
 import { STATUS_DISPLAY_MAP } from '@/lib/validations/damage-report-dashboard'
+import { sendStatusChangeEmail, NOTIFICATION_STATUSES } from '@/lib/email'
 
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
@@ -227,7 +228,7 @@ export async function PATCH(
     // Verify case exists and belongs to org
     const { data: existingReport, error: fetchError } = await supabase
       .from('damage_reports')
-      .select('id, status, organization_id')
+      .select('id, status, organization_id, reporter_id, case_number, title')
       .eq('id', id)
       .eq('organization_id', profile.organization_id)
       .eq('is_deleted', false)
@@ -305,6 +306,43 @@ export async function PATCH(
         entity_id: id,
         details: { old_status, new_status, comment },
       })
+
+      // Send email notification (fire-and-forget, never fail the request)
+      if (NOTIFICATION_STATUSES.includes(new_status) && existingReport.reporter_id) {
+        const orgName = 'Hausverwaltung'
+        try {
+          const adminClient = createAdminClient()
+          const [reporterResult, orgResult] = await Promise.all([
+            adminClient.auth.admin.getUserById(existingReport.reporter_id),
+            supabase.from('organizations').select('name').eq('id', profile.organization_id).single(),
+          ])
+          const reporterProfile = await supabase
+            .from('profiles')
+            .select('first_name, last_name')
+            .eq('id', existingReport.reporter_id)
+            .single()
+
+          const email = reporterResult.data?.user?.email
+          const name = reporterProfile.data
+            ? `${reporterProfile.data.first_name || ''} ${reporterProfile.data.last_name || ''}`.trim()
+            : 'Mieter'
+          const org = orgResult.data?.name || orgName
+
+          if (email) {
+            sendStatusChangeEmail({
+              to: email,
+              tenantName: name,
+              caseNumber: existingReport.case_number,
+              caseTitle: existingReport.title,
+              newStatus: new_status,
+              comment,
+              orgName: org,
+            }).catch((err) => console.error('Email send failed:', err))
+          }
+        } catch (err) {
+          console.error('Email notification error:', err)
+        }
+      }
 
       return NextResponse.json({
         data: {
