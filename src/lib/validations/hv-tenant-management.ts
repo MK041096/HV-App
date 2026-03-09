@@ -21,7 +21,7 @@ export const hvTenantListSchema = z.object({
 // ── List / Filter / Search Schema for Units (HV enriched view) ──
 export const hvUnitListSchema = z.object({
   page: z.coerce.number().int().min(1).default(1),
-  per_page: z.coerce.number().int().min(1).max(100).default(50),
+  per_page: z.coerce.number().int().min(1).max(500).default(50),
 
   // Filters
   tenant_status: z
