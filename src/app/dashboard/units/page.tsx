@@ -411,8 +411,10 @@ export default function UnitsListPage() {
                 return (
                   <TableRow
                     key={unit.id}
-                    className={`transition-all ${unit.tenant ? "cursor-pointer hover:bg-accent/50 hover:ring-2 hover:ring-inset hover:ring-black/70" : "hover:bg-accent/50"}`}
+                    className={`transition-colors ${unit.tenant ? "cursor-pointer hover:bg-accent/50" : "hover:bg-accent/50"}`}
                     onClick={() => unit.tenant && router.push(`/dashboard/tenants/${unit.tenant.id}`)}
+                    onMouseEnter={unit.tenant ? (e) => { (e.currentTarget as HTMLElement).style.outline = '2px solid rgba(0,0,0,0.7)'; (e.currentTarget as HTMLElement).style.outlineOffset = '-2px' } : undefined}
+                    onMouseLeave={unit.tenant ? (e) => { (e.currentTarget as HTMLElement).style.outline = '' } : undefined}
                   >
                     <TableCell>
                       <div className="flex items-center gap-2">
