@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState, useCallback } from "react"
+import { useRouter } from "next/navigation"
 import Link from "next/link"
 import {
   Search, Filter, ArrowUpDown, ArrowUp, ArrowDown,
@@ -170,6 +171,7 @@ function InviteDialog({ unit, open, onClose, onSuccess }: InviteDialogProps) {
 // ── Page ──
 
 export default function UnitsListPage() {
+  const router = useRouter()
   const [units, setUnits] = useState<UnitItem[]>([])
   const [pagination, setPagination] = useState<Pagination | null>(null)
   const [summary, setSummary] = useState<Summary | null>(null)
@@ -407,7 +409,11 @@ export default function UnitsListPage() {
                 const sc = getTenantStatusConfig(unit.tenant_status)
                 const SI = sc.icon
                 return (
-                  <TableRow key={unit.id} className="hover:bg-accent/50">
+                  <TableRow
+                    key={unit.id}
+                    className={`hover:bg-accent/50 ${unit.tenant ? "cursor-pointer" : ""}`}
+                    onClick={() => unit.tenant && router.push(`/dashboard/tenants/${unit.tenant.id}`)}
+                  >
                     <TableCell>
                       <div className="flex items-center gap-2">
                         <Home className="h-4 w-4 text-muted-foreground shrink-0" />
@@ -453,7 +459,7 @@ export default function UnitsListPage() {
                           <CopyCodeButton code={unit.pending_code.code} />
                         </div>
                       ) : (
-                        <Button variant="outline" size="sm" className="h-7 text-xs" onClick={() => { setInviteUnit(unit); setInviteOpen(true) }}>Einladen</Button>
+                        <Button variant="outline" size="sm" className="h-7 text-xs" onClick={(e) => { e.stopPropagation(); setInviteUnit(unit); setInviteOpen(true) }}>Einladen</Button>
                       )}
                     </TableCell>
                     <TableCell>
@@ -463,7 +469,7 @@ export default function UnitsListPage() {
                       </div>
                     </TableCell>
                     <TableCell>
-                      <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive" onClick={() => { setDeleteUnit(unit); setDeleteOpen(true) }} title="Einheit löschen"><Trash2 className="h-4 w-4" /></Button>
+                      <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive" onClick={(e) => { e.stopPropagation(); setDeleteUnit(unit); setDeleteOpen(true) }} title="Einheit löschen"><Trash2 className="h-4 w-4" /></Button>
                     </TableCell>
                   </TableRow>
                 )
@@ -492,7 +498,11 @@ export default function UnitsListPage() {
         ) : units.map((unit) => {
           const sc = getTenantStatusConfig(unit.tenant_status)
           return (
-            <Card key={unit.id} className="hover:bg-accent/50 transition-colors">
+            <Card
+              key={unit.id}
+              className={`hover:bg-accent/50 transition-colors ${unit.tenant ? "cursor-pointer" : ""}`}
+              onClick={() => unit.tenant && router.push(`/dashboard/tenants/${unit.tenant.id}`)}
+            >
               <CardContent className="pt-4 pb-3">
                 <div className="min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
@@ -518,7 +528,7 @@ export default function UnitsListPage() {
                           <CopyCodeButton code={unit.pending_code.code} />
                         </div>
                       ) : (
-                        <Button variant="outline" size="sm" className="h-7 text-xs" onClick={() => { setInviteUnit(unit); setInviteOpen(true) }}>Einladen</Button>
+                        <Button variant="outline" size="sm" className="h-7 text-xs" onClick={(e) => { e.stopPropagation(); setInviteUnit(unit); setInviteOpen(true) }}>Einladen</Button>
                       )
                     )}
                   </div>
