@@ -411,7 +411,7 @@ export default function UnitsListPage() {
                 return (
                   <TableRow
                     key={unit.id}
-                    className={`transition-all ${unit.tenant ? "cursor-pointer hover:bg-accent/50 hover:shadow-[inset_4px_0_0_0_rgba(0,0,0,0.75)]" : "hover:bg-accent/50"}`}
+                    className={`transition-all ${unit.tenant ? "cursor-pointer hover:bg-accent/50 hover:shadow-[inset_0_0_0_2px_rgba(0,0,0,0.75)]" : "hover:bg-accent/50"}`}
                     onClick={() => unit.tenant && router.push(`/dashboard/tenants/${unit.tenant.id}`)}
                   >
                     <TableCell>
@@ -500,7 +500,7 @@ export default function UnitsListPage() {
           return (
             <Card
               key={unit.id}
-              className={`transition-all ${unit.tenant ? "cursor-pointer hover:bg-accent/50 hover:shadow-[inset_4px_0_0_0_rgba(0,0,0,0.75)]" : "hover:bg-accent/50"}`}
+              className={`transition-all ${unit.tenant ? "cursor-pointer hover:bg-accent/50 hover:shadow-[inset_0_0_0_2px_rgba(0,0,0,0.75)]" : "hover:bg-accent/50"}`}
               onClick={() => unit.tenant && router.push(`/dashboard/tenants/${unit.tenant.id}`)}
             >
               <CardContent className="pt-4 pb-3">
