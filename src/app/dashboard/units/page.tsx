@@ -411,7 +411,7 @@ export default function UnitsListPage() {
                 return (
                   <TableRow
                     key={unit.id}
-                    className={`hover:bg-accent/50 ${unit.tenant ? "cursor-pointer" : ""}`}
+                    className={`hover:bg-accent/50 ${unit.tenant ? "cursor-pointer hover:border-l-4 hover:border-l-primary transition-all" : ""}`}
                     onClick={() => unit.tenant && router.push(`/dashboard/tenants/${unit.tenant.id}`)}
                   >
                     <TableCell>
@@ -500,7 +500,7 @@ export default function UnitsListPage() {
           return (
             <Card
               key={unit.id}
-              className={`hover:bg-accent/50 transition-colors ${unit.tenant ? "cursor-pointer" : ""}`}
+              className={`hover:bg-accent/50 transition-all ${unit.tenant ? "cursor-pointer hover:border-l-4 hover:border-l-primary" : ""}`}
               onClick={() => unit.tenant && router.push(`/dashboard/tenants/${unit.tenant.id}`)}
             >
               <CardContent className="pt-4 pb-3">
