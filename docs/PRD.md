@@ -32,6 +32,7 @@ SchadensMelder ist eine mandantenfähige SaaS-Plattform, die Hausverwaltungen in
 | P0 (MVP) | PROJ-5 | Schadensmeldungs-Dashboard Mieter (Status-Tracking) | Planned |
 | P0 (MVP) | PROJ-6 | Case-Management Dashboard HV (Übersicht & Bearbeitung) | Planned |
 | P0 (MVP) | PROJ-7 | Mieterübersicht & -verwaltung (HV-Portal) | Planned |
+| P0 (MVP) | PROJ-16 | Öffentliche Landing-Page für Kundengewinnung | Planned |
 | P1 | PROJ-8 | n8n Webhook-Integration & E-Mail-Benachrichtigungen | Planned |
 | P1 | PROJ-9 | Automatische Werkstattkommunikation via n8n | Planned |
 | P1 | PROJ-10 | Automatische Versicherungsdatenblatt-Befüllung | Planned |

@@ -61,8 +61,48 @@ After project initialization, build features one at a time using skills:
 /frontend        Build the UI for features/PROJ-1-user-auth.md
 /backend         Build the API for features/PROJ-1-user-auth.md
 /qa              Test features/PROJ-1-user-auth.md
-/deploy          Deploy to Vercel
+/deploy          Deploy to Vercel (see deployment section below)
 ```
+
+---
+
+## Deployment Instructions
+
+This project is configured for automatic deployment to **Vercel**. Follow these steps to go live:
+
+1. **Create a Vercel Account** (https://vercel.com) and install the CLI:
+   ```bash
+   npm install -g vercel
+   ```
+
+2. **Connect your GitHub repository** to Vercel via the dashboard. Choose the `main` branch for production.
+
+3. **Set environment variables** in the Vercel project settings:
+   - Copy everything from `.env.local.example` and add the real values in Vercel.
+   - Prefix client-side vars with `NEXT_PUBLIC_`.
+
+4. **DNS & Custom Domain**
+   - In Vercel settings, add `zerodamage.de` as a custom domain.
+   - Follow the DNS instructions (A/CAA/CNAME records) provided by Vercel to point your domain.
+
+5. **GitHub Action**
+   - The workflow file `.github/workflows/deploy.yml` is already added.
+   - Create the following secrets in your GitHub repo:
+     - `VERCEL_TOKEN` (obtain from `vercel login` or dashboard)
+     - `VERCEL_ORG_ID` (found in project settings)
+     - `VERCEL_PROJECT_ID` (found in project settings)
+   - On every push to `main`, the Action will run a build and deploy to production.
+
+6. **Manual Trigger (optional)**
+   - Run `npx vercel --prod` from the repo root to deploy manually.
+
+7. **Verify**
+   - Visit `https://zerodamage.de` after the build finishes. You should see the landing page.
+   - Test login links to `https://zerodamage.de/login` and the dashboard.
+
+> Note: I cannot perform these steps on your behalf – they require access to your Vercel account, domain DNS, and GitHub settings. Once you complete them, the site will be live to everyone.
+
+Deployment-related details (error tracking, security headers, etc.) are covered in the `/deploy` skill and `docs/production/`.
 
 Each skill suggests the next step when it finishes. Handoffs are always user-initiated.
 
