@@ -11,7 +11,7 @@ export default function HeroSection() {
         <p className="mt-4 text-lg text-gray-600">{hero.subheading}</p>
         <div className="mt-8">
           <Button asChild>
-            <a href="/login">{hero.cta}</a>
+            <a href="/hv-registrierung">{hero.cta}</a>
           </Button>
         </div>
       </div>

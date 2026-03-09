@@ -1,0 +1,347 @@
+import { NextRequest, NextResponse } from 'next/server'
+import * as XLSX from 'xlsx'
+import crypto from 'crypto'
+import { createServerSupabaseClient } from '@/lib/supabase-server'
+import { sendTenantInviteEmail } from '@/lib/email'
+
+// Max 5MB file
+const MAX_FILE_SIZE = 5 * 1024 * 1024
+
+// Expected column header aliases (case-insensitive)
+const COL_UNIT = ['einheit', 'wohnung', 'wohneinheit', 'unit', 'name', 'bezeichnung']
+const COL_ADDRESS = ['adresse', 'address', 'strasse', 'straße', 'anschrift']
+const COL_FLOOR = ['stockwerk', 'etage', 'floor', 'geschoss', 'stiege']
+const COL_EMAIL = ['email', 'e-mail', 'mieter email', 'mieter e-mail', 'tenant email', 'kontakt email']
+const COL_FIRST_NAME = ['vorname', 'first name', 'firstname', 'mieter vorname']
+const COL_LAST_NAME = ['nachname', 'last name', 'lastname', 'familienname', 'mieter nachname']
+
+function normalize(s: string): string {
+  return s.toLowerCase().trim()
+}
+
+function findCol(headers: string[], aliases: string[]): number {
+  return headers.findIndex((h) => aliases.includes(normalize(h)))
+}
+
+function generateActivationCode(): string {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
+  const bytes = crypto.randomBytes(8)
+  let code = ''
+  for (let i = 0; i < 8; i++) {
+    code += chars[bytes[i] % chars.length]
+  }
+  return code
+}
+
+interface ImportRow {
+  rowIndex: number
+  unitName: string
+  address: string | null
+  floor: string | null
+  email: string | null
+  firstName: string | null
+  lastName: string | null
+}
+
+interface ImportResult {
+  units_created: number
+  units_skipped: number
+  codes_generated: number
+  emails_sent: number
+  errors: { row: number; message: string }[]
+}
+
+// POST /api/hv/units/import - Parse Excel/CSV and bulk-import units + generate codes + send invites
+export async function POST(request: NextRequest) {
+  try {
+    const supabase = await createServerSupabaseClient()
+
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+
+    if (!user) {
+      return NextResponse.json({ error: 'Nicht authentifiziert' }, { status: 401 })
+    }
+
+    // Get organization info
+    const { data: orgId, error: orgError } = await supabase.rpc('get_user_organization_id')
+    if (orgError || !orgId) {
+      return NextResponse.json({ error: 'Keine Organisation zugeordnet' }, { status: 403 })
+    }
+
+    const { data: orgData } = await supabase
+      .from('organizations')
+      .select('name')
+      .eq('id', orgId)
+      .single()
+
+    const orgName = orgData?.name || 'Ihre Hausverwaltung'
+
+    // Parse multipart form
+    const formData = await request.formData()
+    const file = formData.get('file') as File | null
+
+    if (!file) {
+      return NextResponse.json({ error: 'Keine Datei hochgeladen' }, { status: 400 })
+    }
+
+    if (file.size > MAX_FILE_SIZE) {
+      return NextResponse.json(
+        { error: 'Datei zu groß (max. 5 MB)' },
+        { status: 400 }
+      )
+    }
+
+    const allowedTypes = [
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'application/vnd.ms-excel',
+      'text/csv',
+      'application/csv',
+    ]
+    const fileName = file.name.toLowerCase()
+    const isValidExt =
+      fileName.endsWith('.xlsx') || fileName.endsWith('.xls') || fileName.endsWith('.csv')
+
+    if (!isValidExt) {
+      return NextResponse.json(
+        { error: 'Ungültiges Dateiformat. Nur .xlsx, .xls und .csv erlaubt.' },
+        { status: 400 }
+      )
+    }
+
+    // Read file as buffer
+    const arrayBuffer = await file.arrayBuffer()
+    const buffer = Buffer.from(arrayBuffer)
+
+    // Parse with xlsx
+    const workbook = XLSX.read(buffer, { type: 'buffer' })
+    const sheetName = workbook.SheetNames[0]
+    if (!sheetName) {
+      return NextResponse.json({ error: 'Leere Datei oder kein Tabellenblatt gefunden' }, { status: 400 })
+    }
+
+    const sheet = workbook.Sheets[sheetName]
+    const rows: string[][] = XLSX.utils.sheet_to_json(sheet, { header: 1, raw: false }) as string[][]
+
+    if (rows.length < 2) {
+      return NextResponse.json(
+        { error: 'Die Datei enthält keine Daten (mindestens eine Kopfzeile + eine Datenzeile erforderlich)' },
+        { status: 400 }
+      )
+    }
+
+    // Detect header row
+    const headers = (rows[0] || []).map(String)
+    const colUnit = findCol(headers, COL_UNIT)
+    const colAddress = findCol(headers, COL_ADDRESS)
+    const colFloor = findCol(headers, COL_FLOOR)
+    const colEmail = findCol(headers, COL_EMAIL)
+    const colFirstName = findCol(headers, COL_FIRST_NAME)
+    const colLastName = findCol(headers, COL_LAST_NAME)
+
+    if (colUnit === -1) {
+      return NextResponse.json(
+        {
+          error:
+            'Pflichtespalte "Einheit" nicht gefunden. Bitte verwenden Sie die Vorlage. Erkannte Spalten: ' +
+            headers.join(', '),
+        },
+        { status: 400 }
+      )
+    }
+
+    // Parse data rows
+    const importRows: ImportRow[] = []
+    for (let i = 1; i < rows.length; i++) {
+      const row = rows[i] || []
+      const unitName = row[colUnit]?.toString().trim()
+      if (!unitName) continue // skip empty rows
+
+      importRows.push({
+        rowIndex: i + 1,
+        unitName,
+        address: colAddress >= 0 ? row[colAddress]?.toString().trim() || null : null,
+        floor: colFloor >= 0 ? row[colFloor]?.toString().trim() || null : null,
+        email: colEmail >= 0 ? row[colEmail]?.toString().trim().toLowerCase() || null : null,
+        firstName: colFirstName >= 0 ? row[colFirstName]?.toString().trim() || null : null,
+        lastName: colLastName >= 0 ? row[colLastName]?.toString().trim() || null : null,
+      })
+    }
+
+    if (importRows.length === 0) {
+      return NextResponse.json({ error: 'Keine gültigen Zeilen gefunden' }, { status: 400 })
+    }
+
+    if (importRows.length > 1000) {
+      return NextResponse.json(
+        { error: 'Maximal 1000 Einheiten pro Import' },
+        { status: 400 }
+      )
+    }
+
+    // Get existing unit names to detect duplicates
+    const { data: existingUnits } = await supabase
+      .from('units')
+      .select('id, name')
+      .eq('organization_id', orgId)
+      .eq('is_deleted', false)
+      .limit(2000)
+
+    const existingNames = new Set(
+      (existingUnits || []).map((u) => u.name.toLowerCase().trim())
+    )
+
+    const result: ImportResult = {
+      units_created: 0,
+      units_skipped: 0,
+      codes_generated: 0,
+      emails_sent: 0,
+      errors: [],
+    }
+
+    // Validate email format helper
+    function isValidEmail(email: string): boolean {
+      return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+    }
+
+    // Process rows
+    const expiresAt = new Date()
+    expiresAt.setDate(expiresAt.getDate() + 30)
+    const expiresAtStr = expiresAt.toISOString()
+
+    for (const row of importRows) {
+      // Skip duplicates
+      if (existingNames.has(row.unitName.toLowerCase())) {
+        result.units_skipped++
+        continue
+      }
+
+      // Create unit
+      const { data: newUnit, error: unitError } = await supabase
+        .from('units')
+        .insert({
+          organization_id: orgId,
+          name: row.unitName,
+          address: row.address,
+          floor: row.floor,
+          is_deleted: false,
+        })
+        .select('id, name')
+        .single()
+
+      if (unitError || !newUnit) {
+        result.errors.push({
+          row: row.rowIndex,
+          message: `Einheit "${row.unitName}" konnte nicht erstellt werden: ${unitError?.message || 'Unbekannter Fehler'}`,
+        })
+        continue
+      }
+
+      result.units_created++
+      existingNames.add(row.unitName.toLowerCase())
+
+      // Generate activation code
+      let code = ''
+      for (let attempt = 0; attempt < 5; attempt++) {
+        const candidate = generateActivationCode()
+        const { data: existing } = await supabase
+          .from('activation_codes')
+          .select('id')
+          .eq('code', candidate)
+          .limit(1)
+        if (!existing || existing.length === 0) {
+          code = candidate
+          break
+        }
+      }
+
+      if (!code) {
+        result.errors.push({
+          row: row.rowIndex,
+          message: `Code für "${row.unitName}" konnte nicht generiert werden`,
+        })
+        continue
+      }
+
+      const { data: codeData, error: codeError } = await supabase
+        .from('activation_codes')
+        .insert({
+          organization_id: orgId,
+          unit_id: newUnit.id,
+          code,
+          status: 'pending',
+          expires_at: expiresAtStr,
+          created_by: user.id,
+        })
+        .select('id')
+        .single()
+
+      if (codeError || !codeData) {
+        result.errors.push({
+          row: row.rowIndex,
+          message: `Code für "${row.unitName}" konnte nicht gespeichert werden`,
+        })
+        continue
+      }
+
+      result.codes_generated++
+
+      // Send invite email if email provided
+      if (row.email) {
+        if (!isValidEmail(row.email)) {
+          result.errors.push({
+            row: row.rowIndex,
+            message: `Ungültige E-Mail-Adresse für "${row.unitName}": ${row.email}`,
+          })
+          continue
+        }
+
+        const tenantName =
+          row.firstName && row.lastName
+            ? `${row.firstName} ${row.lastName}`
+            : row.firstName || row.lastName || null
+
+        try {
+          await sendTenantInviteEmail({
+            to: row.email,
+            tenantName,
+            activationCode: code,
+            expiresAt: expiresAtStr,
+            orgName,
+            unitName: newUnit.name,
+          })
+          result.emails_sent++
+        } catch (emailErr) {
+          result.errors.push({
+            row: row.rowIndex,
+            message: `E-Mail an ${row.email} konnte nicht gesendet werden`,
+          })
+        }
+      }
+    }
+
+    // Audit log
+    await supabase.from('audit_logs').insert({
+      user_id: user.id,
+      organization_id: orgId,
+      action: 'units_imported',
+      entity_type: 'unit',
+      entity_id: orgId,
+      details: {
+        file_name: file.name,
+        rows_total: importRows.length,
+        units_created: result.units_created,
+        units_skipped: result.units_skipped,
+        codes_generated: result.codes_generated,
+        emails_sent: result.emails_sent,
+        errors: result.errors.length,
+      },
+    })
+
+    return NextResponse.json({ data: result }, { status: 200 })
+  } catch (err) {
+    console.error('Import error:', err)
+    return NextResponse.json({ error: 'Interner Serverfehler beim Import' }, { status: 500 })
+  }
+}

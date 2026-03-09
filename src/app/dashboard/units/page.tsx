@@ -20,6 +20,7 @@ import {
   ClipboardList,
   MapPin,
   Users,
+  FileSpreadsheet,
 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
@@ -232,10 +233,7 @@ export default function UnitsListPage() {
 
   return (
     <div className="p-4 sm:p-6 lg:p-8 space-y-4">
-      {/* Page Header */}
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">Wohneinheiten</h1>
-        <p className="text-muted-foreground mt-1">
+      {/* Page Header */}\n      <div className="flex items-start justify-between gap-4">\n        <div>\n          <h1 className="text-2xl font-bold tracking-tight">Wohneinheiten</h1>\n          <p className="text-muted-foreground mt-1">
           Alle Wohneinheiten Ihrer Organisation
           {summary && (
             <span className="ml-1">
@@ -243,6 +241,13 @@ export default function UnitsListPage() {
             </span>
           )}
         </p>
+        </div>
+        <Button asChild variant="outline">
+          <Link href="/dashboard/units/import">
+            <FileSpreadsheet className="mr-2 h-4 w-4" />
+            Excel importieren
+          </Link>
+        </Button>
       </div>
 
       {/* Summary Cards */}
@@ -656,3 +661,5 @@ export default function UnitsListPage() {
     </div>
   )
 }
+
+

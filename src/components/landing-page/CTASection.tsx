@@ -9,7 +9,7 @@ export default function CTASection() {
         <p className="mt-4">{ctaSection.description}</p>
         <div className="mt-8">
           <Button asChild>
-            <a href="/login">{ctaSection.button}</a>
+            <a href="/hv-registrierung">{ctaSection.button}</a>
           </Button>
         </div>
       </div>

@@ -121,6 +121,61 @@ export async function sendStatusChangeEmail(params: {
   })
 }
 
+
+export async function sendTenantInviteEmail(params: {
+  to: string
+  tenantName: string | null
+  activationCode: string
+  expiresAt: string
+  orgName: string
+  unitName: string
+}): Promise<void> {
+  const { to, tenantName, activationCode, expiresAt, orgName, unitName } = params
+  const greeting = tenantName ? `Hallo ${tenantName},` : 'Sehr geehrte Damen und Herren,'
+  const expiryDate = new Date(expiresAt).toLocaleDateString('de-AT', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+  })
+  const registerUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'https://zerodamage.de'}/register`
+
+  const emailContent = `
+    <h2 style="color:#18181b;font-size:22px;font-weight:700;margin:0 0 8px 0;">
+      Ihre Hausverwaltung hat SchadensMelder eingeführt
+    </h2>
+    <p style="color:#52525b;font-size:14px;line-height:1.6;margin:0 0 24px 0;">${greeting}</p>
+    <p style="color:#52525b;font-size:14px;line-height:1.6;margin:0 0 16px 0;">
+      <strong>${orgName}</strong> nutzt ab sofort <strong>SchadensMelder</strong> —
+      ein digitales Tool, mit dem Sie Schäden in Ihrer Wohnung bequem online melden und den
+      Bearbeitungsstatus jederzeit einsehen können. Kein Telefonanruf, kein Warten.
+    </p>
+    <div style="background-color:#f4f4f5;border-radius:8px;padding:20px 24px;margin-bottom:24px;">
+      <p style="color:#71717a;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;margin:0 0 4px 0;">Ihre Wohnung</p>
+      <p style="color:#18181b;font-size:15px;font-weight:600;margin:0 0 16px 0;">${unitName}</p>
+      <p style="color:#71717a;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;margin:0 0 4px 0;">Ihr persönlicher Aktivierungscode</p>
+      <p style="color:#18181b;font-size:28px;font-weight:700;letter-spacing:0.15em;font-family:monospace;margin:0 0 8px 0;">${activationCode}</p>
+      <p style="color:#71717a;font-size:12px;margin:0;">Gültig bis ${expiryDate}</p>
+    </div>
+    <p style="color:#52525b;font-size:14px;line-height:1.6;margin:0 0 24px 0;">
+      Klicken Sie auf den Button, geben Sie Ihren Code ein und registrieren Sie sich in weniger als 2 Minuten:
+    </p>
+    <a href="${registerUrl}"
+       style="display:inline-block;background-color:#18181b;color:#ffffff;text-decoration:none;padding:12px 28px;border-radius:8px;font-size:14px;font-weight:600;margin-bottom:24px;">
+      Jetzt registrieren →
+    </a>
+    <p style="color:#a1a1aa;font-size:12px;line-height:1.6;margin:0;">
+      Falls Sie Fragen haben, wenden Sie sich bitte direkt an Ihre Hausverwaltung ${orgName}.
+    </p>
+  `
+
+  await resend.emails.send({
+    from: FROM_EMAIL,
+    to,
+    subject: `Einladung zu SchadensMelder – Ihr Aktivierungscode`,
+    html: baseTemplate(emailContent, orgName),
+  })
+}
+
 export async function sendNewCommentEmail(params: {
   to: string
   tenantName: string

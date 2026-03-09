@@ -9,6 +9,7 @@ import {
   ClipboardList,
   Users,
   Home,
+  KeyRound,
   LogOut,
   Loader2,
   Menu,
@@ -52,6 +53,11 @@ const NAV_ITEMS = [
     label: "Einheiten",
     href: "/dashboard/units",
     icon: Home,
+  },
+  {
+    label: "Aktivierungscodes",
+    href: "/dashboard/codes",
+    icon: KeyRound,
   },
 ]
 
