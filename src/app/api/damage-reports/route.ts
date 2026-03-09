@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createServerSupabaseClient } from '@/lib/supabase-server'
+import { createServerSupabaseClient, createAdminClient } from '@/lib/supabase-server'
+import { sendDamageReportNotificationEmail } from '@/lib/email'
 import {
   createDamageReportSchema,
   listDamageReportsSchema,
@@ -210,10 +211,10 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Get user profile (organization_id + unit_id)
+    // Get user profile (organization_id + unit_id + name)
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
-      .select('organization_id, unit_id, role')
+      .select('organization_id, unit_id, role, first_name, last_name')
       .eq('id', user.id)
       .eq('is_deleted', false)
       .single()
@@ -326,6 +327,44 @@ export async function POST(request: NextRequest) {
       .select('id, file_name, mime_type, sort_order')
       .eq('damage_report_id', report.id)
       .order('sort_order')
+
+    // Send email notification to HV admins (fire-and-forget, never block the response)
+    try {
+      const adminClient = createAdminClient()
+      const [{ data: orgAdmins }, { data: org }] = await Promise.all([
+        adminClient
+          .from('profiles')
+          .select('email')
+          .eq('organization_id', profile.organization_id)
+          .in('role', ['hv_admin', 'mitarbeiter'])
+          .eq('is_deleted', false),
+        adminClient
+          .from('organizations')
+          .select('name')
+          .eq('id', profile.organization_id)
+          .single(),
+      ])
+
+      const adminEmails = (orgAdmins || []).map((p: { email: string }) => p.email).filter(Boolean)
+      const tenantName = [profile.first_name, profile.last_name].filter(Boolean).join(' ') || 'Unbekannter Mieter'
+      const unitName = (report.unit as { name?: string } | null)?.name || 'Unbekannte Einheit'
+      const orgName = org?.name || 'Hausverwaltung'
+
+      if (adminEmails.length > 0) {
+        await sendDamageReportNotificationEmail({
+          to: adminEmails,
+          caseNumber,
+          title: parsed.data.title,
+          category: parsed.data.category,
+          urgency: parsed.data.urgency,
+          unitName,
+          tenantName,
+          orgName,
+        })
+      }
+    } catch (emailErr) {
+      console.error('Failed to send damage report notification email:', emailErr)
+    }
 
     return NextResponse.json(
       {

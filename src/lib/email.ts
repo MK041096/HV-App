@@ -176,6 +176,62 @@ export async function sendTenantInviteEmail(params: {
   })
 }
 
+export async function sendDamageReportNotificationEmail(params: {
+  to: string[]
+  caseNumber: string
+  title: string
+  category: string
+  urgency: string
+  unitName: string
+  tenantName: string
+  orgName: string
+}): Promise<void> {
+  const { to, caseNumber, title, category, urgency, unitName, tenantName, orgName } = params
+  if (!to.length) return
+
+  const urgencyLabel: Record<string, string> = { hoch: 'Dringend', mittel: 'Normal', niedrig: 'Niedrig' }
+  const urgencyColor: Record<string, string> = { hoch: '#ef4444', mittel: '#f59e0b', niedrig: '#22c55e' }
+  const urg = urgencyLabel[urgency] || urgency
+  const urgColor = urgencyColor[urgency] || '#18181b'
+  const dashboardUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'https://zerodamage.de'}/dashboard/meldungen`
+
+  const content = `
+    <h2 style="color:#18181b;font-size:22px;font-weight:700;margin:0 0 8px 0;">
+      Neue Schadensmeldung eingegangen
+    </h2>
+    <p style="color:#71717a;font-size:14px;margin:0 0 24px 0;">Eine neue Meldung wurde soeben eingereicht und wartet auf Bearbeitung.</p>
+
+    <div style="background-color:#f4f4f5;border-radius:8px;padding:16px 20px;margin-bottom:16px;">
+      <p style="color:#71717a;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;margin:0 0 4px 0;">Fall-Nr.</p>
+      <p style="color:#18181b;font-size:15px;font-weight:700;margin:0 0 12px 0;">${caseNumber}</p>
+      <p style="color:#71717a;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;margin:0 0 4px 0;">Titel</p>
+      <p style="color:#18181b;font-size:15px;font-weight:600;margin:0 0 12px 0;">${title}</p>
+      <p style="color:#71717a;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;margin:0 0 4px 0;">Kategorie</p>
+      <p style="color:#18181b;font-size:14px;margin:0 0 12px 0;">${category}</p>
+      <p style="color:#71717a;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;margin:0 0 4px 0;">Einheit</p>
+      <p style="color:#18181b;font-size:14px;margin:0 0 12px 0;">${unitName}</p>
+      <p style="color:#71717a;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;margin:0 0 4px 0;">Gemeldet von</p>
+      <p style="color:#18181b;font-size:14px;margin:0 0 12px 0;">${tenantName}</p>
+      <p style="color:#71717a;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;margin:0 0 4px 0;">Dringlichkeit</p>
+      <div style="display:inline-block;background-color:${urgColor}20;border:1px solid ${urgColor}40;border-radius:6px;padding:4px 12px;">
+        <span style="color:${urgColor};font-size:13px;font-weight:600;">${urg}</span>
+      </div>
+    </div>
+
+    <a href="${dashboardUrl}"
+       style="display:inline-block;background-color:#18181b;color:#ffffff;text-decoration:none;padding:12px 24px;border-radius:8px;font-size:14px;font-weight:600;">
+      Jetzt im Dashboard ansehen →
+    </a>
+  `
+
+  await resend.emails.send({
+    from: FROM_EMAIL,
+    to,
+    subject: `[${caseNumber}] Neue Schadensmeldung: ${title}`,
+    html: baseTemplate(content, orgName),
+  })
+}
+
 export async function sendNewCommentEmail(params: {
   to: string
   tenantName: string
