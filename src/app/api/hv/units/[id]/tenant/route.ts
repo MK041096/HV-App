@@ -167,7 +167,7 @@ export async function PUT(
   }
 }
 
-// DELETE /api/hv/units/[id]/tenant - Unassign tenant from a unit
+// DELETE /api/hv/units/[id]/tenant - Remove tenant from unit (soft-delete profile + deactivate codes)
 export async function DELETE(
   _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -209,8 +209,10 @@ export async function DELETE(
       return NextResponse.json({ error: 'Wohneinheit nicht gefunden' }, { status: 404 })
     }
 
-    // Find tenant assigned to this unit
-    const { data: tenant, error: tenantError } = await supabase
+    let tenantName = ''
+
+    // Soft-delete active tenant if one exists
+    const { data: tenant } = await supabase
       .from('profiles')
       .select('id, first_name, last_name')
       .eq('unit_id', unitId)
@@ -218,46 +220,43 @@ export async function DELETE(
       .eq('is_deleted', false)
       .single()
 
-    if (tenantError || !tenant) {
-      return NextResponse.json(
-        { error: 'Kein aktiver Mieter in dieser Wohneinheit gefunden' },
-        { status: 404 }
-      )
+    if (tenant) {
+      tenantName = [tenant.first_name, tenant.last_name].filter(Boolean).join(' ')
+      await supabase
+        .from('profiles')
+        .update({ is_deleted: true, unit_id: null, updated_at: new Date().toISOString() })
+        .eq('id', tenant.id)
     }
 
-    // Remove tenant from unit (set unit_id to null)
-    const { error: updateError } = await supabase
-      .from('profiles')
-      .update({
-        unit_id: null,
-        updated_at: new Date().toISOString(),
-      })
-      .eq('id', tenant.id)
+    // Deactivate all pending activation codes for this unit
+    await supabase
+      .from('activation_codes')
+      .update({ status: 'deactivated', updated_at: new Date().toISOString() })
+      .eq('unit_id', unitId)
+      .eq('status', 'pending')
 
-    if (updateError) {
-      console.error('Error unassigning tenant:', updateError)
-      return NextResponse.json(
-        { error: 'Fehler beim Entfernen des Mieters aus der Wohneinheit' },
-        { status: 500 }
-      )
-    }
+    // Soft-delete the unit itself
+    await supabase
+      .from('units')
+      .update({ is_deleted: true, updated_at: new Date().toISOString() })
+      .eq('id', unitId)
 
     // Audit log
     await supabase.from('audit_logs').insert({
       user_id: user.id,
       organization_id: hvProfile.organization_id,
-      action: 'tenant_unassigned_from_unit',
+      action: 'tenant_removed_from_unit',
       entity_type: 'unit',
       entity_id: unitId,
       details: {
-        tenant_id: tenant.id,
-        tenant_name: [tenant.first_name, tenant.last_name].filter(Boolean).join(' '),
+        tenant_id: tenant?.id || null,
+        tenant_name: tenantName || null,
         unit_name: unit.name,
       },
     })
 
     return NextResponse.json({
-      message: `${[tenant.first_name, tenant.last_name].filter(Boolean).join(' ')} wurde aus der Einheit "${unit.name}" entfernt.`,
+      message: `Einheit "${unit.name}" wurde gelöscht.`,
     })
   } catch (err) {
     console.error('Unexpected error:', err)

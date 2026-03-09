@@ -98,6 +98,9 @@ export default function RegisterPage() {
   const [codeInfo, setCodeInfo] = useState<{
     organization_name: string | null
     unit_name: string | null
+    invited_first_name: string | null
+    invited_last_name: string | null
+    invited_email: string | null
   } | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
@@ -145,6 +148,10 @@ export default function RegisterPage() {
 
       setValidatedCode(values.code)
       setCodeInfo(json.data)
+      // Pre-fill form with invited data if available
+      if (json.data.invited_first_name) registerForm.setValue('first_name', json.data.invited_first_name)
+      if (json.data.invited_last_name) registerForm.setValue('last_name', json.data.invited_last_name)
+      if (json.data.invited_email) registerForm.setValue('email', json.data.invited_email)
       setStep(2)
     } catch {
       setError("Verbindungsfehler. Bitte versuchen Sie es später erneut.")

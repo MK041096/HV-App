@@ -54,6 +54,9 @@ export async function POST(request: NextRequest) {
         id,
         status,
         expires_at,
+        invited_first_name,
+        invited_last_name,
+        invited_email,
         organization:organizations(name),
         unit:units(name, address, floor)
       `)
@@ -119,6 +122,9 @@ export async function POST(request: NextRequest) {
         valid: true,
         organization_name: org?.name || null,
         unit_name: unit?.name || null,
+        invited_first_name: (codeData as any).invited_first_name || null,
+        invited_last_name: (codeData as any).invited_last_name || null,
+        invited_email: (codeData as any).invited_email || null,
       },
     })
   } catch (err) {

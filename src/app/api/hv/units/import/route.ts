@@ -7,22 +7,88 @@ import { sendTenantInviteEmail } from '@/lib/email'
 // Max 5MB file
 const MAX_FILE_SIZE = 5 * 1024 * 1024
 
-// Expected column header aliases (case-insensitive)
-const COL_UNIT = ['einheit', 'wohnung', 'wohneinheit', 'unit', 'name', 'bezeichnung']
-const COL_ADDRESS = ['adresse', 'address', 'strasse', 'straße', 'anschrift']
-const COL_FLOOR = ['stockwerk', 'etage', 'floor', 'geschoss', 'stiege']
-const COL_EMAIL = ['email', 'e-mail', 'mieter email', 'mieter e-mail', 'tenant email', 'kontakt email']
-const COL_FIRST_NAME = ['vorname', 'first name', 'firstname', 'mieter vorname']
-const COL_LAST_NAME = ['nachname', 'last name', 'lastname', 'familienname', 'mieter nachname']
+// Expected column header aliases (case-insensitive, very flexible)
+const COL_UNIT = [
+  'einheit', 'wohnung', 'wohneinheit', 'unit', 'name', 'bezeichnung',
+  'objekt', 'liegenschaft', 'immobilie', 'apartment', 'wohnungsnummer',
+  'einheitsnummer', 'wohnungs-nr', 'wohnungs nr', 'nr', 'nummer',
+  'top', 'top-nr', 'top nr', 'türnummer', 'türnr',
+]
+const COL_ADDRESS = [
+  'adresse', 'address', 'strasse', 'straße', 'anschrift',
+  'wohnadresse', 'wohnort', 'standort', 'lage', 'ort',
+  'straße und hausnummer', 'strassenadresse', 'objektadresse',
+  'full address', 'vollständige adresse',
+]
+const COL_FLOOR = [
+  'stockwerk', 'etage', 'floor', 'geschoss', 'stiege',
+  'ebene', 'stock', 'og', 'eg', 'ug', 'dg',
+]
+const COL_EMAIL = [
+  'email', 'e-mail', 'mail', 'e mail',
+  'mieter email', 'mieter e-mail', 'mieter mail',
+  'tenant email', 'kontakt email', 'kontaktdaten',
+  'kontakt', 'emailadresse', 'e-mail adresse', 'mailadresse',
+  'email adresse', 'electronic mail',
+]
+const COL_FIRST_NAME = [
+  'vorname', 'first name', 'firstname', 'mieter vorname',
+  'bewohner vorname', 'vname',
+]
+const COL_LAST_NAME = [
+  'nachname', 'last name', 'lastname', 'familienname', 'mieter nachname',
+  'bewohner nachname', 'zuname', 'nname',
+]
+// Full name column: split into first/last automatically
+const COL_FULL_NAME = [
+  'mieter', 'tenant', 'bewohner', 'mieter name', 'bewohner name',
+  'vollständiger name', 'full name', 'fullname', 'name mieter',
+  'mietername', 'bewohnername', 'person', 'mieter/bewohner',
+  'inhaber', 'nutzer', 'kunde',
+]
 
 function normalize(s: string): string {
   return s.toLowerCase().trim()
 }
 
 function findCol(headers: string[], aliases: string[]): number {
-  return headers.findIndex((h) => aliases.includes(normalize(h)))
+  // Exact match first
+  const exact = headers.findIndex((h) => aliases.includes(normalize(h)))
+  if (exact !== -1) return exact
+  // Partial match: header contains one of the aliases
+  return headers.findIndex((h) => {
+    const n = normalize(h)
+    return aliases.some((a) => n.includes(a) || a.includes(n))
+  })
 }
 
+// Content-based column detection (no complex regex - linter-safe)
+function hasAtSign(v: string): boolean { return v.includes('@') && v.includes('.') && !v.includes(' ') }
+function hasPostalCode(v: string): boolean { return /[0-9]{4}/.test(v) }
+function hasStreetWord(v: string): boolean { const lv = v.toLowerCase(); return ['straße','gasse','weg','platz','ring','allee','str.','gasse'].some(w => lv.includes(w)) }
+function looksLikePersonName(v: string): boolean { const parts = v.trim().split(' '); return parts.length >= 2 && parts.length <= 4 && !v.includes('@') && !/[0-9]/.test(v) }
+
+function colScore(rows: string[][], colIndex: number, check: (v: string) => boolean): number {
+  const vals = rows.slice(1, Math.min(11, rows.length)).map(r => r[colIndex]?.toString().trim() || '').filter(Boolean)
+  return vals.length ? vals.filter(check).length / vals.length : 0
+}
+
+function findColByContent(rows: string[][], headers: string[], type: string, assigned: Set<number>): number {
+  const checks: Record<string, (v: string) => boolean> = {
+    email: hasAtSign,
+    address: (v) => hasPostalCode(v) || hasStreetWord(v),
+    name: looksLikePersonName,
+    unit: (v) => v.length <= 40 && !hasAtSign(v) && !hasPostalCode(v),
+  }
+  const check = checks[type]
+  let best = -1; let bestScore = 0.5
+  for (let i = 0; i < headers.length; i++) {
+    if (assigned.has(i)) continue
+    const s = colScore(rows, i, check)
+    if (s > bestScore) { bestScore = s; best = i }
+  }
+  return best
+}
 function generateActivationCode(): string {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
   const bytes = crypto.randomBytes(8)
@@ -131,22 +197,28 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Detect header row
+    // Auto-detect columns: header matching first, then content analysis as fallback
     const headers = (rows[0] || []).map(String)
-    const colUnit = findCol(headers, COL_UNIT)
-    const colAddress = findCol(headers, COL_ADDRESS)
-    const colFloor = findCol(headers, COL_FLOOR)
-    const colEmail = findCol(headers, COL_EMAIL)
-    const colFirstName = findCol(headers, COL_FIRST_NAME)
-    const colLastName = findCol(headers, COL_LAST_NAME)
+    const assigned = new Set<number>()
+
+    function detect(aliases: string[], contentType?: string): number {
+      let idx = findCol(headers, aliases)
+      if (idx === -1 && contentType) idx = findColByContent(rows, headers, contentType, assigned)
+      if (idx !== -1) assigned.add(idx)
+      return idx
+    }
+
+    const colUnit      = detect(COL_UNIT, 'unit')
+    const colAddress   = detect(COL_ADDRESS, 'address')
+    const colFloor     = detect(COL_FLOOR, undefined)
+    const colEmail     = detect(COL_EMAIL, 'email')
+    const colFirstName = detect(COL_FIRST_NAME, undefined)
+    const colLastName  = detect(COL_LAST_NAME, undefined)
+    const colFullName  = detect(COL_FULL_NAME, 'name')
 
     if (colUnit === -1) {
       return NextResponse.json(
-        {
-          error:
-            'Pflichtespalte "Einheit" nicht gefunden. Bitte verwenden Sie die Vorlage. Erkannte Spalten: ' +
-            headers.join(', '),
-        },
+        { error: 'Konnte keine Einheiten-Spalte erkennen. Erkannte Spalten: ' + headers.join(', ') },
         { status: 400 }
       )
     }
@@ -158,14 +230,31 @@ export async function POST(request: NextRequest) {
       const unitName = row[colUnit]?.toString().trim()
       if (!unitName) continue // skip empty rows
 
+      // Parse name: prefer separate Vorname/Nachname columns; fall back to full-name column
+      let firstName: string | null = colFirstName >= 0 ? row[colFirstName]?.toString().trim() || null : null
+      let lastName: string | null = colLastName >= 0 ? row[colLastName]?.toString().trim() || null : null
+      if (!firstName && !lastName && colFullName >= 0) {
+        const fullName = row[colFullName]?.toString().trim() || null
+        if (fullName) {
+          const parts = fullName.split(' ')
+          if (parts.length >= 2) {
+            // Austrian convention: Nachname Vorname (e.g. "Kracher Mathias")
+            lastName = parts[0]
+            firstName = parts.slice(1).join(' ')
+          } else {
+            lastName = fullName
+          }
+        }
+      }
+
       importRows.push({
         rowIndex: i + 1,
         unitName,
         address: colAddress >= 0 ? row[colAddress]?.toString().trim() || null : null,
         floor: colFloor >= 0 ? row[colFloor]?.toString().trim() || null : null,
         email: colEmail >= 0 ? row[colEmail]?.toString().trim().toLowerCase() || null : null,
-        firstName: colFirstName >= 0 ? row[colFirstName]?.toString().trim() || null : null,
-        lastName: colLastName >= 0 ? row[colLastName]?.toString().trim() || null : null,
+        firstName,
+        lastName,
       })
     }
 
@@ -273,6 +362,9 @@ export async function POST(request: NextRequest) {
           status: 'pending',
           expires_at: expiresAtStr,
           created_by: user.id,
+          invited_email: row.email || null,
+          invited_first_name: row.firstName || null,
+          invited_last_name: row.lastName || null,
         })
         .select('id')
         .single()

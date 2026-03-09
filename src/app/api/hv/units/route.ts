@@ -143,11 +143,11 @@ export async function GET(request: NextRequest) {
     }
 
     // Batch fetch: pending activation codes for these units
-    let pendingCodesByUnit: Record<string, { id: string; created_at: string; expires_at: string }> = {}
+    let pendingCodesByUnit: Record<string, { id: string; code: string; invited_first_name: string | null; invited_last_name: string | null; invited_email: string | null; created_at: string; expires_at: string }> = {}
     if (unitIds.length > 0) {
       const { data: codes } = await supabase
         .from('activation_codes')
-        .select('id, unit_id, created_at, expires_at')
+        .select('id, unit_id, code, invited_first_name, invited_last_name, invited_email, created_at, expires_at')
         .in('unit_id', unitIds)
         .eq('status', 'pending')
         .order('created_at', { ascending: false })
@@ -158,6 +158,10 @@ export async function GET(request: NextRequest) {
           if (!pendingCodesByUnit[c.unit_id]) {
             pendingCodesByUnit[c.unit_id] = {
               id: c.id,
+              code: c.code,
+              invited_first_name: (c as any).invited_first_name ?? null,
+              invited_last_name: (c as any).invited_last_name ?? null,
+              invited_email: (c as any).invited_email ?? null,
               created_at: c.created_at,
               expires_at: c.expires_at,
             }
