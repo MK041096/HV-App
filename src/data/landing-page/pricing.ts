@@ -8,23 +8,29 @@ export interface PricingTier {
 
 export const pricing: PricingTier[] = [
   {
-    id: "basic",
-    name: "Startpaket",
+    id: "monthly",
+    name: "Monatlich",
     price: "1,00 € / Einheit / Monat",
     features: [
       "Mieterportal & HV-Dashboard",
       "Registrierung per Aktivierungscode",
-      "Schadensmeldung & Status-Tracking"
+      "Schadensmeldung & Status-Tracking",
+      "E-Mail-Benachrichtigungen",
+      "30 Tage Geld-zurück-Garantie",
+      "Onboarding & Einrichtung: 699 € einmalig"
     ],
-    highlighted: true
+    highlighted: false
   },
   {
-    id: "pro",
-    name: "Pro (1 Jahr gebucht)",
+    id: "yearly",
+    name: "Jährlich",
     price: "0,85 € / Einheit / Monat",
     features: [
-      "Alle Basisfunktionen",
-      "Rabattierter Jahrespreis"
-    ]
+      "Alle Funktionen des Monatspakets",
+      "15% Rabatt gegenüber monatlicher Zahlung",
+      "30 Tage Geld-zurück-Garantie",
+      "Onboarding & Einrichtung: 699 € einmalig"
+    ],
+    highlighted: true
   }
 ]
