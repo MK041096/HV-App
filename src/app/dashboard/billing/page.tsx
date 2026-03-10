@@ -73,7 +73,7 @@ export default function BillingPage() {
   const [loading, setLoading] = useState(true)
   const [actionLoading, setActionLoading] = useState(false)
   const [plan, setPlan] = useState<'monthly' | 'yearly'>('monthly')
-  const isFounder = true
+  const isFounder = org?.is_founder ?? false
 
   const successParam = searchParams.get('success')
   const canceledParam = searchParams.get('canceled')
