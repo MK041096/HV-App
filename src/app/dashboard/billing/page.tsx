@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
+import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { createClient } from '@/lib/supabase'
 import {
@@ -73,6 +74,7 @@ export default function BillingPage() {
   const [loading, setLoading] = useState(true)
   const [actionLoading, setActionLoading] = useState(false)
   const [plan, setPlan] = useState<'monthly' | 'yearly'>('monthly')
+  const [customUnitCount, setCustomUnitCount] = useState<number>(1)
   const isFounder = org?.is_founder ?? false
 
   const successParam = searchParams.get('success')
@@ -106,7 +108,7 @@ export default function BillingPage() {
       const res = await fetch('/api/stripe/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ plan, isFounder }),
+        body: JSON.stringify({ plan, isFounder, unitCount }),
       })
       const data = await res.json()
       if (data.url) window.location.href = data.url
@@ -292,7 +294,19 @@ export default function BillingPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
-                <RadioGroup value={plan} onValueChange={(v) => setPlan(v as 'monthly' | 'yearly')}>
+                <div className="space-y-2">
+                <label className="text-sm font-medium">Anzahl Einheiten (Wohnungen)</label>
+                <Input
+                  type="number"
+                  min={1}
+                  max={1499}
+                  value={customUnitCount}
+                  onChange={(e) => setCustomUnitCount(Math.max(1, parseInt(e.target.value) || 1))}
+                  className="w-32"
+                />
+                <p className="text-xs text-muted-foreground">Anzahl Ihrer verwalteten Wohneinheiten</p>
+              </div>
+              <RadioGroup value={plan} onValueChange={(v) => setPlan(v as 'monthly' | 'yearly')}>
                   <div
                     className={`flex items-start space-x-3 rounded-lg border p-4 cursor-pointer transition-colors ${plan === 'monthly' ? 'border-primary bg-primary/5' : ''}`}
                     onClick={() => setPlan('monthly')}

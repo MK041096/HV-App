@@ -6,6 +6,7 @@ import { z } from 'zod'
 const checkoutSchema = z.object({
   plan: z.enum(['monthly', 'yearly']),
   isFounder: z.boolean().optional().default(false),
+  unitCount: z.number().int().min(1).max(9999).optional(),
 })
 
 // POST /api/stripe/checkout — Create a Stripe Checkout Session
@@ -36,7 +37,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Ungültige Eingabe' }, { status: 400 })
     }
 
-    const { plan, isFounder } = parsed.data
+    const { plan, isFounder, unitCount: requestedUnitCount } = parsed.data
 
     // Get organization details
     const adminClient = createAdminClient()
@@ -74,7 +75,10 @@ export async function POST(request: NextRequest) {
     }
 
     // Choose price based on plan and founder status
-    const unitCount = Math.max(org.einheiten_anzahl || 1, 1)
+    const unitCount = requestedUnitCount ?? Math.max(org.einheiten_anzahl || 1, 1)
+    if (requestedUnitCount && requestedUnitCount !== org.einheiten_anzahl) {
+      await adminClient.from('organizations').update({ einheiten_anzahl: requestedUnitCount }).eq('id', org.id)
+    }
     let priceId: string
     if (plan === 'yearly') {
       priceId = isFounder ? STRIPE_PRICES.founderYearly : STRIPE_PRICES.yearly
