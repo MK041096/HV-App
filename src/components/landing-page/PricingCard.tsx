@@ -19,7 +19,7 @@ export default function PricingCard({ name, price, features, highlighted }: Pric
       </ul>
       <div className="mt-6">
         <Button asChild className="w-full">
-          <a href="/registrieren">Jetzt starten</a>
+          <a href="/hv-registrierung">Jetzt starten</a>
         </Button>
       </div>
     </div>
