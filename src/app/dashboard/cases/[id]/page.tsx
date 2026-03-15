@@ -23,6 +23,8 @@ import {
   Save,
   Trash2,
   RefreshCw,
+  Sparkles,
+  FileSearch,
 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
@@ -218,6 +220,12 @@ export default function CaseDetailPage({
   // Photo viewer
   const [selectedPhoto, setSelectedPhoto] = useState<Photo | null>(null)
 
+  // KI-Analyse state
+  const [kiResult, setKiResult] = useState<string | null>(null)
+  const [kiLeaseFound, setKiLeaseFound] = useState<boolean | null>(null)
+  const [isRunningKi, setIsRunningKi] = useState(false)
+  const [kiError, setKiError] = useState<string | null>(null)
+
   // Fetch case
   async function fetchCase() {
     setIsLoading(true)
@@ -242,6 +250,11 @@ export default function CaseDetailPage({
       setAppointmentDate(
         data.scheduled_appointment ? toDateTimeLocal(data.scheduled_appointment) : ""
       )
+
+      // Load existing KI analysis if available
+      if ((data as CaseDetail & { ki_analyse_result?: string }).ki_analyse_result) {
+        setKiResult((data as CaseDetail & { ki_analyse_result?: string }).ki_analyse_result!)
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unbekannter Fehler")
     } finally {
@@ -961,6 +974,98 @@ export default function CaseDetailPage({
                   </Button>
                 )}
               </div>
+            </CardContent>
+          </Card>
+
+          {/* KI-Analyse */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base flex items-center gap-2">
+                <Sparkles className="h-4 w-4 text-purple-500" />
+                KI-Analyse
+              </CardTitle>
+              <p className="text-xs text-muted-foreground">
+                Mietrecht & Verantwortlichkeit automatisch prüfen
+              </p>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {kiResult ? (
+                <div className="space-y-3">
+                  <div className="rounded-lg bg-purple-50 border border-purple-200 p-3 text-sm whitespace-pre-wrap text-purple-900 max-h-64 overflow-y-auto">
+                    {kiResult}
+                  </div>
+                  {kiLeaseFound === false && (
+                    <p className="text-xs text-amber-600 flex items-center gap-1">
+                      <FileSearch className="h-3.5 w-3.5" />
+                      Kein Mietvertrag hinterlegt — Analyse nach MRG
+                    </p>
+                  )}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full"
+                    disabled={isRunningKi}
+                    onClick={async () => {
+                      setIsRunningKi(true)
+                      setKiError(null)
+                      try {
+                        const res = await fetch(`/api/hv/cases/${id}/ki-analyse`, { method: "POST" })
+                        const data = await res.json()
+                        if (!res.ok) throw new Error(data.error)
+                        setKiResult(data.result)
+                        setKiLeaseFound(data.lease_found)
+                      } catch (err) {
+                        setKiError(err instanceof Error ? err.message : 'Fehler')
+                      } finally {
+                        setIsRunningKi(false)
+                      }
+                    }}
+                  >
+                    {isRunningKi ? <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" /> : <RefreshCw className="mr-2 h-3.5 w-3.5" />}
+                    Neu analysieren
+                  </Button>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {kiError && (
+                    <p className="text-xs text-destructive">{kiError}</p>
+                  )}
+                  <Button
+                    className="w-full"
+                    disabled={isRunningKi}
+                    onClick={async () => {
+                      setIsRunningKi(true)
+                      setKiError(null)
+                      try {
+                        const res = await fetch(`/api/hv/cases/${id}/ki-analyse`, { method: "POST" })
+                        const data = await res.json()
+                        if (!res.ok) throw new Error(data.error)
+                        setKiResult(data.result)
+                        setKiLeaseFound(data.lease_found)
+                      } catch (err) {
+                        setKiError(err instanceof Error ? err.message : 'Fehler')
+                      } finally {
+                        setIsRunningKi(false)
+                      }
+                    }}
+                  >
+                    {isRunningKi ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Analysiere...
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles className="mr-2 h-4 w-4" />
+                        KI-Analyse starten
+                      </>
+                    )}
+                  </Button>
+                  <p className="text-[11px] text-muted-foreground text-center">
+                    Prüft Mietvertrag & österreichisches MRG
+                  </p>
+                </div>
+              )}
             </CardContent>
           </Card>
 
