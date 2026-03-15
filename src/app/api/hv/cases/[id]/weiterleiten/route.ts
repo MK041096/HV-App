@@ -47,6 +47,14 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
     const appointmentDate = scheduled_appointment || report.preferred_appointment
 
+    // Load current status
+    const { data: currentStatusData } = await supabase
+      .from('damage_reports')
+      .select('status')
+      .eq('id', id)
+      .eq('organization_id', profile.organization_id)
+      .single()
+
     // Update damage report
     await supabase.from('damage_reports').update({
       status: 'warte_auf_handwerker',
@@ -57,6 +65,15 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       scheduled_appointment: appointmentDate,
       updated_at: new Date().toISOString(),
     }).eq('id', id)
+
+    // Save to status history so portal shows who was assigned
+    await supabase.from('damage_report_status_history').insert({
+      damage_report_id: id,
+      old_status: currentStatusData?.status ?? null,
+      new_status: 'warte_auf_handwerker',
+      note: `Weitergeleitet an ${contractor.company} (${contractor.name})`,
+      changed_by: user.id,
+    })
 
     // Create appointment token
     const { data: tokenData } = await adminClient.from('appointment_tokens').insert({

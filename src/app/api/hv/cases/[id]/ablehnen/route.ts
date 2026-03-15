@@ -26,7 +26,14 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       return NextResponse.json({ error: 'Keine Berechtigung' }, { status: 403 })
     }
 
-    // Update status
+    // Load current status + update
+    const { data: currentReport } = await supabase
+      .from('damage_reports')
+      .select('status')
+      .eq('id', id)
+      .eq('organization_id', profile.organization_id)
+      .single()
+
     const { data: report, error: updateError } = await supabase
       .from('damage_reports')
       .update({ status: 'abgelehnt', updated_at: new Date().toISOString() })
@@ -38,6 +45,15 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     if (updateError || !report) {
       return NextResponse.json({ error: 'Fall nicht gefunden' }, { status: 404 })
     }
+
+    // Save to status history so begründung appears in portal
+    await supabase.from('damage_report_status_history').insert({
+      damage_report_id: id,
+      old_status: currentReport?.status ?? null,
+      new_status: 'abgelehnt',
+      note: begruendung.trim(),
+      changed_by: user.id,
+    })
 
     // Fire-and-forget: send rejection email to tenant
     ;(async () => {

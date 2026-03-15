@@ -66,6 +66,13 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     ? new Date(finalDate).toLocaleDateString('de-AT', { weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })
     : 'Termin folgt'
 
+  // Load current status for history
+  const { data: currentDR } = await adminClient
+    .from('damage_reports')
+    .select('status')
+    .eq('id', tokenData.damage_report_id)
+    .single()
+
   // Update token
   await adminClient.from('appointment_tokens').update({
     status: isRescheduled ? 'rescheduled' : 'confirmed',
@@ -79,6 +86,17 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     scheduled_appointment: finalDate,
     updated_at: new Date().toISOString(),
   }).eq('id', tokenData.damage_report_id)
+
+  // Save to status history so portal shows confirmed date
+  await adminClient.from('damage_report_status_history').insert({
+    damage_report_id: tokenData.damage_report_id,
+    old_status: currentDR?.status ?? null,
+    new_status: 'termin_vereinbart',
+    note: isRescheduled
+      ? `Werkstatt schlägt neuen Termin vor: ${finalDateLabel}`
+      : `Termin bestätigt: ${finalDateLabel}`,
+    changed_by: null,
+  })
 
   // Get HV admin emails
   const { data: hvProfiles } = await adminClient
