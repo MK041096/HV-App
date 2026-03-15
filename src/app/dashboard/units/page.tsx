@@ -7,7 +7,7 @@ import {
   Search, Filter, ArrowUpDown, ArrowUp, ArrowDown,
   ChevronLeft, ChevronRight, Loader2, Home, X,
   UserCheck, Clock, CircleDashed, ClipboardList, MapPin,
-  Users, FileSpreadsheet, Copy, Check, Mail, AlertTriangle, Trash2,
+  Users, FileSpreadsheet, Copy, Check, Mail, AlertTriangle, Trash2, FileText,
 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
@@ -472,6 +472,7 @@ export default function UnitsListPage() {
                     </TableCell>
                     <TableCell>
                       <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive" onClick={(e) => { e.stopPropagation(); setDeleteUnit(unit); setDeleteOpen(true) }} title="Einheit löschen"><Trash2 className="h-4 w-4" /></Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 )
