@@ -4,9 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { createClient } from '@/lib/supabase'
 import {
@@ -57,25 +55,29 @@ function formatBytes(bytes: number) {
   return `${(bytes / 1024 / 1024).toFixed(1)} MB`
 }
 
+function buildDocName(type: string, unit: Unit | null): string {
+  const label = DOC_TYPE_LABELS[type] || 'Dokument'
+  return unit ? `${label} – ${unit.name}` : label
+}
+
 export default function DokumentePage() {
+  const searchParams = useSearchParams()
+  const unitFromUrl = searchParams.get('unit_id')
+
   const [documents, setDocuments] = useState<Document[]>([])
   const [units, setUnits] = useState<Unit[]>([])
   const [loading, setLoading] = useState(true)
   const [uploading, setUploading] = useState(false)
   const [showForm, setShowForm] = useState(false)
-  const [filterUnit, setFilterUnit] = useState<string>('all')
+  const [filterUnit, setFilterUnit] = useState<string>(unitFromUrl || 'all')
 
   // Upload form state
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
-  const [docName, setDocName] = useState('')
   const [docType, setDocType] = useState('mietvertrag')
-  const [docUnit, setDocUnit] = useState('none')
+  const [docUnit, setDocUnit] = useState<string>(unitFromUrl || 'none')
   const fileInputRef = useRef<HTMLInputElement>(null)
-  const searchParams = useSearchParams()
 
   useEffect(() => {
-    const unitFromUrl = searchParams.get('unit_id')
-    if (unitFromUrl) setFilterUnit(unitFromUrl)
     loadData()
   }, [])
 
@@ -93,7 +95,7 @@ export default function DokumentePage() {
     if (!profile) return
 
     const [docsRes, unitsRes] = await Promise.all([
-      fetch('/api/documents'),
+      fetch(unitFromUrl ? `/api/documents?unit_id=${unitFromUrl}` : '/api/documents'),
       supabase.from('units').select('id, name').eq('organization_id', profile.organization_id).eq('is_deleted', false).order('name'),
     ])
 
@@ -114,10 +116,16 @@ export default function DokumentePage() {
     if (!loading) loadDocuments()
   }, [filterUnit])
 
+  const selectedUnit = units.find(u => u.id === (unitFromUrl || docUnit)) || null
+
   async function handleUpload() {
-    if (!selectedFile || !docName.trim()) return
+    if (!selectedFile) return
     setUploading(true)
     try {
+      const unitForUpload = unitFromUrl || (docUnit !== 'none' ? docUnit : null)
+      const unitObj = units.find(u => u.id === unitForUpload) || null
+      const docName = buildDocName(docType, unitObj)
+
       // 1. Upload file
       const formData = new FormData()
       formData.append('file', selectedFile)
@@ -130,21 +138,20 @@ export default function DokumentePage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          name: docName.trim(),
+          name: docName,
           file_path: uploadData.file_path,
           file_size: uploadData.file_size,
           mime_type: uploadData.mime_type,
           document_type: docType,
-          unit_id: docUnit !== 'none' ? docUnit : null,
+          unit_id: unitForUpload,
         }),
       })
       if (!metaRes.ok) { alert('Fehler beim Speichern'); return }
 
       // Reset form
       setSelectedFile(null)
-      setDocName('')
       setDocType('mietvertrag')
-      setDocUnit('none')
+      if (!unitFromUrl) setDocUnit('none')
       setShowForm(false)
       if (fileInputRef.current) fileInputRef.current.value = ''
       await loadDocuments()
@@ -177,12 +184,18 @@ export default function DokumentePage() {
     )
   }
 
+  const contextUnit = unitFromUrl ? units.find(u => u.id === unitFromUrl) : null
+
   return (
     <div className="max-w-4xl mx-auto space-y-6 p-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold">Dokumente</h1>
-          <p className="text-muted-foreground text-sm mt-1">Mietverträge, Hausordnungen und weitere Dokumente</p>
+          {contextUnit ? (
+            <p className="text-muted-foreground text-sm mt-1">Einheit: <span className="font-medium text-foreground">{contextUnit.name}</span></p>
+          ) : (
+            <p className="text-muted-foreground text-sm mt-1">Mietverträge, Hausordnungen und weitere Dokumente</p>
+          )}
         </div>
         <Button onClick={() => setShowForm(!showForm)}>
           <Plus className="h-4 w-4 mr-2" /> Dokument hochladen
@@ -194,19 +207,12 @@ export default function DokumentePage() {
         <Card className="border-primary/30">
           <CardHeader>
             <CardTitle className="text-base flex items-center gap-2">
-              <Upload className="h-4 w-4" /> Neues Dokument
+              <Upload className="h-4 w-4" />
+              {contextUnit ? `Dokument für ${contextUnit.name}` : 'Neues Dokument'}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Dokumentenname *</Label>
-                <Input
-                  placeholder="z.B. Mietvertrag Mustermann"
-                  value={docName}
-                  onChange={e => setDocName(e.target.value)}
-                />
-              </div>
               <div className="space-y-2">
                 <Label>Dokumententyp</Label>
                 <Select value={docType} onValueChange={setDocType}>
@@ -220,37 +226,44 @@ export default function DokumentePage() {
                   </SelectContent>
                 </Select>
               </div>
-              <div className="space-y-2">
-                <Label>Einheit (optional)</Label>
-                <Select value={docUnit} onValueChange={setDocUnit}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Keine Einheit" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">Allgemein (keine Einheit)</SelectItem>
-                    {units.map(u => (
-                      <SelectItem key={u.id} value={u.id}>{u.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label>Datei * (PDF, JPG, PNG — max. 20 MB)</Label>
+
+              {!unitFromUrl && (
+                <div className="space-y-2">
+                  <Label>Einheit (optional)</Label>
+                  <Select value={docUnit} onValueChange={setDocUnit}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Keine Einheit" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">Allgemein (keine Einheit)</SelectItem>
+                      {units.map(u => (
+                        <SelectItem key={u.id} value={u.id}>{u.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+
+              <div className={`space-y-2 ${!unitFromUrl ? '' : 'md:col-span-1'}`}>
+                <Label>Datei (PDF, JPG, PNG — max. 20 MB)</Label>
                 <input
                   ref={fileInputRef}
                   type="file"
                   accept=".pdf,.jpg,.jpeg,.png"
-                  onChange={e => {
-                    const f = e.target.files?.[0] || null
-                    setSelectedFile(f)
-                    if (f && !docName) setDocName(f.name.replace(/\.[^.]+$/, ''))
-                  }}
+                  onChange={e => setSelectedFile(e.target.files?.[0] || null)}
                   className="block w-full text-sm text-muted-foreground file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-primary file:text-primary-foreground hover:file:bg-primary/90 cursor-pointer"
                 />
               </div>
             </div>
+
+            {selectedFile && (
+              <p className="text-xs text-muted-foreground">
+                Name: <span className="font-medium">{buildDocName(docType, contextUnit || (docUnit !== 'none' ? units.find(u => u.id === docUnit) || null : null))}</span>
+              </p>
+            )}
+
             <div className="flex gap-2">
-              <Button onClick={handleUpload} disabled={uploading || !selectedFile || !docName.trim()}>
+              <Button onClick={handleUpload} disabled={uploading || !selectedFile}>
                 {uploading ? 'Wird hochgeladen...' : 'Hochladen'}
               </Button>
               <Button variant="outline" onClick={() => setShowForm(false)}>Abbrechen</Button>
@@ -259,21 +272,23 @@ export default function DokumentePage() {
         </Card>
       )}
 
-      {/* Filter */}
-      <div className="flex items-center gap-3">
-        <Label className="text-sm">Filtern nach Einheit:</Label>
-        <Select value={filterUnit} onValueChange={setFilterUnit}>
-          <SelectTrigger className="w-48">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Alle Dokumente</SelectItem>
-            {units.map(u => (
-              <SelectItem key={u.id} value={u.id}>{u.name}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
+      {/* Filter — nur wenn kein Unit aus URL */}
+      {!unitFromUrl && (
+        <div className="flex items-center gap-3">
+          <Label className="text-sm">Filtern nach Einheit:</Label>
+          <Select value={filterUnit} onValueChange={setFilterUnit}>
+            <SelectTrigger className="w-48">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Alle Dokumente</SelectItem>
+              {units.map(u => (
+                <SelectItem key={u.id} value={u.id}>{u.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      )}
 
       {/* Document List */}
       {documents.length === 0 ? (
@@ -281,7 +296,12 @@ export default function DokumentePage() {
           <CardContent className="flex flex-col items-center justify-center py-16 text-center">
             <FileText className="h-12 w-12 text-muted-foreground/40 mb-4" />
             <p className="text-muted-foreground font-medium">Noch keine Dokumente</p>
-            <p className="text-sm text-muted-foreground mt-1">Laden Sie Mietverträge und andere Dokumente hoch</p>
+            <p className="text-sm text-muted-foreground mt-1">
+              {contextUnit ? `Laden Sie Dokumente für ${contextUnit.name} hoch` : 'Laden Sie Mietverträge und andere Dokumente hoch'}
+            </p>
+            <Button className="mt-4" onClick={() => setShowForm(true)}>
+              <Plus className="h-4 w-4 mr-2" /> Jetzt hochladen
+            </Button>
           </CardContent>
         </Card>
       ) : (
@@ -297,7 +317,7 @@ export default function DokumentePage() {
                       <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${DOC_TYPE_COLORS[doc.document_type] || DOC_TYPE_COLORS.sonstiges}`}>
                         {DOC_TYPE_LABELS[doc.document_type] || doc.document_type}
                       </span>
-                      {doc.unit && (
+                      {doc.unit && !contextUnit && (
                         <span className="text-xs text-muted-foreground">{doc.unit.name}</span>
                       )}
                       <span className="text-xs text-muted-foreground">{formatBytes(doc.file_size)}</span>
