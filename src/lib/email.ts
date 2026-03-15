@@ -256,6 +256,235 @@ export async function sendDamageReportNotificationEmail(params: {
   })
 }
 
+export async function sendAblehnungEmail(params: {
+  to: string
+  tenantName: string
+  caseNumber: string
+  caseTitle: string
+  begruendung: string
+  orgName: string
+  orgPhone?: string
+}): Promise<void> {
+  const { to, tenantName, caseNumber, caseTitle, begruendung, orgName, orgPhone } = params
+  const content = `
+    <h2 style="color:#18181b;font-size:22px;font-weight:700;margin:0 0 8px 0;">
+      Ergebnis Ihrer Schadensmeldung
+    </h2>
+    <p style="color:#71717a;font-size:14px;margin:0 0 24px 0;">Hallo ${tenantName},</p>
+
+    <div style="background-color:#f4f4f5;border-radius:8px;padding:16px 20px;margin-bottom:24px;">
+      <p style="color:#71717a;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;margin:0 0 4px 0;">Meldung</p>
+      <p style="color:#18181b;font-size:15px;font-weight:600;margin:0 0 4px 0;">${caseTitle}</p>
+      <p style="color:#71717a;font-size:13px;margin:0;">Fall-Nr. ${caseNumber}</p>
+    </div>
+
+    <div style="background-color:#fef2f2;border:1px solid #fecaca;border-radius:8px;padding:16px 20px;margin-bottom:24px;">
+      <p style="color:#dc2626;font-size:13px;font-weight:700;margin:0 0 8px 0;">&#9888; Kosten liegen beim Mieter</p>
+      <p style="color:#18181b;font-size:14px;line-height:1.6;margin:0;">${begruendung}</p>
+    </div>
+
+    <p style="color:#52525b;font-size:14px;line-height:1.6;margin:0 0 24px 0;">
+      Bei Fragen oder Unklarheiten wenden Sie sich bitte telefonisch an Ihre Hausverwaltung:
+    </p>
+    ${orgPhone ? `<p style="color:#18181b;font-size:16px;font-weight:700;margin:0 0 24px 0;">&#128222; ${orgPhone}</p>` : `<p style="color:#52525b;font-size:14px;margin:0 0 24px 0;">Bitte kontaktieren Sie <strong>${orgName}</strong> direkt.</p>`}
+
+    <a href="https://zerodamage.de/mein-bereich/meldungen"
+       style="display:inline-block;background-color:#18181b;color:#ffffff;text-decoration:none;padding:12px 24px;border-radius:8px;font-size:14px;font-weight:600;">
+      Meldung ansehen &rarr;
+    </a>
+  `
+  await resend.emails.send({
+    from: FROM_EMAIL,
+    to,
+    subject: `[${caseNumber}] Ergebnis Ihrer Schadensmeldung – ${orgName}`,
+    html: baseTemplate(content, orgName),
+  })
+}
+
+export async function sendWeiterleitungTenantEmail(params: {
+  to: string
+  tenantName: string
+  caseNumber: string
+  caseTitle: string
+  contractorName: string
+  contractorCompany: string
+  wunschtermin: string | null
+  orgName: string
+}): Promise<void> {
+  const { to, tenantName, caseNumber, caseTitle, contractorName, contractorCompany, wunschtermin, orgName } = params
+  const content = `
+    <h2 style="color:#18181b;font-size:22px;font-weight:700;margin:0 0 8px 0;">
+      Ihr Schaden wurde bestätigt
+    </h2>
+    <p style="color:#71717a;font-size:14px;margin:0 0 24px 0;">Hallo ${tenantName},</p>
+
+    <div style="background-color:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:16px 20px;margin-bottom:24px;">
+      <p style="color:#16a34a;font-size:13px;font-weight:700;margin:0 0 4px 0;">&#10003; Schaden wurde von der Hausverwaltung bestätigt</p>
+      <p style="color:#18181b;font-size:15px;font-weight:600;margin:4px 0 2px 0;">${caseTitle}</p>
+      <p style="color:#71717a;font-size:13px;margin:0;">Fall-Nr. ${caseNumber}</p>
+    </div>
+
+    <div style="background-color:#f4f4f5;border-radius:8px;padding:16px 20px;margin-bottom:24px;">
+      <p style="color:#71717a;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;margin:0 0 4px 0;">Zugewiesene Werkstatt</p>
+      <p style="color:#18181b;font-size:15px;font-weight:600;margin:0 0 2px 0;">${contractorCompany}</p>
+      <p style="color:#71717a;font-size:13px;margin:0 0 12px 0;">Ansprechperson: ${contractorName}</p>
+      ${wunschtermin ? `
+      <p style="color:#71717a;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;margin:0 0 4px 0;">Ihr Wunschtermin</p>
+      <p style="color:#18181b;font-size:14px;font-weight:600;margin:0;">${wunschtermin}</p>
+      ` : ''}
+    </div>
+
+    <p style="color:#52525b;font-size:14px;line-height:1.6;margin:0 0 24px 0;">
+      Die Werkstatt wurde über Ihren Wunschtermin informiert. Sobald der Termin bestätigt wird, erhalten Sie eine weitere Benachrichtigung.
+    </p>
+
+    <a href="https://zerodamage.de/mein-bereich/meldungen"
+       style="display:inline-block;background-color:#18181b;color:#ffffff;text-decoration:none;padding:12px 24px;border-radius:8px;font-size:14px;font-weight:600;">
+      Status verfolgen &rarr;
+    </a>
+  `
+  await resend.emails.send({
+    from: FROM_EMAIL,
+    to,
+    subject: `[${caseNumber}] Schaden bestätigt – Werkstatt wird kontaktiert`,
+    html: baseTemplate(content, orgName),
+  })
+}
+
+export async function sendContractorEmail(params: {
+  to: string
+  contractorName: string
+  caseNumber: string
+  caseTitle: string
+  category: string
+  description: string | null
+  unitAddress: string
+  unitName: string
+  wunschtermin: string | null
+  tokenUrl: string
+  orgName: string
+  orgPhone?: string
+}): Promise<void> {
+  const { to, contractorName, caseNumber, caseTitle, category, description, unitAddress, unitName, wunschtermin, tokenUrl, orgName, orgPhone } = params
+  const content = `
+    <h2 style="color:#18181b;font-size:22px;font-weight:700;margin:0 0 8px 0;">
+      Neuer Reparaturauftrag
+    </h2>
+    <p style="color:#71717a;font-size:14px;margin:0 0 24px 0;">Guten Tag ${contractorName},</p>
+    <p style="color:#52525b;font-size:14px;line-height:1.6;margin:0 0 24px 0;">
+      <strong>${orgName}</strong> beauftragt Sie mit folgendem Auftrag:
+    </p>
+
+    <div style="background-color:#f4f4f5;border-radius:8px;padding:16px 20px;margin-bottom:16px;">
+      <p style="color:#71717a;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;margin:0 0 4px 0;">Fall-Nr.</p>
+      <p style="color:#18181b;font-size:15px;font-weight:700;margin:0 0 12px 0;">${caseNumber}</p>
+
+      <p style="color:#71717a;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;margin:0 0 4px 0;">Schadensart</p>
+      <p style="color:#18181b;font-size:14px;font-weight:600;margin:0 0 12px 0;">${caseTitle}</p>
+
+      <p style="color:#71717a;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;margin:0 0 4px 0;">Adresse</p>
+      <p style="color:#18181b;font-size:14px;margin:0 0 12px 0;">${unitAddress} &mdash; ${unitName}</p>
+
+      ${wunschtermin ? `
+      <p style="color:#71717a;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;margin:0 0 4px 0;">Wunschtermin des Mieters</p>
+      <p style="color:#18181b;font-size:15px;font-weight:700;margin:0 0 12px 0;">${wunschtermin}</p>
+      ` : ''}
+
+      ${description ? `
+      <p style="color:#71717a;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;margin:0 0 4px 0;">Beschreibung</p>
+      <p style="color:#18181b;font-size:14px;line-height:1.6;margin:0;">${description}</p>
+      ` : ''}
+    </div>
+
+    <p style="color:#52525b;font-size:14px;line-height:1.6;margin:0 0 20px 0;">
+      Bitte bestätigen Sie den Termin oder schlagen Sie einen anderen vor:
+    </p>
+
+    <a href="${tokenUrl}"
+       style="display:inline-block;background-color:#16a34a;color:#ffffff;text-decoration:none;padding:14px 32px;border-radius:8px;font-size:15px;font-weight:700;margin-bottom:24px;">
+      &#10003; Termin bestätigen / Neuen Termin vorschlagen &rarr;
+    </a>
+
+    ${orgPhone ? `<p style="color:#71717a;font-size:13px;margin:0;">Rückfragen: ${orgName} &mdash; ${orgPhone}</p>` : `<p style="color:#71717a;font-size:13px;margin:0;">Rückfragen direkt an ${orgName}.</p>`}
+  `
+  await resend.emails.send({
+    from: FROM_EMAIL,
+    to,
+    subject: `[${caseNumber}] Reparaturauftrag – ${caseTitle}`,
+    html: baseTemplate(content, orgName),
+  })
+}
+
+export async function sendTerminBestaetigung(params: {
+  hvEmails: string[]
+  tenantEmail: string | null
+  tenantName: string
+  caseNumber: string
+  caseTitle: string
+  contractorCompany: string
+  confirmedDate: string
+  isRescheduled: boolean
+  orgName: string
+}): Promise<void> {
+  const { hvEmails, tenantEmail, tenantName, caseNumber, caseTitle, contractorCompany, confirmedDate, isRescheduled, orgName } = params
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://zerodamage.de'
+
+  // E-Mail an HV
+  if (hvEmails.length > 0) {
+    const hvContent = `
+      <h2 style="color:#18181b;font-size:22px;font-weight:700;margin:0 0 8px 0;">
+        Werkstatt hat ${isRescheduled ? 'neuen Termin vorgeschlagen' : 'Termin bestätigt'}
+      </h2>
+      <div style="background-color:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:16px 20px;margin-bottom:24px;">
+        <p style="color:#16a34a;font-size:13px;font-weight:700;margin:0 0 4px 0;">${isRescheduled ? '&#128197; Neuer Terminvorschlag' : '&#10003; Termin bestätigt'}</p>
+        <p style="color:#18181b;font-size:15px;font-weight:700;margin:4px 0 2px 0;">${confirmedDate}</p>
+        <p style="color:#71717a;font-size:13px;margin:0;">${contractorCompany} &mdash; Fall ${caseNumber}: ${caseTitle}</p>
+      </div>
+      <a href="${appUrl}/dashboard/cases"
+         style="display:inline-block;background-color:#18181b;color:#ffffff;text-decoration:none;padding:12px 24px;border-radius:8px;font-size:14px;font-weight:600;">
+        Im Portal ansehen &rarr;
+      </a>
+    `
+    await resend.emails.send({
+      from: FROM_EMAIL,
+      to: hvEmails,
+      subject: `[${caseNumber}] ${isRescheduled ? 'Neuer Terminvorschlag' : 'Termin bestätigt'} – ${contractorCompany}`,
+      html: baseTemplate(hvContent, orgName),
+    })
+  }
+
+  // E-Mail an Mieter
+  if (tenantEmail) {
+    const tenantContent = `
+      <h2 style="color:#18181b;font-size:22px;font-weight:700;margin:0 0 8px 0;">
+        ${isRescheduled ? 'Neuer Terminvorschlag der Werkstatt' : 'Ihr Reparaturtermin wurde bestätigt'}
+      </h2>
+      <p style="color:#71717a;font-size:14px;margin:0 0 24px 0;">Hallo ${tenantName},</p>
+
+      <div style="background-color:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:16px 20px;margin-bottom:24px;">
+        <p style="color:#16a34a;font-size:13px;font-weight:700;margin:0 0 4px 0;">${isRescheduled ? '&#128197; Die Werkstatt schlägt einen neuen Termin vor' : '&#10003; Termin bestätigt'}</p>
+        <p style="color:#18181b;font-size:16px;font-weight:700;margin:4px 0 2px 0;">${confirmedDate}</p>
+        <p style="color:#71717a;font-size:13px;margin:0;">${contractorCompany}</p>
+      </div>
+
+      <p style="color:#52525b;font-size:14px;line-height:1.6;margin:0 0 24px 0;">
+        ${isRescheduled ? 'Die Werkstatt konnte Ihren Wunschtermin nicht einhalten und hat einen neuen Termin vorgeschlagen. Ihre Hausverwaltung wurde informiert.' : 'Die Werkstatt kommt zum oben angezeigten Termin zu Ihnen. Bitte stellen Sie sicher, dass die Wohnung zugänglich ist.'}
+      </p>
+
+      <a href="https://zerodamage.de/mein-bereich/meldungen"
+         style="display:inline-block;background-color:#18181b;color:#ffffff;text-decoration:none;padding:12px 24px;border-radius:8px;font-size:14px;font-weight:600;">
+        Meldung ansehen &rarr;
+      </a>
+    `
+    await resend.emails.send({
+      from: FROM_EMAIL,
+      to: tenantEmail,
+      subject: `[${caseNumber}] ${isRescheduled ? 'Neuer Terminvorschlag' : 'Termin bestätigt'} – ${contractorCompany}`,
+      html: baseTemplate(tenantContent, orgName),
+    })
+  }
+}
+
 export async function sendNewCommentEmail(params: {
   to: string
   tenantName: string

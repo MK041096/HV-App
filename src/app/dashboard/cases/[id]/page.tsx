@@ -226,6 +226,15 @@ export default function CaseDetailPage({
   const [isRunningKi, setIsRunningKi] = useState(false)
   const [kiError, setKiError] = useState<string | null>(null)
 
+  // Aktions-Panel state
+  const [contractors, setContractors] = useState<{id: string; name: string; company: string; email: string; phone: string | null; specialties: string[]}[]>([])
+  const [selectedContractorId, setSelectedContractorId] = useState('')
+  const [ablehnungText, setAblehnungText] = useState('')
+  const [isSendingAblehnung, setIsSendingAblehnung] = useState(false)
+  const [isSendingWeiterleitung, setIsSendingWeiterleitung] = useState(false)
+  const [aktionSuccess, setAktionSuccess] = useState<string | null>(null)
+  const [aktionError, setAktionError] = useState<string | null>(null)
+
   // Fetch case
   async function fetchCase() {
     setIsLoading(true)
@@ -264,6 +273,9 @@ export default function CaseDetailPage({
 
   useEffect(() => {
     fetchCase()
+    fetch('/api/hv/contractors').then(r => r.json()).then(d => {
+      if (d.data) setContractors(d.data)
+    })
   }, [id])
 
   // ── Actions ──
@@ -1068,6 +1080,156 @@ export default function CaseDetailPage({
               )}
             </CardContent>
           </Card>
+
+          {/* ── Schnellaktionen ── */}
+          {kiResult && !['abgelehnt', 'erledigt'].includes(caseData.status) && (() => {
+            const kiLower = kiResult.toLowerCase()
+            const isMieterVerantwortlich = kiLower.includes('verantwortlich: mieter') || kiLower.includes('verantwortung: mieter') || (kiLower.includes('mieter') && kiLower.includes('verantwortlich') && !kiLower.includes('hausverwaltung verantwortlich') && !kiLower.includes('vermieter verantwortlich'))
+            const matchingContractors = contractors.filter(c => c.specialties.includes(caseData.category))
+            const suggestedContractor = matchingContractors[0] || contractors[0]
+
+            // Auto-set suggested contractor
+            if (suggestedContractor && !selectedContractorId) {
+              setTimeout(() => setSelectedContractorId(suggestedContractor.id), 0)
+            }
+
+            // Auto-fill ablehnung text from KI
+            if (isMieterVerantwortlich && !ablehnungText) {
+              const lines = kiResult.split('\n').filter(l => l.trim() && !l.includes('**') || l.includes('Begründung') || l.includes('Mieter'))
+              const autoText = lines.slice(0, 5).join(' ').replace(/\*\*/g, '').trim().substring(0, 500)
+              if (autoText) setTimeout(() => setAblehnungText(autoText), 0)
+            }
+
+            return (
+              <Card className={isMieterVerantwortlich ? 'border-red-200 bg-red-50/30' : 'border-green-200 bg-green-50/30'}>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base flex items-center gap-2">
+                    {isMieterVerantwortlich ? (
+                      <><span className="text-red-600">⚠</span> Aktion: Mieter verantwortlich</>
+                    ) : (
+                      <><span className="text-green-600">✓</span> Aktion: Vermieter verantwortlich</>
+                    )}
+                  </CardTitle>
+                  <p className="text-xs text-muted-foreground">
+                    {isMieterVerantwortlich
+                      ? 'KI empfiehlt: Meldung ablehnen — Kosten beim Mieter'
+                      : 'KI empfiehlt: Werkstatt beauftragen — Kosten beim Vermieter'}
+                  </p>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  {aktionSuccess && (
+                    <div className="rounded-lg bg-green-100 border border-green-300 px-3 py-2 text-sm text-green-800 font-medium">{aktionSuccess}</div>
+                  )}
+                  {aktionError && (
+                    <div className="rounded-lg bg-red-100 border border-red-300 px-3 py-2 text-sm text-red-800">{aktionError}</div>
+                  )}
+
+                  {isMieterVerantwortlich ? (
+                    <div className="space-y-3">
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Begründung an Mieter</label>
+                        <textarea
+                          className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm min-h-[100px] resize-y"
+                          value={ablehnungText}
+                          onChange={e => setAblehnungText(e.target.value)}
+                          placeholder="Begründung aus KI-Analyse wird automatisch übernommen..."
+                        />
+                      </div>
+                      <Button
+                        className="w-full bg-red-600 hover:bg-red-700 text-white"
+                        disabled={isSendingAblehnung || !ablehnungText.trim()}
+                        onClick={async () => {
+                          setIsSendingAblehnung(true)
+                          setAktionError(null)
+                          try {
+                            const res = await fetch(`/api/hv/cases/${id}/ablehnen`, {
+                              method: 'POST',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({ begruendung: ablehnungText }),
+                            })
+                            if (!res.ok) throw new Error((await res.json()).error)
+                            setAktionSuccess('Absage gesendet — Mieter wurde per E-Mail informiert')
+                            await fetchCase()
+                          } catch (err) {
+                            setAktionError(err instanceof Error ? err.message : 'Fehler')
+                          } finally {
+                            setIsSendingAblehnung(false)
+                          }
+                        }}
+                      >
+                        {isSendingAblehnung ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Send className="mr-2 h-4 w-4" />}
+                        Absage senden
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Werkstatt</label>
+                        <Select value={selectedContractorId} onValueChange={setSelectedContractorId}>
+                          <SelectTrigger className="text-sm">
+                            <SelectValue placeholder="Werkstatt wählen..." />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {matchingContractors.length > 0 && (
+                              <>
+                                <div className="px-2 py-1 text-xs text-muted-foreground font-medium">Passend zur Kategorie</div>
+                                {matchingContractors.map(c => (
+                                  <SelectItem key={c.id} value={c.id}>{c.company} ({c.name})</SelectItem>
+                                ))}
+                                {contractors.filter(c => !c.specialties.includes(caseData.category)).length > 0 && (
+                                  <div className="px-2 py-1 text-xs text-muted-foreground font-medium mt-1">Alle anderen</div>
+                                )}
+                              </>
+                            )}
+                            {contractors.filter(c => !c.specialties.includes(caseData.category)).map(c => (
+                              <SelectItem key={c.id} value={c.id}>{c.company} ({c.name})</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      {caseData.preferred_appointment && (
+                        <div className="rounded-md bg-blue-50 border border-blue-200 px-3 py-2 text-sm">
+                          <span className="text-xs text-muted-foreground">Wunschtermin Mieter: </span>
+                          <span className="font-medium">{formatDateTime(caseData.preferred_appointment)}</span>
+                          <span className="text-xs text-blue-600 ml-2">(wird automatisch übernommen)</span>
+                        </div>
+                      )}
+
+                      <Button
+                        className="w-full bg-green-700 hover:bg-green-800 text-white"
+                        disabled={isSendingWeiterleitung || !selectedContractorId}
+                        onClick={async () => {
+                          setIsSendingWeiterleitung(true)
+                          setAktionError(null)
+                          try {
+                            const res = await fetch(`/api/hv/cases/${id}/weiterleiten`, {
+                              method: 'POST',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({
+                                contractor_id: selectedContractorId,
+                                scheduled_appointment: caseData.preferred_appointment,
+                              }),
+                            })
+                            if (!res.ok) throw new Error((await res.json()).error)
+                            setAktionSuccess('Weiterleitung gesendet — Mieter & Werkstatt wurden per E-Mail informiert')
+                            await fetchCase()
+                          } catch (err) {
+                            setAktionError(err instanceof Error ? err.message : 'Fehler')
+                          } finally {
+                            setIsSendingWeiterleitung(false)
+                          }
+                        }}
+                      >
+                        {isSendingWeiterleitung ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Send className="mr-2 h-4 w-4" />}
+                        Weiterleiten & informieren
+                      </Button>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            )
+          })()}
 
           {/* Appointment */}
           <Card>
