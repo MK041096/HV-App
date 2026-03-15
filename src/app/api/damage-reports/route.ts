@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabaseClient, createAdminClient } from '@/lib/supabase-server'
 import { sendDamageReportNotificationEmail } from '@/lib/email'
+import { runKiAnalyse } from '@/lib/ki-analyse'
 import {
   createDamageReportSchema,
   listDamageReportsSchema,
@@ -328,43 +329,75 @@ export async function POST(request: NextRequest) {
       .eq('damage_report_id', report.id)
       .order('sort_order')
 
-    // Send email notification to HV admins (fire-and-forget, never block the response)
-    try {
-      const adminClient = createAdminClient()
-      const [{ data: orgAdmins }, { data: org }] = await Promise.all([
-        adminClient
-          .from('profiles')
-          .select('email')
-          .eq('organization_id', profile.organization_id)
-          .in('role', ['hv_admin', 'mitarbeiter'])
-          .eq('is_deleted', false),
-        adminClient
-          .from('organizations')
-          .select('name')
-          .eq('id', profile.organization_id)
-          .single(),
-      ])
+    // Fire-and-forget: KI-Analyse + E-Mail an HV-Admins
+    ;(async () => {
+      try {
+        const adminClient = createAdminClient()
+        const [{ data: orgAdmins }, { data: org }] = await Promise.all([
+          adminClient
+            .from('profiles')
+            .select('email')
+            .eq('organization_id', profile.organization_id)
+            .in('role', ['hv_admin', 'mitarbeiter'])
+            .eq('is_deleted', false),
+          adminClient
+            .from('organizations')
+            .select('name')
+            .eq('id', profile.organization_id)
+            .single(),
+        ])
 
-      const adminEmails = (orgAdmins || []).map((p: { email: string }) => p.email).filter(Boolean)
-      const tenantName = [profile.first_name, profile.last_name].filter(Boolean).join(' ') || 'Unbekannter Mieter'
-      const unitName = (report.unit as { name?: string } | null)?.name || 'Unbekannte Einheit'
-      const orgName = org?.name || 'Hausverwaltung'
+        const adminEmails = (orgAdmins || []).map((p: { email: string }) => p.email).filter(Boolean)
+        const tenantName = [profile.first_name, profile.last_name].filter(Boolean).join(' ') || 'Unbekannter Mieter'
+        const unit = report.unit as { id?: string; name?: string; address?: string } | null
+        const unitName = unit?.name || 'Unbekannte Einheit'
+        const orgName = org?.name || 'Hausverwaltung'
 
-      if (adminEmails.length > 0) {
-        await sendDamageReportNotificationEmail({
-          to: adminEmails,
-          caseNumber,
-          title: parsed.data.title,
-          category: parsed.data.category,
-          urgency: parsed.data.urgency,
-          unitName,
-          tenantName,
-          orgName,
-        })
+        // Run KI analysis automatically
+        let kiAnalysis: string | null = null
+        let kiLeaseFound = false
+        if (process.env.ANTHROPIC_API_KEY) {
+          try {
+            const kiResult = await runKiAnalyse({
+              supabase: adminClient,
+              organizationId: profile.organization_id,
+              reportId: report.id,
+              title: parsed.data.title,
+              description: parsed.data.description || null,
+              category: parsed.data.category,
+              subcategory: parsed.data.subcategory || null,
+              urgency: parsed.data.urgency,
+              room: parsed.data.room || null,
+              unitId: profile.unit_id,
+              unitName,
+              unitAddress: unit?.address || null,
+            })
+            kiAnalysis = kiResult.analysisText
+            kiLeaseFound = kiResult.leaseFound
+          } catch (kiErr) {
+            console.error('KI-Analyse failed (non-blocking):', kiErr)
+          }
+        }
+
+        if (adminEmails.length > 0) {
+          await sendDamageReportNotificationEmail({
+            to: adminEmails,
+            caseNumber,
+            title: parsed.data.title,
+            category: parsed.data.category,
+            urgency: parsed.data.urgency,
+            unitName,
+            tenantName,
+            orgName,
+            reportId: report.id,
+            kiAnalysis,
+            kiLeaseFound,
+          })
+        }
+      } catch (emailErr) {
+        console.error('Failed to send damage report notification email:', emailErr)
       }
-    } catch (emailErr) {
-      console.error('Failed to send damage report notification email:', emailErr)
-    }
+    })()
 
     return NextResponse.json(
       {

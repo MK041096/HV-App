@@ -185,15 +185,41 @@ export async function sendDamageReportNotificationEmail(params: {
   unitName: string
   tenantName: string
   orgName: string
+  reportId?: string
+  kiAnalysis?: string | null
+  kiLeaseFound?: boolean
 }): Promise<void> {
-  const { to, caseNumber, title, category, urgency, unitName, tenantName, orgName } = params
+  const { to, caseNumber, title, category, urgency, unitName, tenantName, orgName, reportId, kiAnalysis, kiLeaseFound } = params
   if (!to.length) return
 
-  const urgencyLabel: Record<string, string> = { hoch: 'Dringend', mittel: 'Normal', niedrig: 'Niedrig' }
-  const urgencyColor: Record<string, string> = { hoch: '#ef4444', mittel: '#f59e0b', niedrig: '#22c55e' }
+  const urgencyLabel: Record<string, string> = { notfall: 'Notfall', dringend: 'Dringend', normal: 'Normal', hoch: 'Dringend', mittel: 'Normal', niedrig: 'Niedrig' }
+  const urgencyColor: Record<string, string> = { notfall: '#ef4444', dringend: '#f59e0b', normal: '#22c55e', hoch: '#ef4444', mittel: '#f59e0b', niedrig: '#22c55e' }
   const urg = urgencyLabel[urgency] || urgency
   const urgColor = urgencyColor[urgency] || '#18181b'
-  const dashboardUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'https://zerodamage.de'}/dashboard/meldungen`
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://zerodamage.de'
+  const caseUrl = reportId ? appUrl + '/dashboard/cases/' + reportId : appUrl + '/dashboard/cases'
+
+  // Extract VERANTWORTLICH line for email badge
+  let kiVerdikt: string | null = null
+  let kiVerdiktColor = '#7c3aed'
+  if (kiAnalysis) {
+    const match = kiAnalysis.match(new RegExp('\*\*VERANTWORTLICH:\*\*\s*(.+)', 'i'))
+    if (match) {
+      kiVerdikt = match[1].trim()
+      if (kiVerdikt.toLowerCase().includes('mieter')) kiVerdiktColor = '#dc2626'
+      else if (kiVerdikt.toLowerCase().includes('hausverwaltung')) kiVerdiktColor = '#2563eb'
+      else kiVerdiktColor = '#d97706'
+    }
+  }
+
+  const kiSection = kiAnalysis ? (
+    '<div style="background-color:#f5f3ff;border:1px solid #ddd6fe;border-radius:8px;padding:16px 20px;margin-bottom:16px;">' +
+    '<p style="color:#6d28d9;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;margin:0 0 8px 0;">&#10022; KI-Analyse (automatisch)</p>' +
+    (kiVerdikt ? '<div style="display:inline-block;background-color:' + kiVerdiktColor + '15;border:1px solid ' + kiVerdiktColor + '40;border-radius:6px;padding:5px 14px;margin-bottom:10px;"><span style="color:' + kiVerdiktColor + ';font-size:14px;font-weight:700;">Verantwortlich: ' + kiVerdikt + '</span></div><br>' : '') +
+    '<p style="color:#3b0764;font-size:13px;line-height:1.6;margin:8px 0 0 0;white-space:pre-wrap;">' + kiAnalysis.split('**').join('') + '</p>' +
+    (!kiLeaseFound ? '<p style="color:#92400e;font-size:12px;margin:8px 0 0 0;">&#9888; Kein Mietvertrag hinterlegt &mdash; bitte hochladen.</p>' : '') +
+    '</div>'
+  ) : ''
 
   const content = `
     <h2 style="color:#18181b;font-size:22px;font-weight:700;margin:0 0 8px 0;">
@@ -206,28 +232,26 @@ export async function sendDamageReportNotificationEmail(params: {
       <p style="color:#18181b;font-size:15px;font-weight:700;margin:0 0 12px 0;">${caseNumber}</p>
       <p style="color:#71717a;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;margin:0 0 4px 0;">Titel</p>
       <p style="color:#18181b;font-size:15px;font-weight:600;margin:0 0 12px 0;">${title}</p>
-      <p style="color:#71717a;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;margin:0 0 4px 0;">Kategorie</p>
-      <p style="color:#18181b;font-size:14px;margin:0 0 12px 0;">${category}</p>
-      <p style="color:#71717a;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;margin:0 0 4px 0;">Einheit</p>
-      <p style="color:#18181b;font-size:14px;margin:0 0 12px 0;">${unitName}</p>
-      <p style="color:#71717a;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;margin:0 0 4px 0;">Gemeldet von</p>
-      <p style="color:#18181b;font-size:14px;margin:0 0 12px 0;">${tenantName}</p>
+      <p style="color:#71717a;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;margin:0 0 4px 0;">Einheit &middot; Mieter</p>
+      <p style="color:#18181b;font-size:14px;margin:0 0 12px 0;">${unitName} &middot; ${tenantName}</p>
       <p style="color:#71717a;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;margin:0 0 4px 0;">Dringlichkeit</p>
       <div style="display:inline-block;background-color:${urgColor}20;border:1px solid ${urgColor}40;border-radius:6px;padding:4px 12px;">
         <span style="color:${urgColor};font-size:13px;font-weight:600;">${urg}</span>
       </div>
     </div>
 
-    <a href="${dashboardUrl}"
+    ${kiSection}
+
+    <a href="${caseUrl}"
        style="display:inline-block;background-color:#18181b;color:#ffffff;text-decoration:none;padding:12px 24px;border-radius:8px;font-size:14px;font-weight:600;">
-      Jetzt im Dashboard ansehen →
+      Fall öffnen &amp; bestätigen &rarr;
     </a>
   `
 
   await resend.emails.send({
     from: FROM_EMAIL,
     to,
-    subject: `[${caseNumber}] Neue Schadensmeldung: ${title}`,
+    subject: '[' + caseNumber + '] Neue Meldung' + (kiVerdikt ? ' · ' + kiVerdikt : '') + ': ' + title,
     html: baseTemplate(content, orgName),
   })
 }
