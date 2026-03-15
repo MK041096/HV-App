@@ -333,21 +333,25 @@ export async function POST(request: NextRequest) {
     ;(async () => {
       try {
         const adminClient = createAdminClient()
-        const [{ data: orgAdmins }, { data: org }] = await Promise.all([
+        const [{ data: orgAdmins }, { data: org }, { data: { users: allUsers } }] = await Promise.all([
           adminClient
             .from('profiles')
-            .select('email')
+            .select('id')
             .eq('organization_id', profile.organization_id)
-            .in('role', ['hv_admin', 'mitarbeiter'])
+            .in('role', ['hv_admin', 'hv_mitarbeiter'])
             .eq('is_deleted', false),
           adminClient
             .from('organizations')
             .select('name')
             .eq('id', profile.organization_id)
             .single(),
+          adminClient.auth.admin.listUsers({ perPage: 1000 }),
         ])
 
-        const adminEmails = (orgAdmins || []).map((p: { email: string }) => p.email).filter(Boolean)
+        const adminIds = new Set((orgAdmins || []).map((p: { id: string }) => p.id))
+        const adminEmails = (allUsers || [])
+          .filter(u => adminIds.has(u.id) && u.email)
+          .map(u => u.email as string)
         const tenantName = [profile.first_name, profile.last_name].filter(Boolean).join(' ') || 'Unbekannter Mieter'
         const unit = report.unit as { id?: string; name?: string; address?: string } | null
         const unitName = unit?.name || 'Unbekannte Einheit'
