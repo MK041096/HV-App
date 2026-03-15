@@ -17,6 +17,7 @@ import {
   RefreshCw,
   Eye,
   ShieldAlert,
+  FileText,
 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
@@ -755,6 +756,29 @@ export default function TenantDetailPage({
                     </div>
                   ))}
                 </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Documents shortcut */}
+          {tenant.unit_id && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base flex items-center gap-2">
+                  <FileText className="h-4 w-4" />
+                  Dokumente
+                </CardTitle>
+                <CardDescription>
+                  Mietvertrag und weitere Dokumente für diese Einheit
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Link href={`/dashboard/dokumente?unit_id=${tenant.unit_id}`}>
+                  <Button variant="outline" className="w-full">
+                    <FileText className="mr-2 h-4 w-4" />
+                    Dokumente verwalten
+                  </Button>
+                </Link>
               </CardContent>
             </Card>
           )}

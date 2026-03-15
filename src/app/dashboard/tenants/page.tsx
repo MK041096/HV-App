@@ -18,6 +18,7 @@ import {
   UserCheck,
   UserX,
   ClipboardList,
+  FileText,
 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
@@ -329,7 +330,7 @@ export default function TenantsListPage() {
                       <SortIcon field="created_at" />
                     </button>
                   </TableHead>
-                  <TableHead className="w-[50px]" />
+                  <TableHead className="w-[100px]" />
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -415,12 +416,22 @@ export default function TenantsListPage() {
                         {formatDate(tenant.created_at)}
                       </TableCell>
                       <TableCell>
-                        <Button variant="ghost" size="icon" className="h-8 w-8" asChild>
-                          <Link href={`/dashboard/tenants/${tenant.id}`}>
-                            <Eye className="h-4 w-4" />
-                            <span className="sr-only">Mieter öffnen</span>
-                          </Link>
-                        </Button>
+                        <div className="flex items-center gap-1">
+                          {tenant.unit_id && (
+                            <Button variant="ghost" size="icon" className="h-8 w-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50" asChild>
+                              <Link href={`/dashboard/dokumente?unit_id=${tenant.unit_id}`} onClick={(e) => e.stopPropagation()}>
+                                <FileText className="h-4 w-4" />
+                                <span className="sr-only">Dokumente</span>
+                              </Link>
+                            </Button>
+                          )}
+                          <Button variant="ghost" size="icon" className="h-8 w-8" asChild>
+                            <Link href={`/dashboard/tenants/${tenant.id}`} onClick={(e) => e.stopPropagation()}>
+                              <Eye className="h-4 w-4" />
+                              <span className="sr-only">Mieter öffnen</span>
+                            </Link>
+                          </Button>
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))

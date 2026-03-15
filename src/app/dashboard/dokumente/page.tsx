@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -70,8 +71,11 @@ export default function DokumentePage() {
   const [docType, setDocType] = useState('mietvertrag')
   const [docUnit, setDocUnit] = useState('none')
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const searchParams = useSearchParams()
 
   useEffect(() => {
+    const unitFromUrl = searchParams.get('unit_id')
+    if (unitFromUrl) setFilterUnit(unitFromUrl)
     loadData()
   }, [])
 
