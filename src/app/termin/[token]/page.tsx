@@ -34,6 +34,7 @@ export default function TerminPage({ params }: { params: Promise<{ token: string
   const [action, setAction] = useState<'confirm' | 'call' | null>(null)
   const [sending, setSending] = useState(false)
   const [confirmedDate, setConfirmedDate] = useState<string | null>(null)
+  const [phoneConfirmed, setPhoneConfirmed] = useState(false)
 
   useEffect(() => {
     fetch(`/api/termin/${token}`)
@@ -57,6 +58,24 @@ export default function TerminPage({ params }: { params: Promise<{ token: string
       const d = await res.json()
       if (!res.ok) throw new Error(d.error)
       setConfirmedDate(d.confirmedDate)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Fehler')
+    } finally {
+      setSending(false)
+    }
+  }
+
+  async function handleConfirmPhone() {
+    setSending(true)
+    try {
+      const res = await fetch(`/api/termin/${token}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'confirm_phone' }),
+      })
+      const d = await res.json()
+      if (!res.ok) throw new Error(d.error)
+      setPhoneConfirmed(true)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Fehler')
     } finally {
@@ -100,6 +119,22 @@ export default function TerminPage({ params }: { params: Promise<{ token: string
               <p className="text-xs text-muted-foreground mb-1">Bestätigter Termin</p>
               <p className="font-semibold text-green-800">{confirmedDate}</p>
             </div>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
+
+  if (phoneConfirmed) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
+        <Card className="max-w-md w-full">
+          <CardContent className="flex flex-col items-center py-12 text-center">
+            <CheckCircle className="h-14 w-14 text-green-600 mb-4" />
+            <h2 className="text-xl font-bold mb-2">Termin telefonisch vereinbart!</h2>
+            <p className="text-muted-foreground text-sm">
+              Der Mieter und die Hausverwaltung wurden per E-Mail informiert.
+            </p>
           </CardContent>
         </Card>
       </div>
@@ -226,7 +261,20 @@ export default function TerminPage({ params }: { params: Promise<{ token: string
                     </p>
                   )}
                 </div>
-                <Button variant="outline" className="w-full" onClick={() => setAction(null)}>Zurück</Button>
+                <div className="border-t pt-3 space-y-2">
+                  <p className="text-xs text-muted-foreground text-center">
+                    Nach dem Telefonat: Termin in der App bestätigen
+                  </p>
+                  <Button
+                    className="w-full bg-green-700 hover:bg-green-800 text-white"
+                    onClick={handleConfirmPhone}
+                    disabled={sending}
+                  >
+                    {sending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <CheckCircle className="mr-2 h-4 w-4" />}
+                    Termin telefonisch vereinbart
+                  </Button>
+                </div>
+                <Button variant="outline" className="w-full" onClick={() => setAction(null)} disabled={sending}>Zurück</Button>
               </div>
             )}
           </CardContent>

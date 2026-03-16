@@ -43,11 +43,13 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   const { token } = await params
   const adminClient = createAdminClient()
   const body = await request.json()
-  const { action } = body // action: 'confirm' only
+  const { action } = body // action: 'confirm' | 'confirm_phone'
 
-  if (action !== 'confirm') {
+  if (action !== 'confirm' && action !== 'confirm_phone') {
     return NextResponse.json({ error: 'Ungültige Aktion' }, { status: 400 })
   }
+
+  const isPhone = action === 'confirm_phone'
 
   const { data: tokenData } = await adminClient
     .from('appointment_tokens')
@@ -96,7 +98,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     damage_report_id: tokenData.damage_report_id,
     old_status: currentDR?.status ?? null,
     new_status: 'termin_vereinbart',
-    note: `Termin bestätigt durch Werkstatt: ${finalDateLabel}`,
+    note: isPhone ? `Termin telefonisch vereinbart durch Werkstatt` : `Termin bestätigt durch Werkstatt: ${finalDateLabel}`,
     changed_by: null,
   })
 
@@ -123,6 +125,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     contractorCompany: contractor?.company || '',
     confirmedDate: finalDateLabel,
     isRescheduled: false,
+    isPhone,
     orgName: org?.name || 'Hausverwaltung',
   })
 
