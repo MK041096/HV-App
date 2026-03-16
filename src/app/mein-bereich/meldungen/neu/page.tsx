@@ -68,6 +68,7 @@ interface FormData {
   photos: UploadedPhoto[]
   preferred_appointment: string
   preferred_appointment_2: string
+  reporter_phone: string
   access_notes: string
 }
 
@@ -202,6 +203,7 @@ export default function NeueMeldungPage() {
     photos: [],
     preferred_appointment: "",
     preferred_appointment_2: "",
+    reporter_phone: "",
     access_notes: "",
   })
   const [isUploading, setIsUploading] = useState(false)
@@ -225,7 +227,7 @@ export default function NeueMeldungPage() {
           formData.description.trim().length >= 1
         )
       case 4:
-        return true // photos, appointment, access notes are all optional
+        return formData.reporter_phone.trim().length >= 1
       case 5:
         return true // summary step is always valid if we got here
       default:
@@ -377,6 +379,7 @@ export default function NeueMeldungPage() {
           : null,
         access_notes: formData.access_notes.trim() || null,
         photo_ids: formData.photos.map((p) => p.id),
+        reporter_phone: formData.reporter_phone.trim() || null,
       }
 
       const res = await fetch("/api/damage-reports", {
@@ -534,6 +537,7 @@ export default function NeueMeldungPage() {
               photos={formData.photos}
               preferredAppointment={formData.preferred_appointment}
               preferredAppointment2={formData.preferred_appointment_2}
+              reporterPhone={formData.reporter_phone}
               accessNotes={formData.access_notes}
               isUploading={isUploading}
               uploadError={uploadError}
@@ -545,6 +549,9 @@ export default function NeueMeldungPage() {
               }
               onAppointment2Change={(d) =>
                 setFormData((prev) => ({ ...prev, preferred_appointment_2: d }))
+              }
+              onReporterPhoneChange={(p) =>
+                setFormData((prev) => ({ ...prev, reporter_phone: p }))
               }
               onAccessNotesChange={(n) =>
                 setFormData((prev) => ({ ...prev, access_notes: n }))
@@ -844,6 +851,7 @@ function Step4PhotosAppointment({
   photos,
   preferredAppointment,
   preferredAppointment2,
+  reporterPhone,
   accessNotes,
   isUploading,
   uploadError,
@@ -852,11 +860,13 @@ function Step4PhotosAppointment({
   onRemovePhoto,
   onAppointmentChange,
   onAppointment2Change,
+  onReporterPhoneChange,
   onAccessNotesChange,
 }: {
   photos: UploadedPhoto[]
   preferredAppointment: string
   preferredAppointment2: string
+  reporterPhone: string
   accessNotes: string
   isUploading: boolean
   uploadError: string | null
@@ -865,6 +875,7 @@ function Step4PhotosAppointment({
   onRemovePhoto: (id: string) => void
   onAppointmentChange: (d: string) => void
   onAppointment2Change: (d: string) => void
+  onReporterPhoneChange: (p: string) => void
   onAccessNotesChange: (n: string) => void
 }) {
   return (
@@ -987,6 +998,27 @@ function Step4PhotosAppointment({
         <p className="text-xs text-muted-foreground">
           Wann wäre ein Handwerkerbesuch für Sie am besten?
         </p>
+      </div>
+
+      {/* Phone number */}
+      <div className="space-y-2">
+        <Label htmlFor="reporter-phone">
+          Ihre Telefonnummer <span className="text-red-500">*</span>
+        </Label>
+        <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800 flex gap-2 items-start">
+          <Phone className="h-4 w-4 mt-0.5 shrink-0" />
+          <span>
+            Falls die Werkstatt keinen Ihrer Wunschtermine wahrnehmen kann, wird sie Sie direkt unter dieser Nummer anrufen, um gemeinsam einen passenden Termin zu vereinbaren.
+          </span>
+        </div>
+        <Input
+          id="reporter-phone"
+          type="tel"
+          placeholder="+43 664 123 456"
+          value={reporterPhone}
+          onChange={(e) => onReporterPhoneChange(e.target.value)}
+          maxLength={30}
+        />
       </div>
 
       <Separator />
@@ -1145,6 +1177,12 @@ function Step5Summary({
               {new Date(formData.preferred_appointment_2).toLocaleString("de-AT", {
                 day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit",
               })}
+            </p>
+          )}
+          {formData.reporter_phone && (
+            <p>
+              <span className="text-muted-foreground">Telefonnummer:</span>{" "}
+              {formData.reporter_phone}
             </p>
           )}
           {formData.access_notes && (

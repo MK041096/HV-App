@@ -287,6 +287,14 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Save phone number to profile if provided
+    if (parsed.data.reporter_phone) {
+      await supabase
+        .from('profiles')
+        .update({ phone: parsed.data.reporter_phone })
+        .eq('id', user.id)
+    }
+
     // Link uploaded photos to this report (if photo_ids provided)
     if (parsed.data.photo_ids && parsed.data.photo_ids.length > 0) {
       for (let i = 0; i < parsed.data.photo_ids.length; i++) {

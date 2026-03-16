@@ -120,6 +120,11 @@ export const createDamageReportSchema = z.object({
     .max(5, 'Maximal 5 Fotos erlaubt')
     .optional()
     .default([]),
+  reporter_phone: z
+    .string()
+    .max(30, 'Telefonnummer darf maximal 30 Zeichen lang sein')
+    .optional()
+    .nullable(),
 })
 
 // Schema for listing damage reports (query params)
