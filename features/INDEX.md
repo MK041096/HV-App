@@ -24,6 +24,7 @@
 | PROJ-10 | Versicherungsschadenblatt | Deployed | [PROJ-10](PROJ-10-versicherungsdatenblatt-befuellung.md) | 2026-03-07 |
 | PROJ-11 | Rechnungs-Upload pro Schadensmeldung | Deployed | [PROJ-11](PROJ-11-dokumentenablage.md) | 2026-03-07 |
 | PROJ-17 | AVV-Zustimmung bei HV-Registrierung (Art. 28 DSGVO) | Deployed | PROJ-17-avv.md | 2026-03-16 |
+| PROJ-18 | Platform-Admin-Portal (Betreiberansicht) | Deployed | PROJ-18-admin-portal.md | 2026-03-16 |
 | PROJ-12 | KI-Mietvertragsanalyse (Claude API) | Planned | [PROJ-12](PROJ-12-ki-mietvertragsanalyse.md) | 2026-03-07 |
 | PROJ-13 | HV-Onboarding & Aktivierungscode-Generator | Deployed | [PROJ-13](PROJ-13-hv-onboarding-aktivierungscode-generator.md) | 2026-03-07 |
 | PROJ-14 | Subscription & Billing (Stripe) | Planned | [PROJ-14](PROJ-14-subscription-billing-stripe.md) | 2026-03-07 |
