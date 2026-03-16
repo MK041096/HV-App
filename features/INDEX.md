@@ -21,8 +21,9 @@
 | PROJ-7 | Mieterübersicht & -verwaltung (HV-Portal) | Deployed | [PROJ-7](PROJ-7-mieteruebersicht-hv.md) | 2026-03-07 |
 | PROJ-8 | n8n Webhook-Integration & Benachrichtigungen | Deployed | [PROJ-8](PROJ-8-n8n-webhook-benachrichtigungen.md) | 2026-03-07 |
 | PROJ-9 | Automatische Werkstattkommunikation via n8n | Planned | [PROJ-9](PROJ-9-werkstattkommunikation-n8n.md) | 2026-03-07 |
-| PROJ-10 | Automatische Versicherungsdatenblatt-Befüllung | Planned | [PROJ-10](PROJ-10-versicherungsdatenblatt-befuellung.md) | 2026-03-07 |
-| PROJ-11 | Dokumentenablage | Planned | [PROJ-11](PROJ-11-dokumentenablage.md) | 2026-03-07 |
+| PROJ-10 | Versicherungsschadenblatt | Deployed | [PROJ-10](PROJ-10-versicherungsdatenblatt-befuellung.md) | 2026-03-07 |
+| PROJ-11 | Rechnungs-Upload pro Schadensmeldung | Deployed | [PROJ-11](PROJ-11-dokumentenablage.md) | 2026-03-07 |
+| PROJ-17 | AVV-Zustimmung bei HV-Registrierung (Art. 28 DSGVO) | Deployed | PROJ-17-avv.md | 2026-03-16 |
 | PROJ-12 | KI-Mietvertragsanalyse (Claude API) | Planned | [PROJ-12](PROJ-12-ki-mietvertragsanalyse.md) | 2026-03-07 |
 | PROJ-13 | HV-Onboarding & Aktivierungscode-Generator | Deployed | [PROJ-13](PROJ-13-hv-onboarding-aktivierungscode-generator.md) | 2026-03-07 |
 | PROJ-14 | Subscription & Billing (Stripe) | Planned | [PROJ-14](PROJ-14-subscription-billing-stripe.md) | 2026-03-07 |
