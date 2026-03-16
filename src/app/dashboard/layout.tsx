@@ -15,6 +15,7 @@ import {
   Loader2,
   Menu,
   X,
+  Wrench,
 } from "lucide-react"
 
 import { supabase } from "@/lib/supabase"
@@ -59,6 +60,11 @@ const NAV_ITEMS = [
     label: "Aktivierungscodes",
     href: "/dashboard/codes",
     icon: KeyRound,
+  },
+  {
+    label: "Werkstätten",
+    href: "/dashboard/werkstaetten",
+    icon: Wrench,
   },
   {
     label: "Dokumente",

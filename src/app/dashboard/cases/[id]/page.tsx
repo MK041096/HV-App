@@ -29,6 +29,7 @@ import {
   Receipt,
   Shield,
   ExternalLink,
+  List,
 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
@@ -65,6 +66,13 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 
 import {
   CASE_STATUSES,
@@ -256,6 +264,9 @@ export default function CaseDetailPage({
   const [isSendingWeiterleitung, setIsSendingWeiterleitung] = useState(false)
   const [aktionSuccess, setAktionSuccess] = useState<string | null>(null)
   const [aktionError, setAktionError] = useState<string | null>(null)
+
+  // Contractor picker (Werkstatt-Liste)
+  const [showContractorPicker, setShowContractorPicker] = useState(false)
 
   // Delete state
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
@@ -595,6 +606,61 @@ export default function CaseDetailPage({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Contractor Picker Dialog */}
+      <Dialog open={showContractorPicker} onOpenChange={setShowContractorPicker}>
+        <DialogContent className="sm:max-w-[420px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Wrench className="h-4 w-4" />
+              Werkstatt auswählen
+            </DialogTitle>
+            <DialogDescription>
+              Wählen Sie eine Werkstatt aus Ihrer Liste — die Felder werden automatisch ausgefüllt.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2 max-h-72 overflow-y-auto py-1">
+            {contractors.length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-6">
+                Keine Werkstätten vorhanden
+              </p>
+            ) : (
+              contractors.map((c) => (
+                <button
+                  key={c.id}
+                  className="w-full text-left rounded-lg border px-3 py-2.5 hover:bg-accent transition-colors"
+                  onClick={() => {
+                    setAssignName(c.name)
+                    setAssignCompany(c.company || "")
+                    setAssignPhone(c.phone || "")
+                    setAssignEmail(c.email || "")
+                    setShowContractorPicker(false)
+                  }}
+                >
+                  <p className="text-sm font-medium">{c.name}</p>
+                  {c.company && (
+                    <p className="text-xs text-muted-foreground">{c.company}</p>
+                  )}
+                  <div className="flex items-center gap-3 mt-1">
+                    {c.phone && (
+                      <span className="text-[11px] text-muted-foreground flex items-center gap-1">
+                        <Phone className="h-3 w-3" />
+                        {c.phone}
+                      </span>
+                    )}
+                    {c.email && (
+                      <span className="text-[11px] text-muted-foreground flex items-center gap-1">
+                        <Mail className="h-3 w-3" />
+                        {c.email}
+                      </span>
+                    )}
+                  </div>
+                </button>
+              ))
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
@@ -1280,6 +1346,17 @@ export default function CaseDetailPage({
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
+              {contractors.length > 0 && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full"
+                  onClick={() => setShowContractorPicker(true)}
+                >
+                  <List className="mr-2 h-4 w-4" />
+                  Aus Werkstatt-Liste wählen
+                </Button>
+              )}
               <div>
                 <Label className="text-xs mb-1 block">Name *</Label>
                 <Input

@@ -1,6 +1,11 @@
-Name,Firma,Telefon,E-Mail (Benachrichtigungen),Gewerk / Zuständig für,Wann verwenden
-Thomas Huber,Huber Sanitär & Heizung GmbH,+43 664 111 2233,mathiaskracher@gmx.at,Sanitär / Heizung / Wasserschäden,Bei Wasserschaden-Fällen
-Klaus Brandner,Elektro Brandner e.U.,+43 664 222 3344,mathiaskracher@gmx.at,Elektrik / Stromschäden,Bei Elektro-Fällen
-Maria Fuchs,Fuchs Bau & Sanierung KG,+43 664 333 4455,mathiaskracher@gmx.at,Bau / Schimmel / Böden / Außenbereich,Bei Bau- und Schimmelschäden
-Peter Weinberger,Weinberger Fenster & Türen GmbH,+43 664 444 5566,mathiaskracher@gmx.at,Fenster & Türen,Bei Fenster-/Türschäden
-Hans Gruber,Allround Service Gruber,+43 664 555 6677,mathiaskracher@gmx.at,Allgemein (alle Gewerke),Wenn unklar welche Werkstatt
+Name,Firma,Telefon,E-Mail (Benachrichtigungen),Gewerk / Spezialitaet,Schaden-Typ
+Thomas Huber,Huber Sanitaer und Heizung GmbH,+43 664 111 2233,tradingworld@gmx.at,sanitaer / heizung / wasser,Wasserschaden / Rohrbruch / Heizungsausfall
+Klaus Brandner,Elektro Brandner eU,+43 664 222 3344,tradingworld@gmx.at,elektrik,Elektroschaden / Kurzschluss / Lichtausfall
+Maria Fuchs,Fuchs Bau und Sanierung KG,+43 664 333 4455,tradingworld@gmx.at,schimmel / boeden / bau,Schimmelbefall / Bodenbelag / Risse
+Peter Weinberger,Weinberger Fenster und Tueren GmbH,+43 664 444 5566,tradingworld@gmx.at,fenster_tueren,Fensterschaden / Tuerscbloss / Verglasung
+Josef Reiter,Reiter Maler und Lackierer,+43 664 555 6677,tradingworld@gmx.at,maler,Wandschaden / Farbabplatzung / Feuchtigkeitsflecken
+Ernst Kaltenbrunner,Kaltenbrunner Dachdeckerei GmbH,+43 664 666 7788,tradingworld@gmx.at,dach / aussenbereich,Undichtes Dach / Dachrinnenschaden / Fassade
+Carmen Schieder,Schieder Schaedlingsbekaempfung,+43 664 777 8899,tradingworld@gmx.at,schaedlinge,Schaedlingsbefall / Ungeziefer / Bettwanzen
+Ludwig Forster,Forster Aufzugstechnik OG,+43 664 888 9900,tradingworld@gmx.at,aufzug,Aufzugausfall / Liftschloss / Aufzugwartung
+Barbara Haas,Haas Reinigung und Hausbetreuung,+43 664 999 0011,tradingworld@gmx.at,reinigung / allgemein,Kellerschaden / Gemeinschaftsbereiche / Allgemeines
+Hans Gruber,Allround Service Gruber,+43 664 100 1122,tradingworld@gmx.at,allgemein,Alle Schaeden (wenn Zustaendigkeit unklar)
