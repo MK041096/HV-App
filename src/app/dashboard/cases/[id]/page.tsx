@@ -25,6 +25,10 @@ import {
   RefreshCw,
   Sparkles,
   FileSearch,
+  Upload,
+  Receipt,
+  Shield,
+  ExternalLink,
 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
@@ -138,6 +142,11 @@ interface CaseDetail {
   photos: Photo[]
   status_history: StatusHistoryEntry[]
   comments: Comment[]
+  is_insurance_damage: boolean
+  insurance_notes: string | null
+  invoice_path: string | null
+  invoice_filename: string | null
+  invoice_uploaded_at: string | null
 }
 
 // ── Helpers ──
@@ -252,6 +261,16 @@ export default function CaseDetailPage({
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const [isDeletingCase, setIsDeletingCase] = useState(false)
 
+  const [isUploadingInvoice, setIsUploadingInvoice] = useState(false)
+  const [invoiceSignedUrl, setInvoiceSignedUrl] = useState<string | null>(null)
+  const [isDeletingInvoice, setIsDeletingInvoice] = useState(false)
+  const [invoiceError, setInvoiceError] = useState<string | null>(null)
+  const [invoiceSuccess, setInvoiceSuccess] = useState<string | null>(null)
+  const [isInsuranceDamage, setIsInsuranceDamage] = useState(false)
+  const [insuranceNotes, setInsuranceNotes] = useState("")
+  const [isSavingInsurance, setIsSavingInsurance] = useState(false)
+  const [insuranceSuccess, setInsuranceSuccess] = useState<string | null>(null)
+
   // Fetch case
   async function fetchCase() {
     setIsLoading(true)
@@ -265,6 +284,15 @@ export default function CaseDetailPage({
       const json = await res.json()
       const data = json.data as CaseDetail
       setCaseData(data)
+      setIsInsuranceDamage(data.is_insurance_damage ?? false)
+      setInsuranceNotes(data.insurance_notes ?? "")
+      // Load invoice signed URL if invoice exists
+      if (data.invoice_path) {
+        fetch(`/api/hv/cases/${data.id}/invoice`)
+          .then(r => r.json())
+          .then(j => { if (j.data?.signed_url) setInvoiceSignedUrl(j.data.signed_url) })
+          .catch(() => {})
+      }
 
       // Populate assignment form
       setAssignName(data.assigned_to_name || "")
@@ -770,6 +798,10 @@ export default function CaseDetailPage({
             <Tabs defaultValue="comments">
               <CardHeader className="pb-0">
                 <TabsList className="w-full justify-start">
+                  <TabsTrigger value="dokumente">
+                    <Receipt className="h-3.5 w-3.5 mr-1.5" />
+                    Dokumente
+                  </TabsTrigger>
                   <TabsTrigger value="comments" className="flex items-center gap-1.5">
                     <MessageSquare className="h-4 w-4" />
                     Kommentare ({caseData.comments.length})
@@ -781,6 +813,247 @@ export default function CaseDetailPage({
                 </TabsList>
               </CardHeader>
               <CardContent className="pt-4">
+              {/* ── DOKUMENTE TAB ── */}
+              <TabsContent value="dokumente" className="space-y-4 mt-0">
+
+                {/* Invoice Card */}
+                <Card>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-base flex items-center gap-2">
+                      <Receipt className="h-4 w-4" />
+                      Rechnung der Werkstatt
+                    </CardTitle>
+                    <CardDescription>
+                      PDF oder Bild der Werkstatt-Rechnung hochladen
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    {invoiceError && (
+                      <Alert variant="destructive">
+                        <AlertDescription>{invoiceError}</AlertDescription>
+                      </Alert>
+                    )}
+                    {invoiceSuccess && (
+                      <Alert>
+                        <AlertDescription className="text-green-700">{invoiceSuccess}</AlertDescription>
+                      </Alert>
+                    )}
+                    {caseData?.invoice_filename ? (
+                      <div className="flex items-center justify-between p-3 border rounded-lg bg-muted/30">
+                        <div className="flex items-center gap-3">
+                          <Receipt className="h-5 w-5 text-muted-foreground shrink-0" />
+                          <div>
+                            <p className="text-sm font-medium">{caseData.invoice_filename}</p>
+                            <p className="text-xs text-muted-foreground">
+                              Hochgeladen am{" "}
+                              {caseData.invoice_uploaded_at
+                                ? new Date(caseData.invoice_uploaded_at).toLocaleString("de-AT", {
+                                    day: "2-digit", month: "2-digit", year: "numeric",
+                                    hour: "2-digit", minute: "2-digit",
+                                  })
+                                : "–"}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {invoiceSignedUrl && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => window.open(invoiceSignedUrl, "_blank")}
+                            >
+                              <ExternalLink className="h-3.5 w-3.5 mr-1.5" />
+                              Öffnen
+                            </Button>
+                          )}
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            disabled={isDeletingInvoice}
+                            onClick={async () => {
+                              if (!confirm("Rechnung wirklich löschen?")) return
+                              setIsDeletingInvoice(true)
+                              setInvoiceError(null)
+                              try {
+                                const res = await fetch(`/api/hv/cases/${caseData.id}/invoice`, { method: "DELETE" })
+                                const json = await res.json()
+                                if (!res.ok) {
+                                  setInvoiceError(json.error || "Fehler beim Löschen")
+                                } else {
+                                  setCaseData(prev => prev ? { ...prev, invoice_path: null, invoice_filename: null, invoice_uploaded_at: null } : prev)
+                                  setInvoiceSignedUrl(null)
+                                  setInvoiceSuccess("Rechnung gelöscht")
+                                  setTimeout(() => setInvoiceSuccess(null), 3000)
+                                }
+                              } catch {
+                                setInvoiceError("Verbindungsfehler")
+                              } finally {
+                                setIsDeletingInvoice(false)
+                              }
+                            }}
+                          >
+                            <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                          </Button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="border-2 border-dashed rounded-lg p-6 text-center">
+                        <Upload className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
+                        <p className="text-sm text-muted-foreground mb-3">
+                          PDF, JPG oder PNG — max. 10 MB
+                        </p>
+                        <label className="cursor-pointer">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            disabled={isUploadingInvoice}
+                            asChild
+                          >
+                            <span>
+                              {isUploadingInvoice ? (
+                                <><Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />Wird hochgeladen...</>
+                              ) : (
+                                <><Upload className="h-3.5 w-3.5 mr-1.5" />Rechnung hochladen</>
+                              )}
+                            </span>
+                          </Button>
+                          <input
+                            type="file"
+                            accept=".pdf,.jpg,.jpeg,.png,.webp"
+                            className="sr-only"
+                            disabled={isUploadingInvoice}
+                            onChange={async (e) => {
+                              const file = e.target.files?.[0]
+                              if (!file || !caseData) return
+                              setIsUploadingInvoice(true)
+                              setInvoiceError(null)
+                              try {
+                                const formData = new FormData()
+                                formData.append("file", file)
+                                const res = await fetch(`/api/hv/cases/${caseData.id}/invoice`, {
+                                  method: "POST",
+                                  body: formData,
+                                })
+                                const json = await res.json()
+                                if (!res.ok) {
+                                  setInvoiceError(json.error || "Fehler beim Hochladen")
+                                } else {
+                                  setCaseData(prev => prev ? {
+                                    ...prev,
+                                    invoice_path: json.data.invoice_path,
+                                    invoice_filename: json.data.invoice_filename || file.name,
+                                    invoice_uploaded_at: json.data.invoice_uploaded_at,
+                                  } : prev)
+                                  if (json.data.signed_url) setInvoiceSignedUrl(json.data.signed_url)
+                                  setInvoiceSuccess("Rechnung erfolgreich hochgeladen")
+                                  setTimeout(() => setInvoiceSuccess(null), 3000)
+                                }
+                              } catch {
+                                setInvoiceError("Verbindungsfehler")
+                              } finally {
+                                setIsUploadingInvoice(false)
+                                e.target.value = ""
+                              }
+                            }}
+                          />
+                        </label>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+
+                {/* Insurance Card */}
+                <Card>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-base flex items-center gap-2">
+                      <Shield className="h-4 w-4" />
+                      Versicherungsschaden
+                    </CardTitle>
+                    <CardDescription>
+                      Handelt es sich um einen versicherungsrelevanten Schaden?
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <Label className="text-sm font-medium">Als Versicherungsschaden markieren</Label>
+                        <p className="text-xs text-muted-foreground mt-0.5">
+                          Ermöglicht das Erstellen eines Versicherungsschadenblatts
+                        </p>
+                      </div>
+                      <Switch
+                        checked={isInsuranceDamage}
+                        onCheckedChange={setIsInsuranceDamage}
+                      />
+                    </div>
+                    {isInsuranceDamage && (
+                      <div className="space-y-2">
+                        <Label className="text-sm">Notizen für Versicherung (optional)</Label>
+                        <Textarea
+                          placeholder="z.B. Polizzennummer, Schadensnummer, besondere Hinweise..."
+                          value={insuranceNotes}
+                          onChange={(e) => setInsuranceNotes(e.target.value)}
+                          rows={3}
+                          className="resize-none text-sm"
+                        />
+                      </div>
+                    )}
+                    {insuranceSuccess && (
+                      <p className="text-sm text-green-700">{insuranceSuccess}</p>
+                    )}
+                    <div className="flex items-center gap-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        disabled={isSavingInsurance}
+                        onClick={async () => {
+                          if (!caseData) return
+                          setIsSavingInsurance(true)
+                          try {
+                            const res = await fetch(`/api/hv/cases/${caseData.id}`, {
+                              method: "PATCH",
+                              headers: { "Content-Type": "application/json" },
+                              body: JSON.stringify({
+                                is_insurance_damage: isInsuranceDamage,
+                                insurance_notes: insuranceNotes,
+                              }),
+                            })
+                            const json = await res.json()
+                            if (res.ok) {
+                              setCaseData(prev => prev ? {
+                                ...prev,
+                                is_insurance_damage: isInsuranceDamage,
+                                insurance_notes: insuranceNotes,
+                              } : prev)
+                              setInsuranceSuccess("Gespeichert")
+                              setTimeout(() => setInsuranceSuccess(null), 3000)
+                            }
+                          } catch {}
+                          finally { setIsSavingInsurance(false) }
+                        }}
+                      >
+                        {isSavingInsurance ? (
+                          <><Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />Speichert...</>
+                        ) : (
+                          <><Save className="h-3.5 w-3.5 mr-1.5" />Speichern</>
+                        )}
+                      </Button>
+                      {caseData?.is_insurance_damage && (
+                        <Button
+                          size="sm"
+                          variant="default"
+                          onClick={() => window.open(`/dashboard/cases/${caseData.id}/versicherungsblatt`, "_blank")}
+                        >
+                          <FileSearch className="h-3.5 w-3.5 mr-1.5" />
+                          Versicherungsblatt öffnen
+                        </Button>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+
+              </TabsContent>
+
                 {/* Comments Tab */}
                 <TabsContent value="comments" className="mt-0 space-y-4">
                   {/* Add Comment Form */}

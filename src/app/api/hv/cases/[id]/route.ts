@@ -505,8 +505,43 @@ export async function PATCH(
       })
     }
 
+    // ── INSURANCE DAMAGE FLAG ──
+    if ('is_insurance_damage' in body) {
+      const isInsurance = Boolean(body.is_insurance_damage)
+      const notes = typeof body.insurance_notes === 'string' ? body.insurance_notes.slice(0, 1000) : null
+
+      const { data: updated, error: updateError } = await supabase
+        .from('damage_reports')
+        .update({
+          is_insurance_damage: isInsurance,
+          insurance_notes: notes,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', id)
+        .select('id, is_insurance_damage, insurance_notes, updated_at')
+        .single()
+
+      if (updateError) {
+        console.error('Error updating insurance flag:', updateError)
+        return NextResponse.json({ error: 'Fehler beim Aktualisieren' }, { status: 500 })
+      }
+
+      await supabase.from('audit_logs').insert({
+        user_id: user.id,
+        organization_id: profile.organization_id,
+        action: isInsurance ? 'insurance_damage_flagged' : 'insurance_damage_unflagged',
+        entity_type: 'damage_report',
+        entity_id: id,
+      })
+
+      return NextResponse.json({
+        data: updated,
+        message: isInsurance ? 'Als Versicherungsschaden markiert' : 'Versicherungsschaden-Markierung entfernt',
+      })
+    }
+
     return NextResponse.json(
-      { error: 'Ungültige Anfrage. Erwartet: new_status, assigned_to_name, clear, oder scheduled_appointment.' },
+      { error: 'Ungültige Anfrage. Erwartet: new_status, assigned_to_name, clear, scheduled_appointment oder is_insurance_damage.' },
       { status: 400 }
     )
   } catch (err) {
