@@ -76,9 +76,9 @@ export async function POST(
     }
 
     const categoryLabels: Record<string, string> = {
-      wasser: 'Wasserschaden', heizung: 'Heizung/Warmwasser', elektrik: 'Elektrik',
-      fenster_tueren: 'Fenster/Türen', boeden: 'Böden', schimmel: 'Schimmel',
-      sanitaer: 'Sanitär', sonstiges: 'Sonstiges',
+      wasserschaden: 'Wasserschaden', heizung: 'Heizung/Warmwasser', elektrik: 'Elektrik',
+      fenster_tueren: 'Fenster/Türen', boeden_waende: 'Böden & Wände', schimmel: 'Schimmel',
+      sanitaer: 'Sanitär', aussenbereich: 'Außenbereich', sonstiges: 'Sonstiges',
     }
     const urgencyLabels: Record<string, string> = {
       notfall: 'Notfall (sofort)', dringend: 'Dringend (innerhalb 48h)', normal: 'Normal',

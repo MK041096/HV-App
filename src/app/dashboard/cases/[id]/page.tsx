@@ -327,12 +327,35 @@ export default function CaseDetailPage({
     }
   }
 
+  async function runKiAnalysis() {
+    setIsRunningKi(true)
+    setKiError(null)
+    try {
+      const res = await fetch(`/api/hv/cases/${id}/ki-analyse`, { method: "POST" })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error)
+      setKiResult(data.result)
+      setKiLeaseFound(data.lease_found ?? false)
+    } catch (err) {
+      setKiError(err instanceof Error ? err.message : 'Fehler')
+    } finally {
+      setIsRunningKi(false)
+    }
+  }
+
   useEffect(() => {
     fetchCase()
     fetch('/api/hv/contractors').then(r => r.json()).then(d => {
       if (d.data) setContractors(d.data)
     })
   }, [id])
+
+  // Auto-run KI when case first loads without existing analysis
+  useEffect(() => {
+    if (!caseData || caseData.ki_analyse_result || isRunningKi || kiResult) return
+    runKiAnalysis()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [caseData?.id])
 
   // ── Actions ──
 
@@ -1449,21 +1472,7 @@ export default function CaseDetailPage({
                     size="sm"
                     className="w-full"
                     disabled={isRunningKi}
-                    onClick={async () => {
-                      setIsRunningKi(true)
-                      setKiError(null)
-                      try {
-                        const res = await fetch(`/api/hv/cases/${id}/ki-analyse`, { method: "POST" })
-                        const data = await res.json()
-                        if (!res.ok) throw new Error(data.error)
-                        setKiResult(data.result)
-                        setKiLeaseFound(data.lease_found)
-                      } catch (err) {
-                        setKiError(err instanceof Error ? err.message : 'Fehler')
-                      } finally {
-                        setIsRunningKi(false)
-                      }
-                    }}
+                    onClick={runKiAnalysis}
                   >
                     {isRunningKi ? <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" /> : <RefreshCw className="mr-2 h-3.5 w-3.5" />}
                     Neu analysieren
@@ -1477,21 +1486,7 @@ export default function CaseDetailPage({
                   <Button
                     className="w-full"
                     disabled={isRunningKi}
-                    onClick={async () => {
-                      setIsRunningKi(true)
-                      setKiError(null)
-                      try {
-                        const res = await fetch(`/api/hv/cases/${id}/ki-analyse`, { method: "POST" })
-                        const data = await res.json()
-                        if (!res.ok) throw new Error(data.error)
-                        setKiResult(data.result)
-                        setKiLeaseFound(data.lease_found)
-                      } catch (err) {
-                        setKiError(err instanceof Error ? err.message : 'Fehler')
-                      } finally {
-                        setIsRunningKi(false)
-                      }
-                    }}
+                    onClick={runKiAnalysis}
                   >
                     {isRunningKi ? (
                       <>
