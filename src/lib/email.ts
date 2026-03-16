@@ -17,8 +17,8 @@ const STATUS_COLORS: Record<string, string> = {
   abgelehnt: '#6b7280',
 }
 
-// Only send notifications for these statuses
-export const NOTIFICATION_STATUSES = ['in_bearbeitung', 'termin_vereinbart', 'erledigt', 'abgelehnt']
+// Status change emails disabled — Mieter sees status in the app
+export const NOTIFICATION_STATUSES: string[] = []
 
 function baseTemplate(content: string, orgName: string): string {
   return `
