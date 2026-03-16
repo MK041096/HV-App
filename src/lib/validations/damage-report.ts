@@ -130,7 +130,7 @@ export const createDamageReportSchema = z.object({
 // Schema for listing damage reports (query params)
 export const listDamageReportsSchema = z.object({
   status: z
-    .enum(['neu', 'in_bearbeitung', 'warte_auf_handwerker', 'termin_vereinbart', 'erledigt', 'abgelehnt'])
+    .enum(['neu', 'in_bearbeitung', 'warte_auf_handwerker', 'termin_vereinbart', 'termin_telefonisch', 'erledigt', 'abgelehnt'])
     .optional(),
   urgency: z.enum(URGENCY_LEVELS).optional(),
   category: z.enum(DAMAGE_CATEGORIES).optional(),

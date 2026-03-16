@@ -89,7 +89,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   }).eq('token', token)
 
   await adminClient.from('damage_reports').update({
-    status: 'termin_vereinbart',
+    status: isPhone ? 'termin_telefonisch' : 'termin_vereinbart',
     scheduled_appointment: finalDate,
     updated_at: new Date().toISOString(),
   }).eq('id', tokenData.damage_report_id)
@@ -97,7 +97,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   await adminClient.from('damage_report_status_history').insert({
     damage_report_id: tokenData.damage_report_id,
     old_status: currentDR?.status ?? null,
-    new_status: 'termin_vereinbart',
+    new_status: isPhone ? 'termin_telefonisch' : 'termin_vereinbart',
     note: isPhone ? `Termin telefonisch vereinbart durch Werkstatt` : `Termin bestätigt durch Werkstatt: ${finalDateLabel}`,
     changed_by: null,
   })

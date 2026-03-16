@@ -6,6 +6,7 @@ export const STATUS_DISPLAY_MAP = {
   in_bearbeitung: 'In Bearbeitung',
   warte_auf_handwerker: 'In Bearbeitung',
   termin_vereinbart: 'Termin vereinbart',
+  termin_telefonisch: 'Termin telefonisch vereinbart',
   erledigt: 'Abgeschlossen',
   abgelehnt: 'Abgeschlossen',
 } as const
@@ -13,7 +14,7 @@ export const STATUS_DISPLAY_MAP = {
 // Filter groups for the dashboard (maps display status to DB statuses)
 export const STATUS_FILTER_MAP = {
   alle: null,
-  offen: ['neu', 'in_bearbeitung', 'warte_auf_handwerker', 'termin_vereinbart'],
+  offen: ['neu', 'in_bearbeitung', 'warte_auf_handwerker', 'termin_vereinbart', 'termin_telefonisch'],
   abgeschlossen: ['erledigt', 'abgelehnt'],
 } as const
 

@@ -7,6 +7,7 @@ export const CASE_STATUSES = [
   'in_bearbeitung',
   'warte_auf_handwerker',
   'termin_vereinbart',
+  'termin_telefonisch',
   'erledigt',
   'abgelehnt',
 ] as const
@@ -19,6 +20,7 @@ export const CASE_STATUS_LABELS: Record<CaseStatus, string> = {
   in_bearbeitung: 'In Bearbeitung',
   warte_auf_handwerker: 'Warte auf Handwerker',
   termin_vereinbart: 'Termin vereinbart',
+  termin_telefonisch: 'Termin telefonisch vereinbart',
   erledigt: 'Erledigt',
   abgelehnt: 'Abgelehnt',
 }

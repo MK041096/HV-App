@@ -6,6 +6,7 @@ const FROM_EMAIL = 'SchadensMelder <noreply@zerodamage.de>'
 const STATUS_LABELS: Record<string, string> = {
   in_bearbeitung: 'In Bearbeitung',
   termin_vereinbart: 'Termin vereinbart',
+  termin_telefonisch: 'Termin telefonisch vereinbart',
   erledigt: 'Erledigt',
   abgelehnt: 'Abgelehnt',
 }
