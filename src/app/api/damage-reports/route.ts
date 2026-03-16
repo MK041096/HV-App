@@ -263,6 +263,7 @@ export async function POST(request: NextRequest) {
         description: parsed.data.description || null,
         urgency: parsed.data.urgency,
         preferred_appointment: parsed.data.preferred_appointment || null,
+        preferred_appointment_2: parsed.data.preferred_appointment_2 || null,
         access_notes: parsed.data.access_notes || null,
         status: 'neu',
       })

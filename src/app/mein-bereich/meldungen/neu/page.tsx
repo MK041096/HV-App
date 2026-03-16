@@ -1133,17 +1133,18 @@ function Step5Summary({
           )}
           {formData.preferred_appointment && (
             <p>
-              <span className="text-muted-foreground">Wunschtermin:</span>{" "}
-              {new Date(formData.preferred_appointment).toLocaleString(
-                "de-AT",
-                {
-                  day: "2-digit",
-                  month: "2-digit",
-                  year: "numeric",
-                  hour: "2-digit",
-                  minute: "2-digit",
-                }
-              )}
+              <span className="text-muted-foreground">Wunschtermin 1:</span>{" "}
+              {new Date(formData.preferred_appointment).toLocaleString("de-AT", {
+                day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit",
+              })}
+            </p>
+          )}
+          {formData.preferred_appointment_2 && (
+            <p>
+              <span className="text-muted-foreground">Wunschtermin 2:</span>{" "}
+              {new Date(formData.preferred_appointment_2).toLocaleString("de-AT", {
+                day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit",
+              })}
             </p>
           )}
           {formData.access_notes && (

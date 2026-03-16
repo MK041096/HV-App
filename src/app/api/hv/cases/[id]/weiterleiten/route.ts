@@ -31,7 +31,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     // Load case + contractor in parallel
     const [{ data: report }, { data: contractor }] = await Promise.all([
       adminClient.from('damage_reports')
-        .select('id, case_number, title, description, category, reporter_id, unit_id, preferred_appointment')
+        .select('id, case_number, title, description, category, reporter_id, unit_id, preferred_appointment, preferred_appointment_2')
         .eq('id', id)
         .eq('organization_id', profile.organization_id)
         .single(),
@@ -45,7 +45,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     if (!report) return NextResponse.json({ error: 'Fall nicht gefunden' }, { status: 404 })
     if (!contractor) return NextResponse.json({ error: 'Werkstatt nicht gefunden' }, { status: 404 })
 
-    const appointmentDate = scheduled_appointment || report.preferred_appointment
+    const appointmentDate = scheduled_appointment || report.preferred_appointment || report.preferred_appointment_2
 
     // Load current status
     const { data: currentStatusData } = await supabase

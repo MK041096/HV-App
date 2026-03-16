@@ -123,6 +123,8 @@ interface CaseDetail {
   room: string | null
   access_notes: string | null
   preferred_appointment: string | null
+  preferred_appointment_2: string | null
+  ki_analyse_result: string | null
   assigned_to_name: string | null
   assigned_to_phone: string | null
   assigned_to_email: string | null
@@ -275,8 +277,8 @@ export default function CaseDetailPage({
       )
 
       // Load existing KI analysis if available
-      if ((data as CaseDetail & { ki_analyse_result?: string }).ki_analyse_result) {
-        setKiResult((data as CaseDetail & { ki_analyse_result?: string }).ki_analyse_result!)
+      if (data.ki_analyse_result) {
+        setKiResult(data.ki_analyse_result)
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unbekannter Fehler")
@@ -683,13 +685,18 @@ export default function CaseDetailPage({
                 </div>
               )}
 
-              {/* Preferred Appointment */}
-              {caseData.preferred_appointment && (
+              {/* Preferred Appointment(s) */}
+              {(caseData.preferred_appointment || caseData.preferred_appointment_2) && (
                 <div className="bg-muted/50 rounded-lg p-3">
                   <p className="text-xs font-medium text-muted-foreground mb-1">
-                    Wunschtermin des Mieters
+                    Wunschtermin{caseData.preferred_appointment_2 ? "e" : ""} des Mieters
                   </p>
-                  <p className="text-sm">{formatDateTime(caseData.preferred_appointment)}</p>
+                  {caseData.preferred_appointment && (
+                    <p className="text-sm">1. {formatDateTime(caseData.preferred_appointment)}</p>
+                  )}
+                  {caseData.preferred_appointment_2 && (
+                    <p className="text-sm mt-0.5">2. {formatDateTime(caseData.preferred_appointment_2)}</p>
+                  )}
                 </div>
               )}
 

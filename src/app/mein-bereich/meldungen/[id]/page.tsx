@@ -110,6 +110,7 @@ interface DamageReportDetail {
   updated_at: string
   closed_at: string | null
   preferred_appointment: string | null
+  preferred_appointment_2: string | null
   scheduled_appointment: string | null
   access_notes: string | null
   assigned_to_name: string | null
@@ -481,15 +482,17 @@ export default function MeldungDetailPage() {
             )}
             {report.preferred_appointment && (
               <DetailItem
-                label="Wunschtermin"
-                value={new Date(
-                  report.preferred_appointment
-                ).toLocaleDateString("de-AT", {
-                  day: "2-digit",
-                  month: "2-digit",
-                  year: "numeric",
-                  hour: "2-digit",
-                  minute: "2-digit",
+                label={report.preferred_appointment_2 ? "Wunschtermin 1" : "Wunschtermin"}
+                value={new Date(report.preferred_appointment).toLocaleDateString("de-AT", {
+                  day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit",
+                })}
+              />
+            )}
+            {report.preferred_appointment_2 && (
+              <DetailItem
+                label="Wunschtermin 2"
+                value={new Date(report.preferred_appointment_2).toLocaleDateString("de-AT", {
+                  day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit",
                 })}
               />
             )}

@@ -105,6 +105,11 @@ export const createDamageReportSchema = z.object({
     .datetime({ message: 'Ungültiges Datumsformat' })
     .optional()
     .nullable(),
+  preferred_appointment_2: z
+    .string()
+    .datetime({ message: 'Ungültiges Datumsformat' })
+    .optional()
+    .nullable(),
   access_notes: z
     .string()
     .max(500, 'Zugangshinweise duerfen maximal 500 Zeichen lang sein')
