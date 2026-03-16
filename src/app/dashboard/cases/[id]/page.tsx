@@ -51,6 +51,16 @@ import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Skeleton } from "@/components/ui/skeleton"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 
 import {
   CASE_STATUSES,
@@ -234,6 +244,10 @@ export default function CaseDetailPage({
   const [isSendingWeiterleitung, setIsSendingWeiterleitung] = useState(false)
   const [aktionSuccess, setAktionSuccess] = useState<string | null>(null)
   const [aktionError, setAktionError] = useState<string | null>(null)
+
+  // Delete state
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+  const [isDeletingCase, setIsDeletingCase] = useState(false)
 
   // Fetch case
   async function fetchCase() {
@@ -423,6 +437,24 @@ export default function CaseDetailPage({
     }
   }
 
+  async function handleDeleteCase() {
+    setIsDeletingCase(true)
+    try {
+      const res = await fetch(`/api/hv/cases/${id}`, { method: "DELETE" })
+      const json = await res.json().catch(() => ({}))
+      if (!res.ok) throw new Error(json.error || "Fehler beim Löschen")
+      router.push("/dashboard/cases")
+    } catch (err) {
+      setStatusMessage({
+        type: "error",
+        text: err instanceof Error ? err.message : "Fehler beim Löschen",
+      })
+      setShowDeleteDialog(false)
+    } finally {
+      setIsDeletingCase(false)
+    }
+  }
+
   // ── Render ──
 
   if (isLoading) {
@@ -500,6 +532,39 @@ export default function CaseDetailPage({
         </div>
       )}
 
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Meldung löschen?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Soll die Meldung <strong>{caseData.case_number}</strong> &bdquo;{caseData.title}&ldquo; wirklich gelöscht werden?
+              Sie verschwindet aus dem Dashboard und ist nicht mehr sichtbar.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeletingCase}>Abbrechen</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteCase}
+              disabled={isDeletingCase}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {isDeletingCase ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Wird gelöscht...
+                </>
+              ) : (
+                <>
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  Ja, löschen
+                </>
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div className="flex items-center gap-3">
@@ -526,6 +591,15 @@ export default function CaseDetailPage({
             </h1>
           </div>
         </div>
+        <Button
+          variant="outline"
+          size="sm"
+          className="text-destructive border-destructive/30 hover:bg-destructive/10 hover:text-destructive self-start sm:self-auto"
+          onClick={() => setShowDeleteDialog(true)}
+        >
+          <Trash2 className="mr-2 h-4 w-4" />
+          Meldung löschen
+        </Button>
       </div>
 
       {/* Status Message */}

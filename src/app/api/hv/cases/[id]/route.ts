@@ -514,3 +514,79 @@ export async function PATCH(
     return NextResponse.json({ error: 'Interner Serverfehler' }, { status: 500 })
   }
 }
+
+// DELETE /api/hv/cases/[id] - Soft-delete a case (hv_admin only)
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const supabase = await createServerSupabaseClient()
+    const { id } = await params
+
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+
+    if (!user) {
+      return NextResponse.json({ error: 'Nicht authentifiziert' }, { status: 401 })
+    }
+
+    if (!UUID_REGEX.test(id)) {
+      return NextResponse.json({ error: 'Ungültige Fall-ID' }, { status: 400 })
+    }
+
+    const profile = await getHvProfile(supabase, user.id)
+    if (!profile) {
+      return NextResponse.json({ error: 'Keine Berechtigung' }, { status: 403 })
+    }
+
+    // Only admins can delete
+    if (!['hv_admin', 'platform_admin'].includes(profile.role)) {
+      return NextResponse.json(
+        { error: 'Nur Administratoren dürfen Meldungen löschen' },
+        { status: 403 }
+      )
+    }
+
+    // Verify case exists and belongs to org
+    const { data: existingReport, error: fetchError } = await supabase
+      .from('damage_reports')
+      .select('id, case_number, title')
+      .eq('id', id)
+      .eq('organization_id', profile.organization_id)
+      .eq('is_deleted', false)
+      .single()
+
+    if (fetchError || !existingReport) {
+      return NextResponse.json({ error: 'Fall nicht gefunden' }, { status: 404 })
+    }
+
+    // Soft delete
+    const { error: deleteError } = await supabase
+      .from('damage_reports')
+      .update({ is_deleted: true, deleted_at: new Date().toISOString() })
+      .eq('id', id)
+      .eq('organization_id', profile.organization_id)
+
+    if (deleteError) {
+      console.error('Error deleting case:', deleteError)
+      return NextResponse.json({ error: 'Fehler beim Löschen der Meldung' }, { status: 500 })
+    }
+
+    // Audit log
+    await supabase.from('audit_logs').insert({
+      user_id: user.id,
+      organization_id: profile.organization_id,
+      action: 'damage_report_deleted',
+      entity_type: 'damage_report',
+      entity_id: id,
+      details: { case_number: existingReport.case_number, title: existingReport.title },
+    })
+
+    return NextResponse.json({ message: 'Meldung erfolgreich gelöscht' })
+  } catch (err) {
+    console.error('Unexpected error:', err)
+    return NextResponse.json({ error: 'Interner Serverfehler' }, { status: 500 })
+  }
+}
