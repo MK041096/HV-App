@@ -423,19 +423,20 @@ export async function sendTerminBestaetigung(params: {
   caseNumber: string
   caseTitle: string
   contractorCompany: string
+  contractorPhone?: string | null
   confirmedDate: string
   isRescheduled: boolean
   isPhone?: boolean
   orgName: string
 }): Promise<void> {
-  const { hvEmails, tenantEmail, tenantName, caseNumber, caseTitle, contractorCompany, confirmedDate, isRescheduled, isPhone, orgName } = params
+  const { hvEmails, tenantEmail, tenantName, caseNumber, caseTitle, contractorCompany, contractorPhone, confirmedDate, isRescheduled, isPhone, orgName } = params
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://zerodamage.de'
 
   const hvHeading = isPhone
-    ? 'Werkstatt hat Termin telefonisch vereinbart'
+    ? 'Werkstatt kann Wunschtermin nicht wahrnehmen'
     : isRescheduled ? 'Werkstatt hat neuen Termin vorgeschlagen' : 'Werkstatt hat Termin bestätigt'
   const hvBadge = isPhone
-    ? '&#128222; Telefonisch vereinbart'
+    ? '&#128222; Mieter wird telefonisch kontaktiert'
     : isRescheduled ? '&#128197; Neuer Terminvorschlag' : '&#10003; Termin bestätigt'
 
   // E-Mail an HV
@@ -458,7 +459,7 @@ export async function sendTerminBestaetigung(params: {
       from: FROM_EMAIL,
       to: hvEmails,
       subject: isPhone
-        ? `[${caseNumber}] Termin telefonisch vereinbart – ${contractorCompany}`
+        ? `[${caseNumber}] Werkstatt kontaktiert Mieter telefonisch – ${contractorCompany}`
         : `[${caseNumber}] ${isRescheduled ? 'Neuer Terminvorschlag' : 'Termin bestätigt'} – ${contractorCompany}`,
       html: baseTemplate(hvContent, orgName),
     })
@@ -467,13 +468,13 @@ export async function sendTerminBestaetigung(params: {
   // E-Mail an Mieter
   if (tenantEmail) {
     const tenantHeading = isPhone
-      ? 'Werkstatt hat einen Termin mit Ihnen vereinbart'
+      ? 'Die Werkstatt versucht, Sie telefonisch zu erreichen'
       : isRescheduled ? 'Neuer Terminvorschlag der Werkstatt' : 'Ihr Reparaturtermin wurde bestätigt'
     const tenantBadge = isPhone
-      ? '&#128222; Termin telefonisch vereinbart'
+      ? '&#128222; Rückruf erforderlich'
       : isRescheduled ? '&#128197; Die Werkstatt schlägt einen neuen Termin vor' : '&#10003; Termin bestätigt'
     const tenantText = isPhone
-      ? 'Die Werkstatt hat einen Termin direkt mit Ihnen telefonisch vereinbart. Bitte stellen Sie sicher, dass die Wohnung zum vereinbarten Zeitpunkt zugänglich ist.'
+      ? 'Die Werkstatt konnte Ihren Wunschtermin leider nicht wahrnehmen und versucht nun, Sie telefonisch zu kontaktieren. Falls Sie den Anruf verpasst haben, rufen Sie bitte so schnell wie möglich zurück.'
       : isRescheduled
         ? 'Die Werkstatt konnte Ihren Wunschtermin nicht einhalten und hat einen neuen Termin vorgeschlagen. Ihre Hausverwaltung wurde informiert.'
         : 'Die Werkstatt kommt zum oben angezeigten Termin zu Ihnen. Bitte stellen Sie sicher, dass die Wohnung zugänglich ist.'
@@ -490,6 +491,14 @@ export async function sendTerminBestaetigung(params: {
         <p style="color:#71717a;font-size:13px;margin:0;">${contractorCompany}</p>
       </div>
 
+      ${isPhone && contractorPhone ? `
+      <div style="background-color:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:16px 20px;margin-bottom:24px;">
+        <p style="color:#1d4ed8;font-size:13px;font-weight:700;margin:0 0 6px 0;">&#128222; Werkstatt – Rückrufnummer</p>
+        <p style="color:#18181b;font-size:20px;font-weight:700;margin:0;">${contractorPhone}</p>
+        <p style="color:#71717a;font-size:12px;margin:6px 0 0 0;">${contractorCompany}</p>
+      </div>
+      ` : ''}
+
       <p style="color:#52525b;font-size:14px;line-height:1.6;margin:0 0 24px 0;">
         ${tenantText}
       </p>
@@ -503,7 +512,7 @@ export async function sendTerminBestaetigung(params: {
       from: FROM_EMAIL,
       to: tenantEmail,
       subject: isPhone
-        ? `[${caseNumber}] Termin telefonisch vereinbart – ${contractorCompany}`
+        ? `[${caseNumber}] Werkstatt versucht Sie zu erreichen – ${contractorCompany}`
         : `[${caseNumber}] ${isRescheduled ? 'Neuer Terminvorschlag' : 'Termin bestätigt'} – ${contractorCompany}`,
       html: baseTemplate(tenantContent, orgName),
     })
@@ -550,4 +559,91 @@ export async function sendNewCommentEmail(params: {
     subject: `[${caseNumber}] Neue Nachricht – SchadensMelder`,
     html: baseTemplate(content, orgName),
   })
+}
+
+export async function sendWerkstattErinnerung(params: {
+  hvEmails: string[]
+  tenantEmail: string | null
+  tenantName: string
+  caseNumber: string
+  caseTitle: string
+  contractorCompany: string
+  contractorPhone: string | null
+  reportId: string
+  orgName: string
+}): Promise<void> {
+  const { hvEmails, tenantEmail, tenantName, caseNumber, caseTitle, contractorCompany, contractorPhone, reportId, orgName } = params
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://zerodamage.de'
+  const caseUrl = appUrl + '/dashboard/cases/' + reportId
+
+  // E-Mail an HV
+  if (hvEmails.length > 0) {
+    const hvContent = `
+      <h2 style="color:#18181b;font-size:22px;font-weight:700;margin:0 0 8px 0;">
+        Werkstatt hat noch nicht reagiert
+      </h2>
+      <div style="background-color:#fef3c7;border:1px solid #fcd34d;border-radius:8px;padding:16px 20px;margin-bottom:24px;">
+        <p style="color:#92400e;font-size:13px;font-weight:700;margin:0 0 4px 0;">&#9888; Keine Antwort seit 24 Stunden</p>
+        <p style="color:#18181b;font-size:15px;font-weight:600;margin:4px 0 2px 0;">${contractorCompany}</p>
+        <p style="color:#71717a;font-size:13px;margin:0;">Fall ${caseNumber}: ${caseTitle}</p>
+      </div>
+      <p style="color:#52525b;font-size:14px;line-height:1.6;margin:0 0 24px 0;">
+        Die Werkstatt <strong>${contractorCompany}</strong> hat die Terminanfrage noch nicht beantwortet.
+        Bitte prüfen Sie den Fall und kontaktieren Sie die Werkstatt ggf. direkt.
+      </p>
+      ${contractorPhone ? `<p style="color:#18181b;font-size:16px;font-weight:700;margin:0 0 24px 0;">&#128222; ${contractorPhone}</p>` : ''}
+      <a href="${caseUrl}"
+         style="display:inline-block;background-color:#18181b;color:#ffffff;text-decoration:none;padding:12px 24px;border-radius:8px;font-size:14px;font-weight:600;">
+        Fall pruefen &rarr;
+      </a>
+    `
+    await resend.emails.send({
+      from: FROM_EMAIL,
+      to: hvEmails,
+      subject: `[${caseNumber}] Werkstatt reagiert nicht – bitte pruefen`,
+      html: baseTemplate(hvContent, orgName),
+    })
+  }
+
+  // E-Mail an Mieter
+  if (tenantEmail) {
+    const tenantContent = `
+      <h2 style="color:#18181b;font-size:22px;font-weight:700;margin:0 0 8px 0;">
+        Wir arbeiten an Ihrem Termin
+      </h2>
+      <p style="color:#71717a;font-size:14px;margin:0 0 24px 0;">Hallo ${tenantName},</p>
+
+      <div style="background-color:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:16px 20px;margin-bottom:24px;">
+        <p style="color:#16a34a;font-size:13px;font-weight:700;margin:0 0 4px 0;">&#10003; Ihr Schaden wird bearbeitet</p>
+        <p style="color:#18181b;font-size:15px;font-weight:600;margin:4px 0 2px 0;">${caseTitle}</p>
+        <p style="color:#71717a;font-size:13px;margin:0;">Fall-Nr. ${caseNumber}</p>
+      </div>
+
+      <p style="color:#52525b;font-size:14px;line-height:1.6;margin:0 0 16px 0;">
+        Die Werkstatt <strong>${contractorCompany}</strong> wird sich in Kuerze mit Ihnen in Verbindung setzen, um einen Termin zu vereinbaren.
+      </p>
+
+      ${contractorPhone ? `
+      <div style="background-color:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:16px 20px;margin-bottom:24px;">
+        <p style="color:#1d4ed8;font-size:13px;font-weight:700;margin:0 0 6px 0;">&#128222; Werkstatt – Rueckrufnummer</p>
+        <p style="color:#18181b;font-size:20px;font-weight:700;margin:0;">${contractorPhone}</p>
+        <p style="color:#71717a;font-size:12px;margin:6px 0 0 0;">${contractorCompany}</p>
+      </div>
+      <p style="color:#52525b;font-size:14px;line-height:1.6;margin:0 0 24px 0;">
+        Falls Sie erreichbar sein moechten, koennen Sie die Werkstatt auch direkt unter obiger Nummer anrufen.
+      </p>
+      ` : '<div style="margin-bottom:24px;"></div>'}
+
+      <a href="https://zerodamage.de/mein-bereich/meldungen"
+         style="display:inline-block;background-color:#18181b;color:#ffffff;text-decoration:none;padding:12px 24px;border-radius:8px;font-size:14px;font-weight:600;">
+        Status verfolgen &rarr;
+      </a>
+    `
+    await resend.emails.send({
+      from: FROM_EMAIL,
+      to: tenantEmail,
+      subject: `[${caseNumber}] Wir arbeiten an Ihrem Termin – ${contractorCompany} kontaktiert Sie bald`,
+      html: baseTemplate(tenantContent, orgName),
+    })
+  }
 }

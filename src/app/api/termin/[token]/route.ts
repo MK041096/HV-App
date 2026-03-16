@@ -66,7 +66,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       .select('case_number, title, reporter_id, preferred_appointment')
       .eq('id', tokenData.damage_report_id)
       .single(),
-    adminClient.from('contractors').select('name, company').eq('id', tokenData.contractor_id).single(),
+    adminClient.from('contractors').select('name, company, phone').eq('id', tokenData.contractor_id).single(),
     adminClient.from('organizations').select('name').eq('id', tokenData.organization_id).single(),
     adminClient.auth.admin.listUsers({ perPage: 1000 }),
   ])
@@ -123,6 +123,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     caseNumber: report?.case_number || '',
     caseTitle: report?.title || '',
     contractorCompany: contractor?.company || '',
+    contractorPhone: (contractor as any)?.phone || null,
     confirmedDate: finalDateLabel,
     isRescheduled: false,
     isPhone,
