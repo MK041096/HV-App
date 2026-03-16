@@ -1,292 +1,278 @@
-# Test-Anleitung: SchadensMelder — Komplette Prüfung vor dem ersten Kunden
-
-> **Für wen:** Mathias Kracher (manueller Test im Browser)
-> **Ziel:** Sicherstellen, dass alle Funktionen korrekt funktionieren
-> **Umgebung:** https://zerodamage.de (Live-System)
-> **Datum der Erstellung:** 2026-03-16
+# Test-Anleitung: SchadensMelder
+Umgebung: https://zerodamage.de | Erstellt: 2026-03-16
 
 ---
 
-## So nutzt du diese Anleitung
+## Deine 3 Test-E-Mail-Adressen
 
-- Gehe jeden Abschnitt der Reihe nach durch
-- Hake ab (✅) wenn etwas funktioniert
-- Schreibe hin (❌) wenn etwas nicht funktioniert und was du siehst
-- Mach Screenshots bei Fehlern
+| Rolle | E-Mail | Postfach |
+|-------|--------|----------|
+| HV-Admin + Platform-Admin | kracherdigital@gmail.com | Gmail |
+| Mieter | kracherdigital@gmx.at | GMX |
+| Werkstatt (kein Login, nur E-Mail) | mathiaskracher@gmx.at | GMX |
 
----
-
-## BLOCK A: Registrierung & Login (HV-Seite)
-
-### A1 — Neue Hausverwaltung registrieren
-
-**Wo:** https://zerodamage.de/hv-registrierung
-
-1. Öffne die Seite im Browser
-2. Prüfe: Siehst du das Formular mit allen Feldern?
-   - Firmenname, Vorname, Nachname, E-Mail, Passwort
-3. Scrolle nach unten — siehst du **zwei Checkboxen**?
-   - ☐ Ich akzeptiere die **Datenschutzerklärung**
-   - ☐ Ich akzeptiere den **Auftragsverarbeitungsvertrag (AVV)**
-4. Klicke auf den AVV-Link → öffnet sich eine neue Seite mit dem AVV-Text?
-5. Fülle das Formular aus:
-   - Firmenname: `Test Hausverwaltung GmbH`
-   - Vorname: `Max`
-   - Nachname: `Muster`
-   - E-Mail: *(deine Test-E-Mail)*
-   - Passwort: `TestPass123!`
-6. Hake beide Checkboxen an
-7. Klicke "Kostenlos registrieren"
-8. Prüfe: Erscheint eine Erfolgsmeldung "Fast geschafft!" mit Hinweis auf Bestätigungs-E-Mail?
-9. Öffne deine E-Mail → siehst du eine Bestätigungs-E-Mail von SchadensMelder?
-10. Klicke den Bestätigungslink in der E-Mail
-11. Prüfe: Wirst du auf die Login-Seite weitergeleitet?
-
-**Erwartetes Ergebnis:** Registrierung klappt, E-Mail kommt an, Bestätigung funktioniert.
+Wichtig: Du meldest im System NIEMANDEN automatisch an.
+Alles wird manuell durchgespielt wie ein echter Nutzer es erlebt.
 
 ---
 
-### A2 — Login als HV-Admin
+## Deine Excel-Testdateien
 
-**Wo:** https://zerodamage.de/login
+Oeffne diese Dateien BEVOR du anfaengst. Du tippst Daten manuell in die App ein.
 
-1. Gib die E-Mail und das Passwort aus A1 ein
-2. Klicke "Anmelden"
-3. Prüfe: Wirst du zum Dashboard weitergeleitet? (/dashboard)
-4. Siehst du das Dashboard mit:
-   - "Übersicht" als Seitentitel
-   - Die linke Navigationsleiste mit: Übersicht, Fälle, Einheiten, Mieter, Aktivierungscodes, Dokumente
-   - Ein **"Erste Schritte"** Onboarding-Widget (weil noch keine Fälle vorhanden)
-
-**Erwartetes Ergebnis:** Login klappt, Dashboard lädt, Onboarding-Widget ist sichtbar.
+| Datei | Pfad | Wofuer |
+|-------|------|--------|
+| testdaten-mieter.csv | HV-App/docs/testdaten-mieter.csv | Name + Einheit fuer Mieter-Test |
+| testdaten-werkstaetten.csv | HV-App/docs/testdaten-werkstaetten.csv | Werkstatt-Kontaktdaten zum Abtippen |
 
 ---
 
-### A3 — Logout
+## Portale
 
-1. Klicke unten links in der Navigation auf "Abmelden"
-2. Prüfe: Wirst du zur Login-Seite weitergeleitet?
-3. Versuche direkt https://zerodamage.de/dashboard aufzurufen
-4. Prüfe: Wirst du automatisch zum Login umgeleitet?
-
----
-
-## BLOCK B: Einheiten anlegen (Wohnungen)
-
-**Wo:** Im Dashboard → "Einheiten" in der Navigation
-
-1. Klicke auf "Einheiten" in der Navigation
-2. Klicke auf "Neue Einheit" oder ähnlichen Button
-3. Fülle aus:
-   - Name: `Wohnung Top 1`
-   - Adresse: `Musterstraße 1, 1010 Wien`
-   - Stockwerk: `EG`
-4. Speichern
-5. Prüfe: Erscheint die Einheit in der Liste?
-6. Lege eine zweite Einheit an: `Wohnung Top 2`, gleiche Adresse, 1. OG
+    kracherdigital@gmail.com -> zerodamage.de/admin        (Platform-Admin: Betreiber)
+                             -> zerodamage.de/dashboard    (HV-Admin: Hausverwaltung)
+    kracherdigital@gmx.at    -> zerodamage.de/mein-bereich (Mieter)
+    mathiaskracher@gmx.at    -> kein Login, nur E-Mails    (Werkstatt)
 
 ---
 
-## BLOCK C: Aktivierungscode für Mieter erstellen
+## Reihenfolge beim Testen
 
-**Wo:** Im Dashboard → "Aktivierungscodes"
-
-1. Klicke auf "Aktivierungscodes" in der Navigation
-2. Erstelle einen neuen Code für `Wohnung Top 1`
-3. Prüfe: Erscheint ein Code mit Link?
-   - Beispiel: `https://zerodamage.de/register?code=XXXXX`
-4. Kopiere den Link — du brauchst ihn für Block D
-
----
-
-## BLOCK D: Mieter-Registrierung (aus Sicht des Mieters)
-
-**Wichtig:** Dafür brauchst du eine zweite E-Mail-Adresse (z.B. eine andere deiner Adressen)
-
-**Wo:** Aktivierungslink aus Block C aufrufen
-
-1. Öffne den Aktivierungslink im Browser (oder einem anderen Browser/Inkognito-Fenster)
-2. Prüfe: Siehst du das Registrierungsformular für Mieter?
-3. Fülle aus:
-   - Vorname: `Anna`
-   - Nachname: `Mieter`
-   - E-Mail: *(deine zweite Test-E-Mail)*
-   - Passwort: `MieterPass123!`
-4. Klicke "Registrieren"
-5. Bestätige die E-Mail (Bestätigungs-E-Mail öffnen und klicken)
-6. Melde dich als Mieter an: https://zerodamage.de/mein-bereich
-7. Prüfe: Siehst du das Mieter-Dashboard?
+    BLOCK 0   -> Registrierung + Admin-Freischaltung (einmalig, 1x)
+    BLOCK 1.1 -> Einheiten anlegen (aus testdaten-mieter.csv)
+    BLOCK 1.2 -> Aktivierungscode fuer Mieter erstellen + kopieren
+    BLOCK 2.1 -> Mieter registrieren (Inkognito-Fenster!)
+    BLOCK 2.2 -> Schadensmeldung einreichen
+    BLOCK 1.3 -> Als HV den Fall bearbeiten
+    BLOCK 2.3 -> Als Mieter Status pruefen
+    BLOCK 4   -> Platform-Admin-Portal pruefen (/admin)
+    BLOCK 5/6/7 -> Rechtliches + E-Mails + Mobile
 
 ---
 
-## BLOCK E: Schadensmeldung einreichen (als Mieter)
+## BLOCK 0: Einmalige Vorbereitung
 
-**Wo:** Mieter-Dashboard → "Neue Meldung"
+### 0.1 Als HV registrieren
 
-1. Klicke auf "Neue Meldung" oder ähnlich
-2. Fülle aus:
-   - Titel: `Wasserschaden Küche`
-   - Kategorie: Wähle eine passende
-   - Beschreibung: `Wasserrohr leckt unter der Spüle. Wasser auf dem Boden.`
-   - Dringlichkeit: `Dringend`
-3. Optional: Lade ein Foto hoch (ein beliebiges Bild von deinem Computer)
-4. Klicke "Meldung einreichen"
-5. Prüfe: Erscheint die Meldung in der Übersicht mit Status "Neu"?
-6. Prüfe: Hat die HV-E-Mail (aus Block A) eine Benachrichtigungs-E-Mail erhalten?
+Wo: https://zerodamage.de/hv-registrierung
 
----
+1. Formular:
+   - Firmenname: Hausverwaltung Kracher
+   - Vorname: Mathias | Nachname: Kracher
+   - E-Mail: kracherdigital@gmail.com
+   - Passwort: selbst waehlen und merken
+2. Beide Checkboxen ankreuzen (Datenschutz + AVV)
+3. "Kostenlos registrieren" klicken
+4. Gmail oeffnen -> Bestaetigungslink klicken
+5. Einloggen: https://zerodamage.de/login
+6. Pruefe: HV-Dashboard mit Onboarding-Widget sichtbar?
 
-## BLOCK F: Fall bearbeiten (als HV-Admin)
+### 0.2 Platform-Admin freischalten
 
-**Wo:** HV-Dashboard → "Fälle"
-
-1. Melde dich als HV-Admin an (E-Mail aus Block A)
-2. Gehe zu "Fälle" in der Navigation
-3. Prüfe: Siehst du den Fall "Wasserschaden Küche"?
-4. Klicke auf den Fall
-5. Prüfe die Detailseite:
-   - Fall-Nummer (z.B. #2026-001)
-   - Titel, Beschreibung, Status
-   - Mieter-Name sichtbar
-   - Falls Foto hochgeladen: Foto sichtbar
-
-### F1 — Status ändern
-
-1. Ändere den Status auf "In Bearbeitung"
-2. Gib einen Kommentar ein: `Schauen wir uns an`
-3. Klicke "Status aktualisieren"
-4. Prüfe: Hat der Mieter eine E-Mail erhalten mit dem neuen Status?
-
-### F2 — Handwerker zuweisen
-
-1. Trage in der Handwerker-Sektion aus:
-   - Name: `Fritz Klempner`
-   - Firma: `Klempner GmbH`
-   - Telefon: `+43 123 456789`
-   - E-Mail: *(beliebig)*
-2. Klicke Speichern
-3. Prüfe: Wird der Handwerker in der Detail-Ansicht angezeigt?
-
-### F3 — Rechnung hochladen (NEUES FEATURE)
-
-1. Wechsle zum Tab "Dokumente" in der Fall-Detailansicht
-2. Klicke "Rechnung hochladen"
-3. Wähle eine PDF-Datei von deinem Computer aus (oder ein JPG)
-4. Prüfe: Erscheint die Rechnung mit Dateiname und Upload-Datum?
-5. Klicke "Öffnen" → öffnet sich die Rechnung in einem neuen Tab?
-6. Klicke auf den Papierkorb-Icon → wird die Rechnung gelöscht?
-
-### F4 — Versicherungsschaden markieren (NEUES FEATURE)
-
-1. Bleibe im Tab "Dokumente"
-2. Aktiviere den Toggle "Als Versicherungsschaden markieren"
-3. Gib eine Notiz ein: `Polizze 12345-A`
-4. Klicke "Speichern"
-5. Klicke "Versicherungsblatt öffnen"
-6. Prüfe: Öffnet sich eine neue Seite mit dem Versicherungsschadenblatt?
-7. Prüfe: Sind alle Daten korrekt ausgefüllt (Fall-Nr., Adresse, Beschreibung, Handwerker)?
-8. Klicke "Drucken / PDF" → öffnet sich der Druckdialog?
+Schreib mir: "ich bin registriert"
+Dann fuehre ich den SQL-Befehl aus der /admin freischaltet.
 
 ---
 
-## BLOCK G: Mieter-Statusverfolgung
+## BLOCK 1: Als HV-Admin testen
 
-**Wo:** https://zerodamage.de/mein-bereich (als Mieter angemeldet)
+Konto: kracherdigital@gmail.com | Portal: https://zerodamage.de/dashboard
 
-1. Melde dich als Mieter an (E-Mail aus Block D)
-2. Gehe zu "Meine Meldungen"
-3. Prüfe: Siehst du den Fall "Wasserschaden Küche"?
-4. Prüfe: Stimmt der Status mit dem, was du in Block F gesetzt hast, überein?
-5. Klicke auf den Fall
-6. Prüfe: Siehst du die Kommentare/Statusmeldungen die die HV eingegeben hat?
+### 1.1 Einheiten anlegen
 
----
+JETZT OEFFNEN: testdaten-mieter.csv
+Wo: Dashboard -> Einheiten
 
-## BLOCK H: AVV prüfen
+1. "Neue Einheit":
+   Name: Wohnung Top 1 | Adresse: Musterstrasse 12, 1010 Wien | Stockwerk: EG
+2. Speichern -> Einheit sichtbar?
+3. Noch 2 anlegen:
+   Wohnung Top 2 (1. OG) + Wohnung Top 3 (2. OG)
+4. Pruefe: 3 Einheiten in der Liste?
 
-**Wo:** https://zerodamage.de/avv
+### 1.2 Aktivierungscode erstellen
 
-1. Öffne die Seite
-2. Prüfe: Ist der vollständige AVV-Text mit den § 1–12 sichtbar?
-3. Prüfe: Sind die richtigen Daten von Mathias Kracher eingetragen (Adresse Oberwart, UID)?
-4. Prüfe: Funktioniert der "Zurück zur Registrierung" Button?
+Wo: Dashboard -> Aktivierungscodes
 
----
+1. Neuen Code fuer Wohnung Top 1 erstellen
+2. Link erscheint: zerodamage.de/register?code=XXXXX
+3. LINK KOPIEREN -> wird in Block 2.1 gebraucht!
 
-## BLOCK I: Rechtliche Seiten prüfen
+### 1.3 Fall bearbeiten (ERST NACH BLOCK 2.2 DURCHFUEHREN!)
 
-### I1 — Impressum
-**Wo:** https://zerodamage.de/impressum
-- Name: Mathias Kracher
-- Adresse: Wildgansgasse 8/2, 7400 Oberwart, Österreich
-- UID: ATU81585679
-- GISA-Zahl: 37695736
+Wo: Dashboard -> Faelle
 
-### I2 — Datenschutzerklärung
-**Wo:** https://zerodamage.de/datenschutz
-- Vollständige DSGVO-konforme Datenschutzerklärung vorhanden?
-- Kontaktdaten des Verantwortlichen (Hausverwaltung) erklärt?
+Pruefe zuerst:
+   Fall-Nr., Titel "Wasserschaden Kueche", Status "Neu", Mieter-Name, Foto
 
-### I3 — Kontakt
-**Wo:** https://zerodamage.de/kontakt
-- Formular oder echte Kontaktdaten sichtbar?
+--- Status aendern ---
+1. Status -> "In Bearbeitung"
+2. Kommentar: Wir schauen uns das an, melden uns bald.
+3. Pruefe: Hat kracherdigital@gmx.at eine E-Mail erhalten?
 
----
+--- Werkstatt zuweisen (JETZT OEFFNEN: testdaten-werkstaetten.csv) ---
+Name: Thomas Huber
+Firma: Huber Sanitaer und Heizung GmbH
+Telefon: +43 664 111 2233
+E-Mail: mathiaskracher@gmx.at
+Speichern -> Werkstatt sichtbar?
+HINWEIS: Automatische E-Mail an Werkstatt kommt erst mit PROJ-9 (noch nicht gebaut)
 
-## BLOCK J: E-Mail-Benachrichtigungen prüfen
+--- Rechnung hochladen ---
+Tab "Dokumente" oeffnen
+"Rechnung hochladen" -> beliebige PDF oder JPG auswaehlen
+Dateiname + Datum sichtbar? | "Oeffnen" -> in neuem Tab? | Papierkorb -> geloescht?
 
-Zusammenfassung aller E-Mails die ankommen sollten:
+--- Versicherungsschaden ---
+Toggle "Als Versicherungsschaden markieren" aktivieren
+Notiz: Polizze Nr. 12345-A | Speichern
+"Versicherungsblatt oeffnen" -> alle Daten korrekt?
+"Drucken / PDF" -> Druckdialog oeffnet sich?
 
-| Auslöser | Empfänger | Kommt an? |
-|----------|-----------|-----------|
-| HV-Registrierung | HV-E-Mail (Bestätigung) | ☐ |
-| Mieter-Registrierung | Mieter-E-Mail (Bestätigung) | ☐ |
-| Neue Schadensmeldung | HV-Admin | ☐ |
-| Status → "In Bearbeitung" | Mieter | ☐ |
-| Status → "Termin vereinbart" | Mieter | ☐ |
-| Status → "Erledigt" | Mieter | ☐ |
+--- Fall abschliessen ---
+Status -> "Erledigt"
+Kommentar: Reparatur abgeschlossen. Rechnung liegt bei.
+Pruefe: Hat kracherdigital@gmx.at eine Abschluss-E-Mail?
 
----
+### 1.4 Mieter-Uebersicht
 
-## BLOCK K: Mobile Ansicht prüfen
-
-1. Öffne https://zerodamage.de auf dem Smartphone
-2. Prüfe die Landing Page: Sieht es gut aus?
-3. Öffne https://zerodamage.de/login am Smartphone
-4. Prüfe: Ist das Formular benutzbar?
-5. Melde dich als HV-Admin an
-6. Prüfe: Gibt es ein Hamburger-Menü (☰) oben links?
-7. Tippe darauf: Öffnet sich die Navigation als Drawer?
+Wo: Dashboard -> Mieter
+Anna Berger in der Liste? | Einheit, Name, E-Mail korrekt?
 
 ---
 
-## Zusammenfassung der Testergebnisse
+## BLOCK 2: Als Mieter testen
 
-| Block | Beschreibung | Status |
-|-------|-------------|--------|
-| A | Registrierung & Login | ☐ OK / ❌ Fehler: |
-| B | Einheiten anlegen | ☐ OK / ❌ Fehler: |
-| C | Aktivierungscode | ☐ OK / ❌ Fehler: |
-| D | Mieter-Registrierung | ☐ OK / ❌ Fehler: |
-| E | Schadensmeldung einreichen | ☐ OK / ❌ Fehler: |
-| F | Fall bearbeiten (HV) | ☐ OK / ❌ Fehler: |
-| G | Mieter-Statusverfolgung | ☐ OK / ❌ Fehler: |
-| H | AVV-Seite | ☐ OK / ❌ Fehler: |
-| I | Rechtliche Seiten | ☐ OK / ❌ Fehler: |
-| J | E-Mail-Benachrichtigungen | ☐ OK / ❌ Fehler: |
-| K | Mobile Ansicht | ☐ OK / ❌ Fehler: |
+Konto: kracherdigital@gmx.at | Portal: https://zerodamage.de/mein-bereich
+!! INKOGNITO-FENSTER OEFFNEN damit du gleichzeitig als HV eingeloggt bleibst !!
+
+### 2.1 Mieter-Registrierung
+
+1. Aktivierungslink aus Block 1.2 im Inkognito-Fenster oeffnen
+2. Formular ausfullen (aus testdaten-mieter.csv):
+   Vorname: Anna | Nachname: Berger
+   E-Mail: kracherdigital@gmx.at | Passwort: MieterTest123!
+3. "Registrieren" klicken
+4. GMX oeffnen (kracherdigital@gmx.at) -> Bestaetigungslink klicken
+5. Einloggen: https://zerodamage.de/mein-bereich
+6. Pruefe: Mieter-Dashboard sichtbar?
+
+### 2.2 Schadensmeldung einreichen
+
+Wo: Mieter-Dashboard -> "Neue Meldung"
+
+Titel: Wasserschaden Kueche
+Kategorie: Wasser
+Beschreibung: Wasserrohr leckt unter der Spuele. Wasser auf dem Boden.
+Dringlichkeit: Dringend
+Foto hochladen: beliebiges Bild von deinem Computer
+
+Pruefe nach dem Einreichen:
+- Meldung mit Status "Neu" sichtbar?
+- Hat kracherdigital@gmail.com (HV) eine Benachrichtigung erhalten?
+
+### 2.3 Status-Verfolgung (ERST NACH BLOCK 1.3!)
+
+- Status stimmt mit dem ueberein was die HV gesetzt hat?
+- Kommentar der HV sichtbar?
+- GMX: E-Mail-Benachrichtigungen fuer jeden Statuswechsel erhalten?
 
 ---
 
-## Was als nächstes geplant ist
+## BLOCK 3: Als Werkstatt
 
-Nach dem Test und der Freigabe:
+Kein Login. Werkstatt bekommt nur E-Mails.
 
-1. **Stripe einrichten** — Zahlungsabwicklung (Mathias macht das direkt in Stripe)
-2. **PROJ-9: Werkstattkommunikation** — n8n (braucht eigenen Server)
-3. **PROJ-15: DSGVO-Datenexport** — Mieter kann eigene Daten exportieren/löschen
-4. **Erster Kunde testen** — Gründungspreise anbieten (349 € Einrichtung + 0,50 €/Einheit)
+Was heute testbar ist:
+- Kontaktdaten korrekt in der Fall-Detailseite angezeigt?
+
+Was noch NICHT fertig ist:
+- Automatische E-Mail an mathiaskracher@gmx.at -> kommt mit PROJ-9
 
 ---
 
-*Erstellt: 2026-03-16 · SchadensMelder by Mathias Kracher*
+## BLOCK 4: Als Platform-Admin
+
+Konto: kracherdigital@gmail.com | Portal: https://zerodamage.de/admin
+NUR nach Block 0.2 (SQL-Freischaltung durch mich) verfuegbar!
+
+1. https://zerodamage.de/admin oeffnen
+2. Statistiken pruefen: Kunden, Nutzer, Faelle, Einheiten sichtbar?
+3. "Kunden" in der Navigation klicken
+4. "Hausverwaltung Kracher" in der Kundenliste?
+5. AVV-Haekchen gruen?
+6. "Details" klicken:
+   - Einheiten: 3 sichtbar?
+   - Mieter: 1 sichtbar?
+   - Faelle: 1 sichtbar?
+   - Benutzerliste mit Rollen?
+   - Letzte Meldung in der Tabelle?
+
+---
+
+## BLOCK 5: Rechtliche Seiten
+
+| Seite | URL |
+|-------|-----|
+| AVV | https://zerodamage.de/avv |
+| Impressum | https://zerodamage.de/impressum |
+| Datenschutz | https://zerodamage.de/datenschutz |
+| Kontakt | https://zerodamage.de/kontakt |
+
+AVV: Paragraphen 1-12, Name Mathias Kracher, Adresse Oberwart, UID ATU81585679
+Impressum: Adresse Wildgansgasse 8/2 7400 Oberwart, UID ATU81585679, GISA 37695736
+
+---
+
+## BLOCK 6: E-Mail-Checkliste
+
+| Was ausgeloest hat | Postfach zum Pruefen |
+|-------------------|---------------------|
+| HV-Registrierung (Bestaetigung) | kracherdigital@gmail.com (Gmail) |
+| Mieter-Registrierung (Bestaetigung) | kracherdigital@gmx.at (GMX) |
+| Neue Schadensmeldung (HV-Info) | kracherdigital@gmail.com (Gmail) |
+| Status -> In Bearbeitung | kracherdigital@gmx.at (GMX) |
+| Status -> Erledigt | kracherdigital@gmx.at (GMX) |
+
+---
+
+## BLOCK 7: Mobile Ansicht
+
+1. https://zerodamage.de am Smartphone oeffnen
+2. Landing Page: Sieht gut aus?
+3. Login-Formular: Benutzbar?
+4. Als HV einloggen: Hamburger-Menue sichtbar?
+5. Menue antippen: Navigation als Schublade?
+
+---
+
+## Testergebnis-Tabelle
+
+| Block | Rolle | Was | Ergebnis |
+|-------|-------|-----|----------|
+| 0 | Setup | Registrierung + Admin-Freischaltung | [ ] OK / Fehler: |
+| 1.1 | HV-Admin | Einheiten anlegen | [ ] OK / Fehler: |
+| 1.2 | HV-Admin | Aktivierungscode erstellen | [ ] OK / Fehler: |
+| 1.3 | HV-Admin | Fall bearbeiten (alle Unterblocks) | [ ] OK / Fehler: |
+| 1.4 | HV-Admin | Mieter-Uebersicht | [ ] OK / Fehler: |
+| 2.1 | Mieter | Registrierung per Aktivierungslink | [ ] OK / Fehler: |
+| 2.2 | Mieter | Schadensmeldung einreichen | [ ] OK / Fehler: |
+| 2.3 | Mieter | Status-Verfolgung + E-Mails | [ ] OK / Fehler: |
+| 3 | Werkstatt | E-Mail-Empfang | PROJ-9 noch nicht fertig |
+| 4 | Platform-Admin | Admin-Portal /admin | [ ] OK / Fehler: |
+| 5 | -- | Rechtliche Seiten | [ ] OK / Fehler: |
+| 6 | -- | E-Mail-Benachrichtigungen | [ ] OK / Fehler: |
+| 7 | -- | Mobile Ansicht | [ ] OK / Fehler: |
+
+---
+
+## Nach dem Test: Naechste Schritte
+
+1. PROJ-9: Werkstatt-E-Mails (mathiaskracher@gmx.at bekommt auto. E-Mail bei Zuweisung)
+2. PROJ-15: DSGVO-Datenexport fuer Mieter
+3. PROJ-14: Stripe-Zahlungsabwicklung
+4. Erster echter Kunde: 349 EUR Einrichtung + 0,50 EUR/Einheit/Monat
+
+---
+
+Erstellt: 2026-03-16 | SchadensMelder by Mathias Kracher
