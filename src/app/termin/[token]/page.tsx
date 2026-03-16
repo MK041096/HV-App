@@ -3,12 +3,12 @@
 import { useEffect, useState, use } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { CheckCircle, Calendar, XCircle, Loader2 } from 'lucide-react'
+import { CheckCircle, Calendar, XCircle, Loader2, Phone } from 'lucide-react'
 
 const CATEGORY_LABELS: Record<string, string> = {
-  wasserschaden: 'Wasserschaden', heizung: 'Heizung', elektrik: 'Elektrik',
+  wasser: 'Wasserschaden', heizung: 'Heizung', elektrik: 'Elektrik',
   fenster_tueren: 'Fenster & Türen', schimmel: 'Schimmel', sanitaer: 'Sanitär',
-  boeden_waende: 'Böden & Wände', aussenbereich: 'Außenbereich', sonstiges: 'Sonstiges',
+  boeden: 'Böden & Wände', aussenbereich: 'Außenbereich', sonstiges: 'Sonstiges',
 }
 
 interface TokenData {
@@ -23,6 +23,7 @@ interface TokenData {
     unit: { name: string; address: string } | null
   }
   contractor: { name: string; company: string } | null
+  tenantContact: { name: string; phone: string | null } | null
 }
 
 export default function TerminPage({ params }: { params: Promise<{ token: string }> }) {
@@ -30,10 +31,9 @@ export default function TerminPage({ params }: { params: Promise<{ token: string
   const [data, setData] = useState<TokenData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [action, setAction] = useState<'confirm' | 'reschedule' | null>(null)
-  const [newDate, setNewDate] = useState('')
+  const [action, setAction] = useState<'confirm' | 'call' | null>(null)
   const [sending, setSending] = useState(false)
-  const [done, setDone] = useState<{ isRescheduled: boolean; confirmedDate: string } | null>(null)
+  const [confirmedDate, setConfirmedDate] = useState<string | null>(null)
 
   useEffect(() => {
     fetch(`/api/termin/${token}`)
@@ -46,18 +46,17 @@ export default function TerminPage({ params }: { params: Promise<{ token: string
       .finally(() => setLoading(false))
   }, [token])
 
-  async function handleSubmit() {
-    if (action === 'reschedule' && !newDate) return
+  async function handleConfirm() {
     setSending(true)
     try {
       const res = await fetch(`/api/termin/${token}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action, proposed_date: newDate || null }),
+        body: JSON.stringify({ action: 'confirm' }),
       })
       const d = await res.json()
       if (!res.ok) throw new Error(d.error)
-      setDone({ isRescheduled: d.isRescheduled, confirmedDate: d.confirmedDate })
+      setConfirmedDate(d.confirmedDate)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Fehler')
     } finally {
@@ -87,23 +86,19 @@ export default function TerminPage({ params }: { params: Promise<{ token: string
     )
   }
 
-  if (done) {
+  if (confirmedDate) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
         <Card className="max-w-md w-full">
           <CardContent className="flex flex-col items-center py-12 text-center">
             <CheckCircle className="h-14 w-14 text-green-600 mb-4" />
-            <h2 className="text-xl font-bold mb-2">
-              {done.isRescheduled ? 'Neuer Termin vorgeschlagen' : 'Termin bestätigt!'}
-            </h2>
+            <h2 className="text-xl font-bold mb-2">Termin bestätigt!</h2>
             <p className="text-muted-foreground text-sm mb-4">
-              {done.isRescheduled
-                ? 'Ihre Antwort wurde übermittelt. Die Hausverwaltung und der Mieter wurden informiert.'
-                : 'Vielen Dank! Der Mieter und die Hausverwaltung wurden über den bestätigten Termin informiert.'}
+              Der Mieter und die Hausverwaltung wurden automatisch informiert.
             </p>
             <div className="bg-green-50 border border-green-200 rounded-lg px-4 py-3 w-full">
-              <p className="text-xs text-muted-foreground mb-1">Termin</p>
-              <p className="font-semibold text-green-800">{done.confirmedDate}</p>
+              <p className="text-xs text-muted-foreground mb-1">Bestätigter Termin</p>
+              <p className="font-semibold text-green-800">{confirmedDate}</p>
             </div>
           </CardContent>
         </Card>
@@ -184,10 +179,10 @@ export default function TerminPage({ params }: { params: Promise<{ token: string
                 <Button
                   variant="outline"
                   className="h-12"
-                  onClick={() => setAction('reschedule')}
+                  onClick={() => setAction('call')}
                 >
-                  <Calendar className="mr-2 h-5 w-5" />
-                  Anderen Termin vorschlagen
+                  <Phone className="mr-2 h-5 w-5" />
+                  Wunschtermin nicht möglich
                 </Button>
               </div>
             )}
@@ -198,7 +193,7 @@ export default function TerminPage({ params }: { params: Promise<{ token: string
                   <p className="text-green-700 font-medium">Bestätigung: {wunschtermin || 'Wunschtermin'}</p>
                 </div>
                 <div className="flex gap-2">
-                  <Button className="flex-1 bg-green-700 hover:bg-green-800" onClick={handleSubmit} disabled={sending}>
+                  <Button className="flex-1 bg-green-700 hover:bg-green-800" onClick={handleConfirm} disabled={sending}>
                     {sending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <CheckCircle className="mr-2 h-4 w-4" />}
                     Jetzt bestätigen
                   </Button>
@@ -207,28 +202,31 @@ export default function TerminPage({ params }: { params: Promise<{ token: string
               </div>
             )}
 
-            {action === 'reschedule' && (
+            {action === 'call' && (
               <div className="space-y-3">
-                <div className="space-y-1.5">
-                  <label className="text-xs font-medium text-muted-foreground">Ihr Terminvorschlag</label>
-                  <input
-                    type="datetime-local"
-                    className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                    value={newDate}
-                    onChange={e => setNewDate(e.target.value)}
-                  />
+                <div className="bg-amber-50 border border-amber-200 rounded-lg px-4 py-4">
+                  <p className="text-sm font-semibold text-amber-900 mb-3">
+                    Bitte vereinbaren Sie einen Termin direkt mit dem Mieter:
+                  </p>
+                  <div className="space-y-1 mb-3">
+                    <p className="text-xs text-muted-foreground">Mieter</p>
+                    <p className="font-semibold text-amber-900">{data.tenantContact?.name || 'Mieter'}</p>
+                  </div>
+                  {data.tenantContact?.phone ? (
+                    <a
+                      href={'tel:' + data.tenantContact.phone}
+                      className="flex items-center justify-center gap-2 bg-amber-600 hover:bg-amber-700 text-white rounded-lg px-4 py-3 font-semibold text-sm w-full"
+                    >
+                      <Phone className="h-4 w-4" />
+                      {data.tenantContact.phone}
+                    </a>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">
+                      Keine Telefonnummer hinterlegt — bitte über die Hausverwaltung Kontakt aufnehmen.
+                    </p>
+                  )}
                 </div>
-                <div className="flex gap-2">
-                  <Button
-                    className="flex-1"
-                    onClick={handleSubmit}
-                    disabled={sending || !newDate}
-                  >
-                    {sending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Calendar className="mr-2 h-4 w-4" />}
-                    Termin vorschlagen
-                  </Button>
-                  <Button variant="outline" onClick={() => setAction(null)} disabled={sending}>Zurück</Button>
-                </div>
+                <Button variant="outline" className="w-full" onClick={() => setAction(null)}>Zurück</Button>
               </div>
             )}
           </CardContent>

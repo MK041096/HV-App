@@ -346,7 +346,7 @@ export async function sendWeiterleitungTenantEmail(params: {
   await resend.emails.send({
     from: FROM_EMAIL,
     to,
-    subject: `[${caseNumber}] Schaden bestätigt – Werkstatt wird kontaktiert`,
+    subject: `[${caseNumber}] Schaden bestätigt – Werkstatt wurde informiert`,
     html: baseTemplate(content, orgName),
   })
 }
