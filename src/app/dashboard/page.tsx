@@ -9,6 +9,10 @@ import {
   ClipboardList,
   ArrowRight,
   Loader2,
+  Home,
+  Users,
+  KeyRound,
+  Sparkles,
 } from "lucide-react"
 
 import { supabase } from "@/lib/supabase"
@@ -146,6 +150,70 @@ export default function DashboardPage() {
           Willkommen im Case-Management Dashboard
         </p>
       </div>
+
+      {/* Onboarding Widget — shown only when no cases exist yet */}
+      {stats?.total === 0 && (
+        <Card className="border-primary/20 bg-primary/5">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base flex items-center gap-2">
+              <Sparkles className="h-4 w-4 text-primary" />
+              Erste Schritte — So starten Sie durch
+            </CardTitle>
+            <CardDescription>
+              Folgen Sie diesen 3 Schritten, um Ihre erste Schadensmeldung zu empfangen.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-3 sm:grid-cols-3">
+              <Link
+                href="/dashboard/units"
+                className="flex items-start gap-3 p-3 rounded-lg border bg-background hover:bg-accent/50 transition-colors"
+              >
+                <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
+                  <Home className="h-4 w-4 text-primary" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium">1. Einheiten anlegen</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    Tragen Sie Ihre Wohneinheiten mit Adresse ein
+                  </p>
+                </div>
+                <ArrowRight className="h-4 w-4 text-muted-foreground ml-auto shrink-0 mt-1" />
+              </Link>
+              <Link
+                href="/dashboard/codes"
+                className="flex items-start gap-3 p-3 rounded-lg border bg-background hover:bg-accent/50 transition-colors"
+              >
+                <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
+                  <KeyRound className="h-4 w-4 text-primary" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium">2. Aktivierungslinks</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    Codes erstellen und an Mieter senden
+                  </p>
+                </div>
+                <ArrowRight className="h-4 w-4 text-muted-foreground ml-auto shrink-0 mt-1" />
+              </Link>
+              <Link
+                href="/dashboard/tenants"
+                className="flex items-start gap-3 p-3 rounded-lg border bg-background hover:bg-accent/50 transition-colors"
+              >
+                <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
+                  <Users className="h-4 w-4 text-primary" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium">3. Mieter verwalten</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    Sobald Mieter registriert sind, erscheinen sie hier
+                  </p>
+                </div>
+                <ArrowRight className="h-4 w-4 text-muted-foreground ml-auto shrink-0 mt-1" />
+              </Link>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Stats Cards */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">

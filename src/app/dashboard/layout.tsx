@@ -8,6 +8,9 @@ import {
   LayoutDashboard,
   ClipboardList,
   Home,
+  Users,
+  KeyRound,
+  FolderOpen,
   LogOut,
   Loader2,
   Menu,
@@ -43,9 +46,24 @@ const NAV_ITEMS = [
     icon: ClipboardList,
   },
   {
-    label: "Mieter & Einheiten",
+    label: "Einheiten",
     href: "/dashboard/units",
     icon: Home,
+  },
+  {
+    label: "Mieter",
+    href: "/dashboard/tenants",
+    icon: Users,
+  },
+  {
+    label: "Aktivierungscodes",
+    href: "/dashboard/codes",
+    icon: KeyRound,
+  },
+  {
+    label: "Dokumente",
+    href: "/dashboard/dokumente",
+    icon: FolderOpen,
   },
 ]
 
