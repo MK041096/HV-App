@@ -64,6 +64,9 @@ const schema = z
     privacy_accepted: z.literal(true, {
       error: "Bitte akzeptieren Sie die Datenschutzerklärung",
     }),
+    avv_accepted: z.literal(true, {
+      error: "Bitte akzeptieren Sie den Auftragsverarbeitungsvertrag (AVV)",
+    }),
   })
   .refine((data) => data.password === data.password_confirm, {
     message: "Passwörter stimmen nicht überein",
@@ -107,6 +110,7 @@ export default function HvRegistrierungPage() {
           email: values.email,
           password: values.password,
           privacy_accepted: true,
+          avv_accepted: true,
         }),
       })
 
@@ -384,6 +388,40 @@ export default function HvRegistrierungPage() {
                               Datenschutzerklärung
                             </Link>{" "}
                             und stimme der Verarbeitung meiner Daten zu.
+                          </FormLabel>
+                          <FormMessage />
+                        </div>
+                      </div>
+                    </FormItem>
+                  )}
+                />
+
+                {/* AVV */}
+                <FormField
+                  control={form.control}
+                  name="avv_accepted"
+                  render={({ field }) => (
+                    <FormItem>
+                      <div className="flex items-start gap-3">
+                        <FormControl>
+                          <Checkbox
+                            checked={field.value ?? false}
+                            onCheckedChange={field.onChange}
+                            disabled={isSubmitting}
+                            className="mt-0.5"
+                          />
+                        </FormControl>
+                        <div className="space-y-1">
+                          <FormLabel className="text-sm font-normal leading-snug cursor-pointer">
+                            Ich akzeptiere den{" "}
+                            <Link
+                              href="/avv"
+                              className="text-primary underline underline-offset-2 hover:no-underline"
+                              target="_blank"
+                            >
+                              Auftragsverarbeitungsvertrag (AVV)
+                            </Link>{" "}
+                            gemäß Art. 28 DSGVO.
                           </FormLabel>
                           <FormMessage />
                         </div>

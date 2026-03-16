@@ -26,6 +26,9 @@ const registerHvSchema = z.object({
   privacy_accepted: z.literal(true, {
     error: 'Datenschutzerklärung muss akzeptiert werden',
   }),
+  avv_accepted: z.literal(true, {
+    error: 'AVV muss akzeptiert werden',
+  }),
 })
 
 function slugify(str: string): string {
@@ -54,6 +57,12 @@ export async function POST(request: NextRequest) {
     }
 
     const { org_name, first_name, last_name, email, password } = parsed.data
+
+    // Capture client IP for AVV audit trail (Art. 28 DSGVO)
+    const clientIp =
+      request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
+      request.headers.get('x-real-ip') ||
+      'unknown'
 
     const admin = createAdminClient()
 
@@ -93,6 +102,8 @@ export async function POST(request: NextRequest) {
         name: org_name,
         slug,
         is_deleted: false,
+        avv_accepted_at: new Date().toISOString(),
+        avv_accepted_ip: clientIp,
       })
       .select('id, name, slug')
       .single()
