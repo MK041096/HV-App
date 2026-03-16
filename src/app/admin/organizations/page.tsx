@@ -161,12 +161,12 @@ export default function AdminOrganizationsPage() {
                         {org.avv_accepted_at ? (
                           <CheckCircle2
                             className="h-4 w-4 text-green-600 mx-auto"
-                            title={`AVV akzeptiert am ${formatDate(org.avv_accepted_at)}`}
+                            aria-label={`AVV akzeptiert am ${formatDate(org.avv_accepted_at)}`}
                           />
                         ) : (
                           <XCircle
                             className="h-4 w-4 text-red-500 mx-auto"
-                            title="AVV nicht akzeptiert"
+                            aria-label="AVV nicht akzeptiert"
                           />
                         )}
                       </TableCell>

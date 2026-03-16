@@ -1,104 +1,126 @@
 # Test-Anleitung: SchadensMelder
-Umgebung: https://zerodamage.de | Erstellt: 2026-03-16
+Umgebung: https://zerodamage.de | Aktualisiert: 2026-03-16
 
 ---
 
-## Deine 3 Test-E-Mail-Adressen
+## Deine 4 Test-E-Mail-Adressen
 
-| Rolle | E-Mail | Postfach |
-|-------|--------|----------|
-| HV-Admin + Platform-Admin | kracherdigital@gmail.com | Gmail |
-| Mieter | kracherdigital@gmx.at | GMX |
-| Werkstatt (kein Login, nur E-Mail) | mathiaskracher@gmx.at | GMX |
+| Rolle | E-Mail | Postfach | Passwort |
+|-------|--------|----------|----------|
+| Platform-Admin (Betreiber / Mathias) | kracherdigital@gmail.com | Gmail | AdminTest123! |
+| HV-Admin (Kracher ImmoGmbH, Test-Kunde) | kracherdigital@gmx.at | GMX | selbst waehlen |
+| Mieter (alle 20 Testmieter) | mathiaskracher@gmx.at | GMX | MieterTest123! |
+| Werkstatt (alle 10 Testwerkstaetten) | tradingworld@gmx.at | GMX | kein Login noetig |
 
-Wichtig: Du meldest im System NIEMANDEN automatisch an.
-Alles wird manuell durchgespielt wie ein echter Nutzer es erlebt.
+WICHTIG:
+- Platform-Admin (kracherdigital@gmail.com) ist BEREITS fertig eingerichtet. Kein Registrieren noetig.
+- HV-Admin (kracherdigital@gmx.at) muss einmalig ueber die HV-Registrierung registriert werden.
+- Alle anderen Rollen werden manuell durchgespielt wie echte Nutzer es erleben wuerden.
+- Du meldest im System NIEMANDEN automatisch an.
 
 ---
 
-## Deine Excel-Testdateien
-
-Oeffne diese Dateien BEVOR du anfaengst. Du tippst Daten manuell in die App ein.
+## Deine Test-Dateien (vor dem Start oeffnen!)
 
 | Datei | Pfad | Wofuer |
 |-------|------|--------|
-| testdaten-mieter.csv | HV-App/docs/testdaten-mieter.csv | Name + Einheit fuer Mieter-Test |
-| testdaten-werkstaetten.csv | HV-App/docs/testdaten-werkstaetten.csv | Werkstatt-Kontaktdaten zum Abtippen |
+| testdaten-mieter.csv | HV-App/docs/testdaten-mieter.csv | 20 Mieter mit Namen + Einheiten |
+| testdaten-werkstaetten.csv | HV-App/docs/testdaten-werkstaetten.csv | 10 Werkstaetten mit Kontaktdaten + Gewerk |
 
 ---
 
 ## Portale
 
-    kracherdigital@gmail.com -> zerodamage.de/admin        (Platform-Admin: Betreiber)
-                             -> zerodamage.de/dashboard    (HV-Admin: Hausverwaltung)
-    kracherdigital@gmx.at    -> zerodamage.de/mein-bereich (Mieter)
-    mathiaskracher@gmx.at    -> kein Login, nur E-Mails    (Werkstatt)
+    kracherdigital@gmail.com  ->  zerodamage.de/admin         (Platform-Admin: Betreiber-Ansicht)
+    kracherdigital@gmx.at     ->  zerodamage.de/dashboard     (HV-Admin: Hausverwaltungs-Portal)
+    mathiaskracher@gmx.at     ->  zerodamage.de/mein-bereich  (Mieter-Portal)
+    tradingworld@gmx.at       ->  kein Login, nur E-Mails     (Werkstatt)
 
 ---
 
 ## Reihenfolge beim Testen
 
-    BLOCK 0   -> Registrierung + Admin-Freischaltung (einmalig, 1x)
-    BLOCK 1.1 -> Einheiten anlegen (aus testdaten-mieter.csv)
-    BLOCK 1.2 -> Aktivierungscode fuer Mieter erstellen + kopieren
-    BLOCK 2.1 -> Mieter registrieren (Inkognito-Fenster!)
-    BLOCK 2.2 -> Schadensmeldung einreichen
-    BLOCK 1.3 -> Als HV den Fall bearbeiten
-    BLOCK 2.3 -> Als Mieter Status pruefen
-    BLOCK 4   -> Platform-Admin-Portal pruefen (/admin)
+    BLOCK 0    ->  HV-Registrierung (einmalig)
+    BLOCK 1.1  ->  Einheiten anlegen (aus testdaten-mieter.csv)
+    BLOCK 1.2  ->  Werkstaetten anlegen (aus testdaten-werkstaetten.csv)
+    BLOCK 1.3  ->  Aktivierungscode fuer Mieter erstellen + kopieren
+    BLOCK 2.1  ->  Mieter registrieren (Inkognito-Fenster!)
+    BLOCK 2.2  ->  Schadensmeldung einreichen
+    BLOCK 1.4  ->  Als HV den Fall bearbeiten
+    BLOCK 2.3  ->  Als Mieter Status pruefen
+    BLOCK 4    ->  Platform-Admin-Portal pruefen (/admin)
     BLOCK 5/6/7 -> Rechtliches + E-Mails + Mobile
 
 ---
 
-## BLOCK 0: Einmalige Vorbereitung
+## BLOCK 0: HV-Registrierung (einmalig, 1x)
 
-### 0.1 Als HV registrieren
+Konto: kracherdigital@gmx.at
 
-Wo: https://zerodamage.de/hv-registrierung
-
-1. Formular:
-   - Firmenname: Hausverwaltung Kracher
+1. Seite oeffnen: https://zerodamage.de/hv-registrierung
+2. Formular ausfullen:
+   - Firmenname: Kracher ImmoGmbH
    - Vorname: Mathias | Nachname: Kracher
-   - E-Mail: kracherdigital@gmail.com
-   - Passwort: selbst waehlen und merken
-2. Beide Checkboxen ankreuzen (Datenschutz + AVV)
-3. "Kostenlos registrieren" klicken
-4. Gmail oeffnen -> Bestaetigungslink klicken
-5. Einloggen: https://zerodamage.de/login
-6. Pruefe: HV-Dashboard mit Onboarding-Widget sichtbar?
-
-### 0.2 Platform-Admin freischalten
-
-Schreib mir: "ich bin registriert"
-Dann fuehre ich den SQL-Befehl aus der /admin freischaltet.
+   - E-Mail: kracherdigital@gmx.at
+   - Passwort: selbst waehlen und merken!
+3. Beide Checkboxen ankreuzen (Datenschutz + AVV)
+4. "Kostenlos registrieren" klicken
+5. GMX oeffnen (kracherdigital@gmx.at) -> Bestaetigungslink klicken
+6. Einloggen: https://zerodamage.de/login
+7. Pruefe: HV-Dashboard mit Onboarding-Widget sichtbar?
 
 ---
 
 ## BLOCK 1: Als HV-Admin testen
 
-Konto: kracherdigital@gmail.com | Portal: https://zerodamage.de/dashboard
+Konto: kracherdigital@gmx.at | Portal: https://zerodamage.de/dashboard
 
-### 1.1 Einheiten anlegen
+### 1.1 Einheiten per Excel importieren
 
-JETZT OEFFNEN: testdaten-mieter.csv
-Wo: Dashboard -> Einheiten
+Wo: Dashboard -> Einheiten -> "Excel importieren" (rechts oben)
 
-1. "Neue Einheit":
-   Name: Wohnung Top 1 | Adresse: Musterstrasse 12, 1010 Wien | Stockwerk: EG
-2. Speichern -> Einheit sichtbar?
-3. Noch 2 anlegen:
-   Wohnung Top 2 (1. OG) + Wohnung Top 3 (2. OG)
-4. Pruefe: 3 Einheiten in der Liste?
+1. "Vorlage (CSV)" herunterladen -> anschauen wie das Format aussieht
+2. Stattdessen: testdaten-mieter.csv nehmen (hat bereits das richtige Format!)
+   Pfad: HV-App/docs/testdaten-mieter.csv
+3. Datei in den Upload-Bereich ziehen oder per Klick auswaehlen
+4. "Jetzt importieren" klicken
+5. Ergebnis pruefen:
+   - 20 Einheiten erstellt?
+   - 20 Codes generiert?
+   - 20 E-Mails gesendet? (alle an mathiaskracher@gmx.at)
+6. GMX oeffnen (mathiaskracher@gmx.at) -> 20 Einladungsmails angekommen?
+   Betreff: "Einladung zu SchadensMelder - Ihr Aktivierungscode"
 
-### 1.2 Aktivierungscode erstellen
+### 1.2 Werkstaetten per Excel importieren
+
+Wo: Dashboard -> Werkstaetten -> "Excel importieren" (rechts oben)
+
+1. "Vorlage (CSV)" herunterladen -> Format anschauen
+2. Stattdessen: testdaten-werkstaetten.csv verwenden (hat bereits das richtige Format!)
+   Pfad: HV-App/docs/testdaten-werkstaetten.csv
+3. Datei hochladen -> "Jetzt importieren"
+4. Ergebnis pruefen:
+   - 10 Werkstaetten erstellt?
+   - 0 Fehler?
+5. Zurueck zu Werkstaetten -> alle 10 in der Liste?
+
+HINWEIS: Das Gewerk-Feld (z.B. wasserschaden, elektrik) wird spaeter verwendet
+um automatisch passende Werkstaetten bei Schadensmeldungen vorzuschlagen.
+
+### 1.3 Aktivierungscode pruefen
+
+Der Code wurde beim Excel-Import bereits automatisch erstellt und per E-Mail versendet.
 
 Wo: Dashboard -> Aktivierungscodes
 
-1. Neuen Code fuer Wohnung Top 1 erstellen
-2. Link erscheint: zerodamage.de/register?code=XXXXX
-3. LINK KOPIEREN -> wird in Block 2.1 gebraucht!
+Pruefe:
+- Wohnung Top 1 hat einen aktiven Code (Status: "Ausstehend")?
+- Mieter-Name "Anna Berger" und E-Mail "mathiaskracher@gmx.at" stehen dabei?
 
-### 1.3 Fall bearbeiten (ERST NACH BLOCK 2.2 DURCHFUEHREN!)
+HINWEIS: Einzelne Codes koennen hier auch manuell erstellt werden falls ein Mieter
+die E-Mail nicht erhalten hat.
+
+### 1.4 Fall bearbeiten (ERST NACH BLOCK 2.2 DURCHFUEHREN!)
 
 Wo: Dashboard -> Faelle
 
@@ -107,16 +129,21 @@ Pruefe zuerst:
 
 --- Status aendern ---
 1. Status -> "In Bearbeitung"
-2. Kommentar: Wir schauen uns das an, melden uns bald.
-3. Pruefe: Hat kracherdigital@gmx.at eine E-Mail erhalten?
+2. Kommentar: "Wir schauen uns das an, melden uns bald."
+3. Pruefe: Hat mathiaskracher@gmx.at eine Status-E-Mail erhalten?
 
---- Werkstatt zuweisen (JETZT OEFFNEN: testdaten-werkstaetten.csv) ---
-Name: Thomas Huber
-Firma: Huber Sanitaer und Heizung GmbH
-Telefon: +43 664 111 2233
-E-Mail: mathiaskracher@gmx.at
-Speichern -> Werkstatt sichtbar?
-HINWEIS: Automatische E-Mail an Werkstatt kommt erst mit PROJ-9 (noch nicht gebaut)
+--- Werkstatt zuweisen ---
+Wo: Fall-Detailseite -> Werkstatt-Bereich
+
+Moeglichkeit A (aus der Liste):
+   Button "Aus Werkstatt-Liste waehlen" -> Thomas Huber auswaehlen
+   -> Felder werden automatisch befllt
+
+Moeglichkeit B (manuell):
+   Name, Firma, Telefon, E-Mail aus testdaten-werkstaetten.csv abtippen
+
+Speichern -> Werkstatt-Daten sichtbar?
+HINWEIS: Automatische E-Mail an tradingworld@gmx.at kommt erst mit PROJ-9.
 
 --- Rechnung hochladen ---
 Tab "Dokumente" oeffnen
@@ -131,10 +158,10 @@ Notiz: Polizze Nr. 12345-A | Speichern
 
 --- Fall abschliessen ---
 Status -> "Erledigt"
-Kommentar: Reparatur abgeschlossen. Rechnung liegt bei.
-Pruefe: Hat kracherdigital@gmx.at eine Abschluss-E-Mail?
+Kommentar: "Reparatur abgeschlossen. Rechnung liegt bei."
+Pruefe: Hat mathiaskracher@gmx.at eine Abschluss-E-Mail erhalten?
 
-### 1.4 Mieter-Uebersicht
+### 1.5 Mieter-Uebersicht
 
 Wo: Dashboard -> Mieter
 Anna Berger in der Liste? | Einheit, Name, E-Mail korrekt?
@@ -143,19 +170,23 @@ Anna Berger in der Liste? | Einheit, Name, E-Mail korrekt?
 
 ## BLOCK 2: Als Mieter testen
 
-Konto: kracherdigital@gmx.at | Portal: https://zerodamage.de/mein-bereich
+Konto: mathiaskracher@gmx.at | Portal: https://zerodamage.de/mein-bereich
+
 !! INKOGNITO-FENSTER OEFFNEN damit du gleichzeitig als HV eingeloggt bleibst !!
 
 ### 2.1 Mieter-Registrierung
 
-1. Aktivierungslink aus Block 1.2 im Inkognito-Fenster oeffnen
-2. Formular ausfullen (aus testdaten-mieter.csv):
-   Vorname: Anna | Nachname: Berger
-   E-Mail: kracherdigital@gmx.at | Passwort: MieterTest123!
-3. "Registrieren" klicken
-4. GMX oeffnen (kracherdigital@gmx.at) -> Bestaetigungslink klicken
-5. Einloggen: https://zerodamage.de/mein-bereich
-6. Pruefe: Mieter-Dashboard sichtbar?
+1. GMX oeffnen (mathiaskracher@gmx.at) im Inkognito-Fenster
+2. Einladungsmail suchen: Betreff "Einladung zu SchadensMelder - Ihr Aktivierungscode"
+3. "Jetzt registrieren" Button in der Mail klicken
+4. Aktivierungscode eingeben (steht gross in der E-Mail)
+5. Formular ist vorausgefuellt (Anna Berger, mathiaskracher@gmx.at)
+   -> Nur noch Passwort eingeben: MieterTest123!
+   -> Passwort bestaetigen: MieterTest123!
+   -> Datenschutz-Checkbox ankreuzen
+6. "Konto erstellen" klicken
+7. Pruefe: Weiterleitung zu zerodamage.de/mein-bereich?
+8. Pruefe: Einheit "Wohnung Top 1" und Name "Anna Berger" sichtbar?
 
 ### 2.2 Schadensmeldung einreichen
 
@@ -169,39 +200,45 @@ Foto hochladen: beliebiges Bild von deinem Computer
 
 Pruefe nach dem Einreichen:
 - Meldung mit Status "Neu" sichtbar?
-- Hat kracherdigital@gmail.com (HV) eine Benachrichtigung erhalten?
+- Hat kracherdigital@gmx.at (HV) eine Benachrichtigung erhalten?
 
-### 2.3 Status-Verfolgung (ERST NACH BLOCK 1.3!)
+### 2.3 Status-Verfolgung (ERST NACH BLOCK 1.4!)
 
+Im Mieter-Portal pruefen:
 - Status stimmt mit dem ueberein was die HV gesetzt hat?
 - Kommentar der HV sichtbar?
-- GMX: E-Mail-Benachrichtigungen fuer jeden Statuswechsel erhalten?
+- GMX (mathiaskracher@gmx.at): E-Mail-Benachrichtigungen fuer jeden Statuswechsel erhalten?
 
 ---
 
 ## BLOCK 3: Als Werkstatt
 
-Kein Login. Werkstatt bekommt nur E-Mails.
+Konto: tradingworld@gmx.at (kein Login noetig)
 
 Was heute testbar ist:
-- Kontaktdaten korrekt in der Fall-Detailseite angezeigt?
+- Kontaktdaten in der Fall-Detailseite korrekt angezeigt? (Schau als HV rein)
 
 Was noch NICHT fertig ist:
-- Automatische E-Mail an mathiaskracher@gmx.at -> kommt mit PROJ-9
+- Automatische E-Mail an tradingworld@gmx.at bei Zuweisung -> kommt mit PROJ-9
 
 ---
 
 ## BLOCK 4: Als Platform-Admin
 
-Konto: kracherdigital@gmail.com | Portal: https://zerodamage.de/admin
-NUR nach Block 0.2 (SQL-Freischaltung durch mich) verfuegbar!
+Konto: kracherdigital@gmail.com | Passwort: AdminTest123!
+Portal: https://zerodamage.de/admin
 
-1. https://zerodamage.de/admin oeffnen
-2. Statistiken pruefen: Kunden, Nutzer, Faelle, Einheiten sichtbar?
-3. "Kunden" in der Navigation klicken
-4. "Hausverwaltung Kracher" in der Kundenliste?
-5. AVV-Haekchen gruen?
-6. "Details" klicken:
+HINWEIS: Dieser Account ist bereits fertig eingerichtet. Einfach einloggen!
+
+1. https://zerodamage.de/login oeffnen
+2. kracherdigital@gmail.com + AdminTest123! eingeben
+3. -> Weiterleitung zu /admin?
+
+4. Statistiken pruefen: Kunden, Nutzer, Faelle, Einheiten sichtbar?
+5. "Kunden" in der Navigation klicken
+6. "Kracher ImmoGmbH" in der Kundenliste?
+7. AVV-Haekchen gruen?
+8. "Details" klicken:
    - Einheiten: 3 sichtbar?
    - Mieter: 1 sichtbar?
    - Faelle: 1 sichtbar?
@@ -220,7 +257,7 @@ NUR nach Block 0.2 (SQL-Freischaltung durch mich) verfuegbar!
 | Kontakt | https://zerodamage.de/kontakt |
 
 AVV: Paragraphen 1-12, Name Mathias Kracher, Adresse Oberwart, UID ATU81585679
-Impressum: Adresse Wildgansgasse 8/2 7400 Oberwart, UID ATU81585679, GISA 37695736
+Impressum: Adresse Wildgansgasse 8/2, 7400 Oberwart, UID ATU81585679, GISA 37695736
 
 ---
 
@@ -228,11 +265,11 @@ Impressum: Adresse Wildgansgasse 8/2 7400 Oberwart, UID ATU81585679, GISA 376957
 
 | Was ausgeloest hat | Postfach zum Pruefen |
 |-------------------|---------------------|
-| HV-Registrierung (Bestaetigung) | kracherdigital@gmail.com (Gmail) |
-| Mieter-Registrierung (Bestaetigung) | kracherdigital@gmx.at (GMX) |
-| Neue Schadensmeldung (HV-Info) | kracherdigital@gmail.com (Gmail) |
-| Status -> In Bearbeitung | kracherdigital@gmx.at (GMX) |
-| Status -> Erledigt | kracherdigital@gmx.at (GMX) |
+| HV-Registrierung (Bestaetigung) | kracherdigital@gmx.at (GMX) |
+| Mieter-Registrierung (Bestaetigung) | mathiaskracher@gmx.at (GMX) |
+| Neue Schadensmeldung (HV-Info) | kracherdigital@gmx.at (GMX) |
+| Status -> In Bearbeitung | mathiaskracher@gmx.at (GMX) |
+| Status -> Erledigt | mathiaskracher@gmx.at (GMX) |
 
 ---
 
@@ -241,8 +278,9 @@ Impressum: Adresse Wildgansgasse 8/2 7400 Oberwart, UID ATU81585679, GISA 376957
 1. https://zerodamage.de am Smartphone oeffnen
 2. Landing Page: Sieht gut aus?
 3. Login-Formular: Benutzbar?
-4. Als HV einloggen: Hamburger-Menue sichtbar?
+4. Als HV einloggen (kracherdigital@gmx.at): Hamburger-Menue sichtbar?
 5. Menue antippen: Navigation als Schublade?
+6. Als Admin einloggen (kracherdigital@gmail.com): /admin responsiv?
 
 ---
 
@@ -250,11 +288,12 @@ Impressum: Adresse Wildgansgasse 8/2 7400 Oberwart, UID ATU81585679, GISA 376957
 
 | Block | Rolle | Was | Ergebnis |
 |-------|-------|-----|----------|
-| 0 | Setup | Registrierung + Admin-Freischaltung | [ ] OK / Fehler: |
+| 0 | HV-Admin | HV-Registrierung | [ ] OK / Fehler: |
 | 1.1 | HV-Admin | Einheiten anlegen | [ ] OK / Fehler: |
-| 1.2 | HV-Admin | Aktivierungscode erstellen | [ ] OK / Fehler: |
-| 1.3 | HV-Admin | Fall bearbeiten (alle Unterblocks) | [ ] OK / Fehler: |
-| 1.4 | HV-Admin | Mieter-Uebersicht | [ ] OK / Fehler: |
+| 1.2 | HV-Admin | Werkstaetten anlegen | [ ] OK / Fehler: |
+| 1.3 | HV-Admin | Aktivierungscode erstellen | [ ] OK / Fehler: |
+| 1.4 | HV-Admin | Fall bearbeiten (alle Unterblocks) | [ ] OK / Fehler: |
+| 1.5 | HV-Admin | Mieter-Uebersicht | [ ] OK / Fehler: |
 | 2.1 | Mieter | Registrierung per Aktivierungslink | [ ] OK / Fehler: |
 | 2.2 | Mieter | Schadensmeldung einreichen | [ ] OK / Fehler: |
 | 2.3 | Mieter | Status-Verfolgung + E-Mails | [ ] OK / Fehler: |
@@ -268,10 +307,11 @@ Impressum: Adresse Wildgansgasse 8/2 7400 Oberwart, UID ATU81585679, GISA 376957
 
 ## Nach dem Test: Naechste Schritte
 
-1. PROJ-9: Werkstatt-E-Mails (mathiaskracher@gmx.at bekommt auto. E-Mail bei Zuweisung)
+1. PROJ-9: Werkstatt-E-Mails (tradingworld@gmx.at bekommt auto. E-Mail bei Zuweisung)
 2. PROJ-15: DSGVO-Datenexport fuer Mieter
 3. PROJ-14: Stripe-Zahlungsabwicklung
-4. Erster echter Kunde: 349 EUR Einrichtung + 0,50 EUR/Einheit/Monat
+4. PROJ-13: Selbst-Onboarding fuer neue HV-Kunden
+5. Erster echter Kunde: 349 EUR Einrichtung + 0,50 EUR/Einheit/Monat (Gruenderpreis)
 
 ---
 

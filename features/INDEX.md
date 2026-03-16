@@ -25,6 +25,8 @@
 | PROJ-11 | Rechnungs-Upload pro Schadensmeldung | Deployed | [PROJ-11](PROJ-11-dokumentenablage.md) | 2026-03-07 |
 | PROJ-17 | AVV-Zustimmung bei HV-Registrierung (Art. 28 DSGVO) | Deployed | PROJ-17-avv.md | 2026-03-16 |
 | PROJ-18 | Platform-Admin-Portal (Betreiberansicht) | Deployed | PROJ-18-admin-portal.md | 2026-03-16 |
+| PROJ-19 | Werkstatt-Verwaltung (HV-Portal) | Deployed | PROJ-19-werkstatt-verwaltung.md | 2026-03-16 |
+| PROJ-20 | Werkstatt Excel-Import + Gewerk-Vorschlag | Deployed | PROJ-20-werkstatt-import.md | 2026-03-16 |
 | PROJ-12 | KI-Mietvertragsanalyse (Claude API) | Planned | [PROJ-12](PROJ-12-ki-mietvertragsanalyse.md) | 2026-03-07 |
 | PROJ-13 | HV-Onboarding & Aktivierungscode-Generator | Deployed | [PROJ-13](PROJ-13-hv-onboarding-aktivierungscode-generator.md) | 2026-03-07 |
 | PROJ-14 | Subscription & Billing (Stripe) | Planned | [PROJ-14](PROJ-14-subscription-billing-stripe.md) | 2026-03-07 |
@@ -33,7 +35,7 @@
 
 <!-- Add features above this line -->
 
-## Next Available ID: PROJ-17
+## Next Available ID: PROJ-21
 
 ## Build Order (empfohlen)
 **Phase 1 — MVP (P0):** PROJ-1 → PROJ-2 → PROJ-3 → PROJ-4 → PROJ-5 → PROJ-6 → PROJ-7

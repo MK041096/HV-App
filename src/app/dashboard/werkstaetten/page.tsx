@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import Link from "next/link"
 import {
   Wrench,
   Loader2,
@@ -9,6 +10,7 @@ import {
   Plus,
   Phone,
   Mail,
+  FileSpreadsheet,
 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
@@ -235,10 +237,18 @@ export default function WerkstaettenPage() {
             Verwalten Sie Ihre Handwerker und Dienstleister
           </p>
         </div>
-        <Button onClick={openAddDialog}>
-          <Plus className="mr-2 h-4 w-4" />
-          Neue Werkstatt
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" asChild>
+            <Link href="/dashboard/werkstaetten/import">
+              <FileSpreadsheet className="mr-2 h-4 w-4" />
+              Excel importieren
+            </Link>
+          </Button>
+          <Button onClick={openAddDialog}>
+            <Plus className="mr-2 h-4 w-4" />
+            Neue Werkstatt
+          </Button>
+        </div>
       </div>
 
       {/* Page Error */}
@@ -262,10 +272,18 @@ export default function WerkstaettenPage() {
               Fügen Sie Ihre Handwerker und Dienstleister hinzu, um sie schnell bei Schadensfällen zuzuweisen.
             </p>
           </div>
-          <Button onClick={openAddDialog}>
-            <Plus className="mr-2 h-4 w-4" />
-            Erste Werkstatt anlegen
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" asChild>
+              <Link href="/dashboard/werkstaetten/import">
+                <FileSpreadsheet className="mr-2 h-4 w-4" />
+                Excel importieren
+              </Link>
+            </Button>
+            <Button onClick={openAddDialog}>
+              <Plus className="mr-2 h-4 w-4" />
+              Manuell anlegen
+            </Button>
+          </div>
         </div>
       ) : (
         <div className="rounded-lg border bg-card overflow-hidden">
