@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import * as XLSX from 'xlsx'
 import crypto from 'crypto'
-import { createServerSupabaseClient } from '@/lib/supabase-server'
+import { createServerSupabaseClient, createAdminClient } from '@/lib/supabase-server'
 import { sendTenantInviteEmail } from '@/lib/email'
 
 // Max 5MB file
@@ -121,6 +121,7 @@ interface ImportResult {
 export async function POST(request: NextRequest) {
   try {
     const supabase = await createServerSupabaseClient()
+    const adminSupabase = createAdminClient()
 
     const {
       data: { user },
@@ -307,7 +308,7 @@ export async function POST(request: NextRequest) {
       }
 
       // Create unit
-      const { data: newUnit, error: unitError } = await supabase
+      const { data: newUnit, error: unitError } = await adminSupabase
         .from('units')
         .insert({
           organization_id: orgId,
@@ -334,7 +335,7 @@ export async function POST(request: NextRequest) {
       let code = ''
       for (let attempt = 0; attempt < 5; attempt++) {
         const candidate = generateActivationCode()
-        const { data: existing } = await supabase
+        const { data: existing } = await adminSupabase
           .from('activation_codes')
           .select('id')
           .eq('code', candidate)
@@ -353,7 +354,7 @@ export async function POST(request: NextRequest) {
         continue
       }
 
-      const { data: codeData, error: codeError } = await supabase
+      const { data: codeData, error: codeError } = await adminSupabase
         .from('activation_codes')
         .insert({
           organization_id: orgId,
@@ -414,7 +415,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Audit log
-    await supabase.from('audit_logs').insert({
+    await adminSupabase.from('audit_logs').insert({
       user_id: user.id,
       organization_id: orgId,
       action: 'units_imported',
