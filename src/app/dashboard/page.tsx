@@ -80,7 +80,7 @@ const ONBOARDING_STEPS: OnboardingStep[] = [
     number: 1,
     title: "Einheiten anlegen",
     description:
-      "Tragen Sie alle Einheiten ein, die Sie verwalten, zum Beispiel „Wohnung Top 1“, „Büro EG links“ oder „Gewerbefläche 3. OG“. Mit dem Excel-Import können Sie hunderte Einheiten auf einmal hochladen. Geben Sie pro Einheit den Namen, die vollständige Adresse (z.B. Mariahilfer Straße 45/2/8, 1060 Wien) sowie die E-Mail-Adresse des Mieters an, damit der Aktivierungscode automatisch versendet wird.",
+      "Tragen Sie alle Einheiten ein, die Sie in Ihrem Unternehmen verwalten, z.B. „1060 Wien, Mariahilfer Straße 45/Top 8“. Tipp: Mit dem Excel-Import können Sie hunderte Einheiten auf einmal hochladen, kein manuelles Eintippen notwendig. Wichtig: Jede Einheit benötigt einen Namen, eine Adresse sowie eine E-Mail-Adresse oder Telefonnummer des Mieters, nur so kann der Aktivierungscode automatisch an den Mieter gesendet werden.",
     whyBox:
       "Ohne angelegte Einheiten kann kein Mieter eine Schadensmeldung abschicken. Sobald Sie beim Import eine Mieter-E-Mail angeben, verschickt die App den Aktivierungscode automatisch an den Mieter. Kein extra Schritt notwendig.",
     href: "/dashboard/units",
