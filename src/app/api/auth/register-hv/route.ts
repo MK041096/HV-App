@@ -172,10 +172,14 @@ export async function POST(request: NextRequest) {
 
     // Generate confirmation link and send via Resend
     try {
+      const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://zerodamage.de"
       const { data: linkData, error: linkError } = await admin.auth.admin.generateLink({
         type: "signup",
         email,
         password,
+        options: {
+          redirectTo: appUrl + "/login?email=" + encodeURIComponent(email) + "&confirmed=true",
+        },
       })
       if (linkError) {
         console.error("generateLink error:", linkError)

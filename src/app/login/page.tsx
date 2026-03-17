@@ -1,10 +1,10 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
-import { Loader2, Building2, Eye, EyeOff } from "lucide-react"
+import { Loader2, Building2, Eye, EyeOff, CheckCircle2 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -43,6 +43,7 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [showPassword, setShowPassword] = useState(false)
+  const [confirmed, setConfirmed] = useState(false)
 
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -51,6 +52,14 @@ export default function LoginPage() {
       password: "",
     },
   })
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const emailParam = params.get('email')
+    const confirmedParam = params.get('confirmed')
+    if (emailParam) form.setValue('email', emailParam)
+    if (confirmedParam === 'true') setConfirmed(true)
+  }, [form])
 
   async function onSubmit(values: LoginFormValues) {
     setIsLoading(true)
@@ -112,6 +121,15 @@ export default function LoginPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
+            {confirmed && (
+              <Alert className="mb-4 border-green-200 bg-green-50">
+                <CheckCircle2 className="h-4 w-4 text-green-600" />
+                <AlertDescription className="text-green-800 font-medium ml-2">
+                  E-Mail-Adresse erfolgreich bestätigt! Bitte melden Sie sich jetzt an.
+                </AlertDescription>
+              </Alert>
+            )}
+
             {error && (
               <Alert variant="destructive" className="mb-4">
                 <AlertDescription>{error}</AlertDescription>
@@ -157,6 +175,7 @@ export default function LoginPage() {
                             autoComplete="current-password"
                             disabled={isLoading}
                             className="pr-10"
+                            autoFocus={confirmed}
                             {...field}
                           />
                           <button
