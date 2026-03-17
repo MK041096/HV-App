@@ -80,9 +80,9 @@ const ONBOARDING_STEPS: OnboardingStep[] = [
     number: 1,
     title: "Einheiten anlegen",
     description:
-      "Tragen Sie alle Einheiten ein, die Sie in Ihrem Unternehmen verwalten — z.B. „Wohnung Top 1“, „Büro EG“ oder „Gewerbefläche 3. OG“. Tipp: Mit dem Excel-Import können Sie hunderte Einheiten auf einmal hochladen — kein manuelles Eintippen notwendig. Wichtig: Jede Einheit benötigt einen Namen, eine Adresse sowie eine E-Mail-Adresse oder Telefonnummer des Mieters — nur so kann der Aktivierungscode automatisch an den Mieter gesendet werden.",
+      "Tragen Sie alle Einheiten ein, die Sie verwalten, zum Beispiel „Wohnung Top 1“, „Büro EG links“ oder „Gewerbefläche 3. OG“. Mit dem Excel-Import können Sie hunderte Einheiten auf einmal hochladen. Geben Sie pro Einheit den Namen, die vollständige Adresse (z.B. Hauptstraße 12/3, 1010 Wien) sowie die E-Mail-Adresse des Mieters an, damit der Aktivierungscode automatisch versendet wird.",
     whyBox:
-      "Ohne Einheiten können Mieter keine Schadensmeldung abschicken — die Zuordnung läuft immer über die Einheit. Sobald eine Mieter-E-Mail hinterlegt ist, verschickt die App den Aktivierungscode vollautomatisch.",
+      "Ohne angelegte Einheiten kann kein Mieter eine Schadensmeldung abschicken. Sobald Sie beim Import eine Mieter-E-Mail angeben, verschickt die App den Aktivierungscode automatisch an den Mieter. Kein extra Schritt notwendig.",
     href: "/dashboard/units",
     linkText: "Zu den Einheiten",
     icon: Home,
@@ -450,7 +450,7 @@ export default function DashboardPage() {
                           <div className="flex gap-2 p-3 rounded-md bg-blue-50 border border-blue-100">
                             <Info className="h-4 w-4 text-blue-500 shrink-0 mt-0.5" />
                             <p className="text-xs text-blue-800 leading-relaxed">
-                              <span className="font-semibold">Warum wichtig?</span>{" "}
+                              <span className="font-semibold">Warum ist das wichtig?</span>{" "}
                               {step.whyBox}
                             </p>
                           </div>
