@@ -43,10 +43,10 @@ interface ImportResult {
 
 function downloadTemplate() {
   const csvContent = [
-    "Einheit,Adresse,Stockwerk,Mieter E-Mail,Mieter Vorname,Mieter Nachname",
-    "Wohnung Top 1,Musterstraße 1,Erdgeschoss,max@example.com,Max,Mustermann",
-    "Wohnung Top 2,Musterstraße 1,1. Stockwerk,,,",
-    "Wohnung Top 3,Musterstraße 1,2. Stockwerk,erika@example.com,Erika,Musterfrau",
+    "Einheit,Mieter,E-Mail,Telefon",
+    "1060 Wien Mariahilfer Str. 45/Top 1,Max Mustermann,max@example.com,",
+    "1060 Wien Mariahilfer Str. 45/Top 2,Erika Musterfrau,erika@example.com,+43 664 123 456",
+    "1060 Wien Mariahilfer Str. 45/Top 3,Hans Maier,,+43 676 987 654",
   ].join("\n")
 
   const blob = new Blob(["\uFEFF" + csvContent], {
@@ -160,7 +160,7 @@ export default function ImportPage() {
                 1
               </div>
               <div>
-                <p className="font-medium">Vorlage ausfüllen</p>
+                <p className="font-medium">Excel vorbereiten</p>
                 <p className="text-muted-foreground text-xs mt-0.5">
                   Excel oder CSV mit Einheiten, Adressen und E-Mail oder Telefonnummer des Mieters
                 </p>
@@ -201,7 +201,7 @@ export default function ImportPage() {
               <div>
                 <p className="text-sm font-medium">Vorlage herunterladen</p>
                 <p className="text-xs text-muted-foreground mt-0.5">
-                  CSV mit allen Spalten: Einheit, Adresse, Mieter E-Mail, Stockwerk, Vor-/Nachname
+                  Sie haben bereits eine Excel? Laden Sie sie direkt hoch — die App erkennt die Spalten automatisch. Oder laden Sie diese Vorlage herunter und füllen Sie sie aus.
                 </p>
               </div>
             </div>
@@ -217,12 +217,11 @@ export default function ImportPage() {
             <p className="font-medium text-foreground">Unterstützte Spalten:</p>
             <div className="grid grid-cols-2 gap-x-4 gap-y-0.5">
               <span><span className="text-foreground font-medium">Einheit</span> — Pflichtfeld</span>
-              <span><span className="text-foreground font-medium">Adresse</span> — Pflichtfeld</span>
-              <span><span className="text-foreground font-medium">Mieter E-Mail</span> — Pflichtfeld</span>
-              <span><span className="text-foreground">Stockwerk</span> — optional</span>
-              <span><span className="text-foreground">Mieter Vorname</span> — optional</span>
-              <span><span className="text-foreground">Mieter Nachname</span> — optional</span>
+              <span><span className="text-foreground font-medium">Mieter</span> — Vor- und Nachname</span>
+              <span><span className="text-foreground font-medium">E-Mail</span> — für automatischen Versand</span>
+              <span><span className="text-foreground">Telefon</span> — optional</span>
             </div>
+            <p className="text-xs text-muted-foreground mt-2">E-Mail oder Telefon — mindestens eines angeben. Automatischer Versand des Aktivierungscodes nur per E-Mail möglich.</p>
           </div>
         </CardContent>
       </Card>
