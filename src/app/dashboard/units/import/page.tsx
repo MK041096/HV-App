@@ -214,7 +214,7 @@ export default function ImportPage() {
               <div>
                 <p className="text-sm font-medium">Vorlage herunterladen</p>
                 <p className="text-xs text-muted-foreground mt-0.5">
-                  Sie haben bereits eine Excel? Laden Sie sie direkt hoch, die App erkennt die Spalten automatisch. Oder laden Sie diese Vorlage herunter und füllen Sie sie aus.
+                  Sie haben bereits eine Excel? Laden Sie sie direkt hoch, das System erkennt die Spalten automatisch. Oder laden Sie diese Vorlage herunter und füllen Sie sie aus.
                 </p>
               </div>
             </div>
