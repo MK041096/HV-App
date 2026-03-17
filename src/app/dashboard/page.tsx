@@ -81,7 +81,7 @@ const ONBOARDING_STEPS: OnboardingStep[] = [
     number: 1,
     title: "Einheiten anlegen",
     description:
-      "Tragen Sie alle Einheiten ein, die Sie in Ihrem Unternehmen verwalten — z.B. „Wohnung Top 1“, „Büro EG“ oder „Gewerbefläche 3. OG“. Jede Einheit erhält eine eigene Seite für Meldungen und Dokumente.",
+      "Tragen Sie alle Einheiten ein, die Sie in Ihrem Unternehmen verwalten — z.B. „Wohnung Top 1“, „Büro EG“ oder „Gewerbefläche 3. OG“. Tipp: Mit dem Excel-Import können Sie hunderte Einheiten auf einmal hochladen — kein manuelles Eintippen notwendig.",
     whyBox:
       "Ohne Einheiten können Mieter keine Schadensmeldung abschicken — die Zuordnung läuft immer über die Einheit.",
     href: "/dashboard/units",
