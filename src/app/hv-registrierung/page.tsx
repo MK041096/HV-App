@@ -146,16 +146,16 @@ export default function HvRegistrierungPage() {
               Konto erfolgreich erstellt!
             </h1>
             <p className="text-center text-muted-foreground mb-6">
-              Bitte bestaetigen Sie Ihre E-Mail-Adresse, um loszulegen.
+              Bitte bestätigen Sie Ihre E-Mail-Adresse, um loszulegen.
             </p>
 
             <div className="space-y-3 mb-6">
               <div className="flex items-start gap-3 p-3 rounded-lg bg-blue-50 border border-blue-100">
                 <div className="h-7 w-7 rounded-full bg-blue-600 text-white flex items-center justify-center text-sm font-bold shrink-0 mt-0.5">1</div>
                 <div>
-                  <p className="text-sm font-semibold text-blue-900">E-Mail pruefen &amp; bestaetigen</p>
+                  <p className="text-sm font-semibold text-blue-900">E-Mail prüfen &amp; bestätigen</p>
                   <p className="text-xs text-blue-700 mt-0.5">
-                    Wir haben Ihnen soeben eine E-Mail geschickt. Klicken Sie dort auf <strong>E-Mail bestaetigen</strong>.
+                    Wir haben Ihnen soeben eine E-Mail geschickt. Klicken Sie dort auf <strong>"E-Mail bestätigen"</strong>.
                   </p>
                 </div>
               </div>
@@ -164,14 +164,14 @@ export default function HvRegistrierungPage() {
                 <div>
                   <p className="text-sm font-semibold">Einloggen</p>
                   <p className="text-xs text-muted-foreground mt-0.5">
-                    Nach der Bestaetigung kommen Sie automatisch zum Login. Melden Sie sich mit Ihren Zugangsdaten an.
+                    Nach der Bestätigung kommen Sie automatisch zum Login. Melden Sie sich mit Ihren Zugangsdaten an.
                   </p>
                 </div>
               </div>
               <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/50 border">
                 <div className="h-7 w-7 rounded-full bg-gray-400 text-white flex items-center justify-center text-sm font-bold shrink-0 mt-0.5">3</div>
                 <div>
-                  <p className="text-sm font-semibold">Schritt-fuer-Schritt einrichten</p>
+                  <p className="text-sm font-semibold">Schritt-für-Schritt einrichten</p>
                   <p className="text-xs text-muted-foreground mt-0.5">
                     Im Dashboard finden Sie eine Einrichtungsanleitung mit 6 Schritten — von den ersten Einheiten bis zur ersten Schadensmeldung.
                   </p>
@@ -187,7 +187,7 @@ export default function HvRegistrierungPage() {
             </Button>
 
             <p className="text-center text-xs text-muted-foreground mt-4">
-              Keine E-Mail erhalten? Pruefen Sie Ihren Spam-Ordner oder{" "}
+              Keine E-Mail erhalten? Prüfen Sie Ihren Spam-Ordner oder{" "}
               <button
                 onClick={() => setStep("form")}
                 className="text-primary underline underline-offset-2"
