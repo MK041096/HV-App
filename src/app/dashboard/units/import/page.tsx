@@ -166,9 +166,9 @@ export default function ImportPage() {
                 1
               </div>
               <div>
-                <p className="font-medium">Excel vorbereiten</p>
+                <p className="font-medium">Datei vorbereiten</p>
                 <p className="text-muted-foreground text-xs mt-0.5">
-                  Excel oder CSV mit Einheiten, Adressen und E-Mail oder Telefonnummer des Mieters
+                  Excel oder CSV mit Einheiten, Adressen und E-Mail oder Telefonnummer der Mieter
                 </p>
               </div>
             </div>
