@@ -184,7 +184,7 @@ export default function ImportPage() {
               <div>
                 <p className="font-medium">Mieter bekommen E-Mail</p>
                 <p className="text-muted-foreground text-xs mt-0.5">
-                  Bei vorhandener E-Mail erhalten Mieter automatisch ihren Code
+                  Mieter erhalten ihren Aktivierungscode
                 </p>
               </div>
             </div>
