@@ -357,6 +357,29 @@ export default function CaseDetailPage({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [caseData?.id])
 
+  // Auto-suggest contractor based on damage category
+  useEffect(() => {
+    if (!caseData || contractors.length === 0 || selectedContractorId) return
+    const categoryToSpecialty: Record<string, string> = {
+      wasserschaden: 'wasser',
+      heizung: 'heizung',
+      elektrik: 'elektrik',
+      fenster_tueren: 'fenster_tueren',
+      boeden_waende: 'boeden',
+      schimmel: 'schimmel',
+      sanitaer: 'sanitaer',
+      aussenbereich: 'aussenbereich',
+      sonstiges: 'allgemein',
+    }
+    const neededSpecialty = categoryToSpecialty[caseData.category]
+    if (!neededSpecialty) return
+    const match =
+      contractors.find(c => c.specialties.includes(neededSpecialty)) ||
+      contractors.find(c => c.specialties.includes('allgemein'))
+    if (match) setSelectedContractorId(match.id)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [caseData?.id, contractors])
+
   // ── Actions ──
 
   async function handleStatusUpdate() {
