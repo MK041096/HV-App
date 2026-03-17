@@ -44,6 +44,12 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
     if (!report) return NextResponse.json({ error: 'Fall nicht gefunden' }, { status: 404 })
     if (!contractor) return NextResponse.json({ error: 'Werkstatt nicht gefunden' }, { status: 404 })
+    if (!contractor.email) {
+      return NextResponse.json(
+        { error: 'Diese Werkstatt hat keine E-Mail-Adresse hinterlegt. Bitte zuerst in der Werkstatt-Verwaltung eine E-Mail ergänzen.' },
+        { status: 400 }
+      )
+    }
 
     const appointmentDate = scheduled_appointment || report.preferred_appointment || report.preferred_appointment_2
 

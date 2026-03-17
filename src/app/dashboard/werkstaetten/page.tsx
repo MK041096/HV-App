@@ -171,6 +171,10 @@ export default function WerkstaettenPage() {
       setFormError("Name ist ein Pflichtfeld")
       return
     }
+    if (!form.email.trim() && !form.phone.trim()) {
+      setFormError("E-Mail-Adresse oder Telefonnummer ist erforderlich")
+      return
+    }
 
     setIsSaving(true)
     setFormError(null)

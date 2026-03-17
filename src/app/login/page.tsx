@@ -77,7 +77,8 @@ export default function LoginPage() {
       // Validate redirectTo to prevent open redirect to external URLs
       const params = new URLSearchParams(window.location.search)
       const rawRedirect = params.get("redirectTo") || ""
-      const redirectTo = rawRedirect.startsWith("/") ? rawRedirect : (json.data?.redirectTo || "/dashboard")
+      const isSafeRedirect = rawRedirect.startsWith("/") && !rawRedirect.startsWith("//")
+      const redirectTo = isSafeRedirect ? rawRedirect : (json.data?.redirectTo || "/dashboard")
       window.location.href = redirectTo
     } catch {
       setError(
