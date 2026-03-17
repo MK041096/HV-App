@@ -131,8 +131,8 @@ export async function GET() {
       }
     }
 
-    // Build final response
-    const data = orgs.map((org) => ({
+    // Build final response — exclude internal platform orgs (no hv_admin)
+    const data = orgs.filter((org) => hvAdminByOrg[org.id] !== undefined).map((org) => ({
       id: org.id,
       name: org.name,
       created_at: org.created_at,
