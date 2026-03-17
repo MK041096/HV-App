@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import * as XLSX from 'xlsx'
-import { createServerSupabaseClient } from '@/lib/supabase-server'
+import { createServerSupabaseClient, createAdminClient } from '@/lib/supabase-server'
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024
 
@@ -48,6 +48,7 @@ interface ImportResult {
 export async function POST(request: NextRequest) {
   try {
     const supabase = await createServerSupabaseClient()
+    const adminSupabase = createAdminClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return NextResponse.json({ error: 'Nicht authentifiziert' }, { status: 401 })
 
@@ -134,7 +135,7 @@ export async function POST(request: NextRequest) {
         continue
       }
 
-      const { error: insertErr } = await supabase.from('contractors').insert({
+      const { error: insertErr } = await adminSupabase.from('contractors').insert({
         organization_id: orgId,
         name,
         company,

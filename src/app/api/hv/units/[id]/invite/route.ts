@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createServerSupabaseClient } from '@/lib/supabase-server'
+import { createServerSupabaseClient, createAdminClient } from '@/lib/supabase-server'
 import { sendTenantInviteEmail } from '@/lib/email'
 import crypto from 'crypto'
 import { z } from 'zod'
@@ -30,6 +30,7 @@ export async function POST(
   try {
     const { id: unitId } = await params
     const supabase = await createServerSupabaseClient()
+    const adminSupabase = createAdminClient()
 
     const {
       data: { user },
@@ -84,7 +85,7 @@ export async function POST(
       .single()
 
     // Deactivate any existing pending codes for this unit
-    await supabase
+    await adminSupabase
       .from('activation_codes')
       .update({ status: 'deactivated', updated_at: new Date().toISOString() })
       .eq('unit_id', unitId)
@@ -95,7 +96,7 @@ export async function POST(
     let attempts = 0
     while (attempts < 5) {
       code = generateActivationCode()
-      const { data: existing } = await supabase
+      const { data: existing } = await adminSupabase
         .from('activation_codes')
         .select('id')
         .eq('code', code)
@@ -108,7 +109,7 @@ export async function POST(
     expiresAt.setDate(expiresAt.getDate() + 30)
 
     // Insert new activation code
-    const { data: newCode, error: insertError } = await supabase
+    const { data: newCode, error: insertError } = await adminSupabase
       .from('activation_codes')
       .insert({
         organization_id: profile.organization_id,
@@ -152,7 +153,7 @@ export async function POST(
     }
 
     // Audit log
-    await supabase.from('audit_logs').insert({
+    await adminSupabase.from('audit_logs').insert({
       user_id: user.id,
       organization_id: profile.organization_id,
       action: 'activation_code_created',

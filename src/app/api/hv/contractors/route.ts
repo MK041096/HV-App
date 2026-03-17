@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createServerSupabaseClient } from '@/lib/supabase-server'
+import { createServerSupabaseClient, createAdminClient } from '@/lib/supabase-server'
 
 const HV_ROLES = ['hv_admin', 'hv_mitarbeiter', 'platform_admin']
 
@@ -52,6 +52,7 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const supabase = await createServerSupabaseClient()
+    const adminSupabase = createAdminClient()
     const { error, status, profile } = await getAuthenticatedProfile(supabase)
     if (error || !profile) return NextResponse.json({ error }, { status })
 
@@ -62,7 +63,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Name ist ein Pflichtfeld' }, { status: 400 })
     }
 
-    const { data: contractor, error: dbError } = await supabase
+    const { data: contractor, error: dbError } = await adminSupabase
       .from('contractors')
       .insert({
         organization_id: profile.organization_id,
