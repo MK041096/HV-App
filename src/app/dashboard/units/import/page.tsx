@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useRef, useCallback } from "react"
+import * as XLSX from "xlsx"
 import Link from "next/link"
 import {
   Upload,
@@ -42,22 +43,27 @@ interface ImportResult {
 // ── Download Template helper ──
 
 function downloadTemplate() {
-  const csvContent = [
-    "Einheit,Mieter,E-Mail,Telefon",
-    "1060 Wien Mariahilfer Str. 45/Top 1,Max Mustermann,max@example.com,",
-    "1060 Wien Mariahilfer Str. 45/Top 2,Erika Musterfrau,erika@example.com,+43 664 123 456",
-    "1060 Wien Mariahilfer Str. 45/Top 3,Hans Maier,,+43 676 987 654",
-  ].join("\n")
+  const rows = [
+    ["Einheit", "Mieter", "E-Mail", "Telefon"],
+    ["1060 Wien Mariahilfer Str. 45/Top 1", "Max Mustermann", "max@example.com", ""],
+    ["1060 Wien Mariahilfer Str. 45/Top 2", "Erika Musterfrau", "erika@example.com", "+43 664 123 456"],
+    ["1060 Wien Mariahilfer Str. 45/Top 3", "Hans Maier", "", "+43 676 987 654"],
+  ]
 
-  const blob = new Blob(["\uFEFF" + csvContent], {
-    type: "text/csv;charset=utf-8;",
-  })
-  const url = URL.createObjectURL(blob)
-  const a = document.createElement("a")
-  a.href = url
-  a.download = "SchadensMelder_Vorlage.csv"
-  a.click()
-  URL.revokeObjectURL(url)
+  const ws = XLSX.utils.aoa_to_sheet(rows)
+
+  // Column widths
+  ws["!cols"] = [
+    { wch: 42 },
+    { wch: 22 },
+    { wch: 28 },
+    { wch: 20 },
+  ]
+
+  const wb = XLSX.utils.book_new()
+  XLSX.utils.book_append_sheet(wb, ws, "Einheiten")
+
+  XLSX.writeFile(wb, "SchadensMelder_Vorlage.xlsx")
 }
 
 // ── Page ──
@@ -207,7 +213,7 @@ export default function ImportPage() {
             </div>
             <Button variant="outline" size="sm" onClick={downloadTemplate}>
               <Download className="mr-2 h-4 w-4" />
-              Vorlage (CSV)
+              Vorlage (Excel)
             </Button>
           </div>
 
