@@ -140,9 +140,8 @@ export default function ImportPage() {
         </Button>
         <h1 className="text-2xl font-bold tracking-tight">Excel-Massenimport</h1>
         <p className="text-muted-foreground mt-1">
-          Importieren Sie bis zu 1.000 Wohneinheiten auf einmal. Für jede Einheit wird
-          automatisch ein Aktivierungscode generiert. Wenn Sie Mieter-E-Mails angeben,
-          werden die Einladungen automatisch versendet.
+          Importieren Sie bis zu 1.000 Einheiten auf einmal. Für jede Einheit wird automatisch
+          ein Aktivierungscode generiert und die Einladung direkt an den Mieter versendet.
         </p>
       </div>
 
@@ -163,7 +162,7 @@ export default function ImportPage() {
               <div>
                 <p className="font-medium">Vorlage ausfüllen</p>
                 <p className="text-muted-foreground text-xs mt-0.5">
-                  Excel oder CSV mit Einheiten, Adressen und optionalen Mieter-E-Mails
+                  Excel oder CSV mit Einheiten, Adressen und E-Mail oder Telefonnummer des Mieters
                 </p>
               </div>
             </div>
@@ -174,7 +173,7 @@ export default function ImportPage() {
               <div>
                 <p className="font-medium">Datei hochladen</p>
                 <p className="text-muted-foreground text-xs mt-0.5">
-                  Drag & Drop oder Klick. Einheiten werden sofort angelegt.
+                  Einheiten werden sofort angelegt.
                 </p>
               </div>
             </div>
@@ -202,7 +201,7 @@ export default function ImportPage() {
               <div>
                 <p className="text-sm font-medium">Vorlage herunterladen</p>
                 <p className="text-xs text-muted-foreground mt-0.5">
-                  CSV mit allen Spalten: Einheit, Adresse, Stockwerk, Mieter E-Mail, Vor-/Nachname
+                  CSV mit allen Spalten: Einheit, Adresse, Mieter E-Mail, Stockwerk, Vor-/Nachname
                 </p>
               </div>
             </div>
@@ -218,9 +217,9 @@ export default function ImportPage() {
             <p className="font-medium text-foreground">Unterstützte Spalten:</p>
             <div className="grid grid-cols-2 gap-x-4 gap-y-0.5">
               <span><span className="text-foreground font-medium">Einheit</span> — Pflichtfeld</span>
-              <span><span className="text-foreground">Adresse</span> — optional</span>
+              <span><span className="text-foreground font-medium">Adresse</span> — Pflichtfeld</span>
+              <span><span className="text-foreground font-medium">Mieter E-Mail</span> — Pflichtfeld</span>
               <span><span className="text-foreground">Stockwerk</span> — optional</span>
-              <span><span className="text-foreground">Mieter E-Mail</span> — für Einladungsmail</span>
               <span><span className="text-foreground">Mieter Vorname</span> — optional</span>
               <span><span className="text-foreground">Mieter Nachname</span> — optional</span>
             </div>
