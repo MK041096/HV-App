@@ -132,7 +132,11 @@ export async function sendTenantInviteEmail(params: {
   unitName: string
 }): Promise<void> {
   const { to, tenantName, activationCode, expiresAt, orgName, unitName } = params
-  const greeting = tenantName ? `Hallo ${tenantName},` : 'Sehr geehrte Damen und Herren,'
+
+  // Use only the first name for a clean, personal greeting (avoids full name duplication)
+  const firstName = tenantName ? tenantName.trim().split(' ')[0] : null
+  const greeting = firstName ? `Hallo ${firstName},` : 'Guten Tag,'
+
   const expiryDate = new Date(expiresAt).toLocaleDateString('de-AT', {
     day: '2-digit',
     month: '2-digit',
@@ -141,38 +145,56 @@ export async function sendTenantInviteEmail(params: {
   const registerUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'https://zerodamage.de'}/register`
 
   const emailContent = `
-    <h2 style="color:#18181b;font-size:22px;font-weight:700;margin:0 0 8px 0;">
-      Ihre Hausverwaltung hat SchadensMelder eingeführt
+    <h2 style="color:#18181b;font-size:22px;font-weight:700;margin:0 0 16px 0;">
+      Einladung Ihrer Hausverwaltung
     </h2>
-    <p style="color:#52525b;font-size:14px;line-height:1.6;margin:0 0 24px 0;">${greeting}</p>
-    <p style="color:#52525b;font-size:14px;line-height:1.6;margin:0 0 16px 0;">
-      <strong>${orgName}</strong> nutzt ab sofort <strong>SchadensMelder</strong> —
-      ein digitales Tool, mit dem Sie Schäden in Ihrer Wohnung bequem online melden und den
-      Bearbeitungsstatus jederzeit einsehen können. Kein Telefonanruf, kein Warten.
+
+    <p style="color:#52525b;font-size:15px;line-height:1.6;margin:0 0 6px 0;">${greeting}</p>
+    <p style="color:#52525b;font-size:14px;line-height:1.7;margin:0 0 20px 0;">
+      Ihre Hausverwaltung <strong>${orgName}</strong> hat ein neues digitales System
+      für die Schadensmeldung eingeführt. Ab sofort können Sie Schäden in Ihrer Wohnung
+      einfach online melden — ohne Telefonanruf, ohne Warten.
     </p>
+
+    <div style="background-color:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:14px 18px;margin-bottom:24px;">
+      <p style="color:#166534;font-size:13px;font-weight:600;margin:0 0 2px 0;">
+        &#10003; Diese Einladung wurde von <strong>${orgName}</strong> ausgelöst
+      </p>
+      <p style="color:#15803d;font-size:12px;margin:0;">
+        Sie erhalten diese E-Mail, weil Sie als Mieter der unten angegebenen Wohnung eingetragen wurden.
+      </p>
+    </div>
+
     <div style="background-color:#f4f4f5;border-radius:8px;padding:20px 24px;margin-bottom:24px;">
       <p style="color:#71717a;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;margin:0 0 4px 0;">Ihre Wohnung</p>
-      <p style="color:#18181b;font-size:15px;font-weight:600;margin:0 0 16px 0;">${unitName}</p>
-      <p style="color:#71717a;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;margin:0 0 4px 0;">Ihr persönlicher Aktivierungscode</p>
-      <p style="color:#18181b;font-size:28px;font-weight:700;letter-spacing:0.15em;font-family:monospace;margin:0 0 8px 0;">${activationCode}</p>
-      <p style="color:#71717a;font-size:12px;margin:0;">Gültig bis ${expiryDate}</p>
+      <p style="color:#18181b;font-size:15px;font-weight:600;margin:0 0 20px 0;">${unitName}</p>
+
+      <p style="color:#71717a;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;margin:0 0 6px 0;">Ihr persönlicher Aktivierungscode</p>
+      <p style="color:#18181b;font-size:30px;font-weight:700;letter-spacing:0.2em;font-family:monospace;margin:0 0 6px 0;">${activationCode}</p>
+      <p style="color:#71717a;font-size:12px;margin:0;">Gültig bis <strong>${expiryDate}</strong> &middot; Nur für Sie bestimmt</p>
     </div>
-    <p style="color:#52525b;font-size:14px;line-height:1.6;margin:0 0 24px 0;">
-      Klicken Sie auf den Button, geben Sie Ihren Code ein und registrieren Sie sich in weniger als 2 Minuten:
+
+    <p style="color:#52525b;font-size:14px;line-height:1.6;margin:0 0 20px 0;">
+      Klicken Sie auf den Button, geben Sie Ihren Code ein und registrieren Sie sich in 2 Minuten:
     </p>
     <a href="${registerUrl}"
-       style="display:inline-block;background-color:#18181b;color:#ffffff;text-decoration:none;padding:12px 28px;border-radius:8px;font-size:14px;font-weight:600;margin-bottom:24px;">
-      Jetzt registrieren →
+       style="display:inline-block;background-color:#18181b;color:#ffffff;text-decoration:none;padding:13px 28px;border-radius:8px;font-size:15px;font-weight:600;margin-bottom:28px;">
+      Jetzt kostenlos registrieren →
     </a>
-    <p style="color:#a1a1aa;font-size:12px;line-height:1.6;margin:0;">
-      Falls Sie Fragen haben, wenden Sie sich bitte direkt an Ihre Hausverwaltung ${orgName}.
-    </p>
+
+    <div style="border-top:1px solid #e4e4e7;padding-top:16px;">
+      <p style="color:#a1a1aa;font-size:12px;line-height:1.7;margin:0;">
+        Bei Fragen wenden Sie sich direkt an Ihre Hausverwaltung <strong>${orgName}</strong>.<br>
+        Falls Sie diese Einladung nicht erwartet haben oder keine Wohnung bei ${orgName} besitzen,
+        können Sie diese E-Mail einfach ignorieren.
+      </p>
+    </div>
   `
 
   await resend.emails.send({
     from: FROM_EMAIL,
     to,
-    subject: `Einladung zu SchadensMelder – Ihr Aktivierungscode`,
+    subject: `Einladung von ${orgName} – Schäden jetzt einfach online melden`,
     html: baseTemplate(emailContent, orgName),
   })
 }

@@ -55,10 +55,11 @@ function findCol(headers: string[], aliases: string[]): number {
   // Exact match first
   const exact = headers.findIndex((h) => aliases.includes(normalize(h)))
   if (exact !== -1) return exact
-  // Partial match: header contains one of the aliases
+  // Partial match: header must CONTAIN the alias (not the reverse — prevents "Mieter" from
+  // falsely matching "mieter vorname" or "mieter nachname")
   return headers.findIndex((h) => {
     const n = normalize(h)
-    return aliases.some((a) => n.includes(a) || a.includes(n))
+    return aliases.some((a) => n.includes(a))
   })
 }
 
@@ -239,11 +240,11 @@ export async function POST(request: NextRequest) {
         if (fullName) {
           const parts = fullName.split(' ')
           if (parts.length >= 2) {
-            // Austrian convention: Nachname Vorname (e.g. "Kracher Mathias")
-            lastName = parts[0]
-            firstName = parts.slice(1).join(' ')
+            // Standard: Vorname Nachname (e.g. "Mathias Kracher")
+            firstName = parts[0]
+            lastName = parts.slice(1).join(' ')
           } else {
-            lastName = fullName
+            firstName = fullName
           }
         }
       }
