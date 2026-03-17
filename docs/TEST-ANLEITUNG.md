@@ -1,5 +1,5 @@
 # Test-Anleitung: SchadensMelder
-Umgebung: https://zerodamage.de | Aktualisiert: 2026-03-16
+Umgebung: https://zerodamage.de | Aktualisiert: 2026-03-17
 
 ---
 
@@ -43,11 +43,12 @@ WICHTIG:
     BLOCK 0    ->  HV-Registrierung (einmalig)
     BLOCK 1.1  ->  Einheiten anlegen (aus testdaten-mieter.csv)
     BLOCK 1.2  ->  Werkstaetten anlegen (aus testdaten-werkstaetten.csv)
-    BLOCK 1.3  ->  Aktivierungscode fuer Mieter erstellen + kopieren
+    BLOCK 1.3  ->  Aktivierungscode pruefen
     BLOCK 2.1  ->  Mieter registrieren (Inkognito-Fenster!)
     BLOCK 2.2  ->  Schadensmeldung einreichen
-    BLOCK 1.4  ->  Als HV den Fall bearbeiten
+    BLOCK 1.4  ->  Als HV den Fall mit KI bearbeiten
     BLOCK 2.3  ->  Als Mieter Status pruefen
+    BLOCK 3    ->  Werkstatt-E-Mail pruefen
     BLOCK 4    ->  Platform-Admin-Portal pruefen (/admin)
     BLOCK 5/6/7 -> Rechtliches + E-Mails + Mobile
 
@@ -104,8 +105,8 @@ Wo: Dashboard -> Werkstaetten -> "Excel importieren" (rechts oben)
    - 0 Fehler?
 5. Zurueck zu Werkstaetten -> alle 10 in der Liste?
 
-HINWEIS: Das Gewerk-Feld (z.B. wasserschaden, elektrik) wird spaeter verwendet
-um automatisch passende Werkstaetten bei Schadensmeldungen vorzuschlagen.
+HINWEIS: Das Gewerk-Feld (z.B. wasserschaden, elektrik) wird automatisch verwendet
+um bei einer Schadensmeldung die passende Werkstatt vorzuschlagen.
 
 ### 1.3 Aktivierungscode pruefen
 
@@ -120,30 +121,44 @@ Pruefe:
 HINWEIS: Einzelne Codes koennen hier auch manuell erstellt werden falls ein Mieter
 die E-Mail nicht erhalten hat.
 
-### 1.4 Fall bearbeiten (ERST NACH BLOCK 2.2 DURCHFUEHREN!)
+### 1.4 Fall mit KI-Unterstuetzung bearbeiten (ERST NACH BLOCK 2.2!)
 
-Wo: Dashboard -> Faelle
+Wo: Dashboard -> Faelle -> Fall "Wasserschaden Kueche" oeffnen
 
-Pruefe zuerst:
-   Fall-Nr., Titel "Wasserschaden Kueche", Status "Neu", Mieter-Name, Foto
+--- KI-Analyse (startet automatisch) ---
+Beim Oeffnen des Falls startet die KI-Analyse automatisch im Hintergrund.
+Du siehst einen Ladebalken im "KI-Analyse"-Bereich auf der rechten Seite.
+Nach wenigen Sekunden erscheint das Ergebnis.
 
---- Status aendern ---
+Pruefe im KI-Ergebnis:
+- Verantwortlichkeit klar angegeben (Mieter oder Vermieter)?
+- Gesetzliche Grundlage (MRG) erwaehnt?
+- Empfehlung fuer naechsten Schritt sichtbar?
+
+--- Schnellaktionen (erscheinen direkt nach der KI-Analyse) ---
+
+Fall A - Vermieter ist verantwortlich (gruen, wahrscheinlicher bei Wasserschaden):
+   -> Vorgeschlagene Werkstatt bereits ausgewaehlt (Thomas Huber fuer Wasserschaden)
+   -> Andere Werkstatt waehlen falls gewuenscht (Dropdown mit allen 10 Werkstaetten)
+   -> "Weiterleiten & informieren" klicken
+   -> Pruefe: Mieter (mathiaskracher@gmx.at) hat E-Mail "Schaden bestaetigt" erhalten?
+   -> Pruefe: Werkstatt (tradingworld@gmx.at) hat Auftrags-E-Mail erhalten?
+   -> Status springt auf "Warte auf Handwerker"
+
+Fall B - Mieter ist verantwortlich (rot):
+   -> Begruendungstext ist bereits aus der KI-Analyse vorbefuellt
+   -> Text anpassen falls noetig
+   -> "Absage senden" klicken
+   -> Pruefe: Mieter (mathiaskracher@gmx.at) hat Absage-E-Mail erhalten?
+   -> Status springt auf "Abgelehnt"
+
+--- Manueller Status und Kommentar ---
+Wo: Linke Spalte -> "Status & Kommentar"
+
 1. Status -> "In Bearbeitung"
 2. Kommentar: "Wir schauen uns das an, melden uns bald."
-3. Pruefe: Hat mathiaskracher@gmx.at eine Status-E-Mail erhalten?
-
---- Werkstatt zuweisen ---
-Wo: Fall-Detailseite -> Werkstatt-Bereich
-
-Moeglichkeit A (aus der Liste):
-   Button "Aus Werkstatt-Liste waehlen" -> Thomas Huber auswaehlen
-   -> Felder werden automatisch befllt
-
-Moeglichkeit B (manuell):
-   Name, Firma, Telefon, E-Mail aus testdaten-werkstaetten.csv abtippen
-
-Speichern -> Werkstatt-Daten sichtbar?
-HINWEIS: Automatische E-Mail an tradingworld@gmx.at kommt erst mit PROJ-9.
+3. "Status aktualisieren" klicken
+4. Pruefe: Hat mathiaskracher@gmx.at eine Status-E-Mail erhalten?
 
 --- Rechnung hochladen ---
 Tab "Dokumente" oeffnen
@@ -193,9 +208,10 @@ Konto: mathiaskracher@gmx.at | Portal: https://zerodamage.de/mein-bereich
 Wo: Mieter-Dashboard -> "Neue Meldung"
 
 Titel: Wasserschaden Kueche
-Kategorie: Wasser
+Kategorie: Wasserschaden
 Beschreibung: Wasserrohr leckt unter der Spuele. Wasser auf dem Boden.
 Dringlichkeit: Dringend
+Wunschtermin: beliebiges Datum in der Zukunft auswaehlen
 Foto hochladen: beliebiges Bild von deinem Computer
 
 Pruefe nach dem Einreichen:
@@ -215,11 +231,17 @@ Im Mieter-Portal pruefen:
 
 Konto: tradingworld@gmx.at (kein Login noetig)
 
-Was heute testbar ist:
-- Kontaktdaten in der Fall-Detailseite korrekt angezeigt? (Schau als HV rein)
+Nach dem HV-Klick auf "Weiterleiten & informieren" (Block 1.4 - Fall A):
 
-Was noch NICHT fertig ist:
-- Automatische E-Mail an tradingworld@gmx.at bei Zuweisung -> kommt mit PROJ-9
+1. GMX oeffnen (tradingworld@gmx.at)
+2. E-Mail mit Betreff "Neuer Reparaturauftrag" suchen
+3. Pruefe:
+   - Fall-Nr. und Schadenstitel korrekt?
+   - Adresse der Wohnung sichtbar?
+   - Wunschtermin des Mieters angegeben?
+   - Beschreibung des Schadens dabei?
+   - Link "Termin bestaetigen" vorhanden?
+4. "Termin bestaetigen" klicken -> Termin-Seite oeffnet sich?
 
 ---
 
@@ -239,7 +261,7 @@ HINWEIS: Dieser Account ist bereits fertig eingerichtet. Einfach einloggen!
 6. "Kracher ImmoGmbH" in der Kundenliste?
 7. AVV-Haekchen gruen?
 8. "Details" klicken:
-   - Einheiten: 3 sichtbar?
+   - Einheiten: 20 sichtbar?
    - Mieter: 1 sichtbar?
    - Faelle: 1 sichtbar?
    - Benutzerliste mit Rollen?
@@ -266,9 +288,12 @@ Impressum: Adresse Wildgansgasse 8/2, 7400 Oberwart, UID ATU81585679, GISA 37695
 | Was ausgeloest hat | Postfach zum Pruefen |
 |-------------------|---------------------|
 | HV-Registrierung (Bestaetigung) | kracherdigital@gmx.at (GMX) |
+| Mieter-Einladung (20x beim CSV-Import) | mathiaskracher@gmx.at (GMX) |
 | Mieter-Registrierung (Bestaetigung) | mathiaskracher@gmx.at (GMX) |
 | Neue Schadensmeldung (HV-Info) | kracherdigital@gmx.at (GMX) |
 | Status -> In Bearbeitung | mathiaskracher@gmx.at (GMX) |
+| Weiterleitung bestaetigt (Schaden anerkannt) | mathiaskracher@gmx.at (GMX) |
+| Werkstatt-Auftrag | tradingworld@gmx.at (GMX) |
 | Status -> Erledigt | mathiaskracher@gmx.at (GMX) |
 
 ---
@@ -291,28 +316,26 @@ Impressum: Adresse Wildgansgasse 8/2, 7400 Oberwart, UID ATU81585679, GISA 37695
 | 0 | HV-Admin | HV-Registrierung | [ ] OK / Fehler: |
 | 1.1 | HV-Admin | Einheiten anlegen | [ ] OK / Fehler: |
 | 1.2 | HV-Admin | Werkstaetten anlegen | [ ] OK / Fehler: |
-| 1.3 | HV-Admin | Aktivierungscode erstellen | [ ] OK / Fehler: |
-| 1.4 | HV-Admin | Fall bearbeiten (alle Unterblocks) | [ ] OK / Fehler: |
+| 1.3 | HV-Admin | Aktivierungscode pruefen | [ ] OK / Fehler: |
+| 1.4 | HV-Admin | Fall mit KI bearbeiten + Weiterleiten | [ ] OK / Fehler: |
 | 1.5 | HV-Admin | Mieter-Uebersicht | [ ] OK / Fehler: |
 | 2.1 | Mieter | Registrierung per Aktivierungslink | [ ] OK / Fehler: |
 | 2.2 | Mieter | Schadensmeldung einreichen | [ ] OK / Fehler: |
 | 2.3 | Mieter | Status-Verfolgung + E-Mails | [ ] OK / Fehler: |
-| 3 | Werkstatt | E-Mail-Empfang | PROJ-9 noch nicht fertig |
+| 3 | Werkstatt | Auftrags-E-Mail + Termin bestaetigen | [ ] OK / Fehler: |
 | 4 | Platform-Admin | Admin-Portal /admin | [ ] OK / Fehler: |
 | 5 | -- | Rechtliche Seiten | [ ] OK / Fehler: |
-| 6 | -- | E-Mail-Benachrichtigungen | [ ] OK / Fehler: |
+| 6 | -- | E-Mail-Benachrichtigungen (alle 8) | [ ] OK / Fehler: |
 | 7 | -- | Mobile Ansicht | [ ] OK / Fehler: |
 
 ---
 
 ## Nach dem Test: Naechste Schritte
 
-1. PROJ-9: Werkstatt-E-Mails (tradingworld@gmx.at bekommt auto. E-Mail bei Zuweisung)
-2. PROJ-15: DSGVO-Datenexport fuer Mieter
-3. PROJ-14: Stripe-Zahlungsabwicklung
-4. PROJ-13: Selbst-Onboarding fuer neue HV-Kunden
-5. Erster echter Kunde: 349 EUR Einrichtung + 0,50 EUR/Einheit/Monat (Gruenderpreis)
+1. PROJ-15: DSGVO-Datenexport fuer Mieter
+2. PROJ-14: Stripe-Zahlungsabwicklung
+3. Erster echter Kunde: 349 EUR Einrichtung + 0,50 EUR/Einheit/Monat (Gruenderpreis)
 
 ---
 
-Erstellt: 2026-03-16 | SchadensMelder by Mathias Kracher
+Aktualisiert: 2026-03-17 | SchadensMelder by Mathias Kracher
