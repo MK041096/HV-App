@@ -44,7 +44,7 @@ interface ImportResult {
 
 function downloadTemplate() {
   const rows = [
-    ["Einheit", "Mieter", "E-Mail", "Telefon"],
+    ["Einheit (Adresse)", "Mieter", "E-Mail", "Telefon"],
     ["1060 Wien Mariahilfer Str. 45/Top 1", "Max Mustermann", "max@example.com", ""],
     ["1060 Wien Mariahilfer Str. 45/Top 2", "Erika Musterfrau", "erika@example.com", "+43 664 123 456"],
     ["1060 Wien Mariahilfer Str. 45/Top 3", "Hans Maier", "", "+43 676 987 654"],
@@ -175,7 +175,7 @@ export default function ImportPage() {
               <div>
                 <p className="font-medium">Datei vorbereiten</p>
                 <p className="text-muted-foreground text-xs mt-0.5">
-                  Excel oder CSV mit Einheiten, Adressen und E-Mail oder Telefonnummer der Mieter
+                  Excel oder CSV mit Namen, Adressen und E-Mail oder Telefonnummer der Mieter
                 </p>
               </div>
             </div>
