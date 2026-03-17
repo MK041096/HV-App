@@ -26,6 +26,12 @@ WICHTIG:
 |-------|------|--------|
 | testdaten-mieter.csv | HV-App/docs/testdaten-mieter.csv | 20 Mieter mit Namen + Einheiten |
 | testdaten-werkstaetten.csv | HV-App/docs/testdaten-werkstaetten.csv | 10 Werkstaetten mit Kontaktdaten + Gewerk |
+| Versicherungspolice_KracherimmoGmbH_2025.pdf | HV-App/scripts/test-docs/ | Test-Versicherungspolice fuer KI-Analyse |
+| Top 1.pdf bis Top 20.pdf | HV-App/scripts/test-docs/ | 20 Test-Mietvertraege (je eine pro Einheit) |
+
+HINWEIS: Die PDFs in scripts/test-docs/ werden einmalig generiert mit:
+   node scripts/generate-test-docs.mjs
+(Nur noetig wenn der Ordner noch nicht existiert)
 
 ---
 
@@ -44,9 +50,11 @@ WICHTIG:
     BLOCK 1.1  ->  Einheiten anlegen (aus testdaten-mieter.csv)
     BLOCK 1.2  ->  Werkstaetten anlegen (aus testdaten-werkstaetten.csv)
     BLOCK 1.3  ->  Aktivierungscode pruefen
+    BLOCK 1.4  ->  Versicherungspolice hochladen (/dashboard/versicherungen)
+    BLOCK 1.5  ->  Mietvertraege Bulk-Import (/dashboard/dokumente/bulk-import)
     BLOCK 2.1  ->  Mieter registrieren (Inkognito-Fenster!)
     BLOCK 2.2  ->  Schadensmeldung einreichen
-    BLOCK 1.4  ->  Als HV den Fall mit KI bearbeiten
+    BLOCK 1.6  ->  Als HV den Fall mit KI bearbeiten (liest Mietvertrag + Police!)
     BLOCK 2.3  ->  Als Mieter Status pruefen
     BLOCK 3    ->  Werkstatt-E-Mail pruefen
     BLOCK 4    ->  Platform-Admin-Portal pruefen (/admin)
@@ -121,7 +129,50 @@ Pruefe:
 HINWEIS: Einzelne Codes koennen hier auch manuell erstellt werden falls ein Mieter
 die E-Mail nicht erhalten hat.
 
-### 1.4 Fall mit KI-Unterstuetzung bearbeiten (ERST NACH BLOCK 2.2!)
+### 1.4 Versicherungspolice hochladen
+
+Wo: Dashboard -> Versicherungen
+
+Test-Datei: HV-App/scripts/test-docs/Versicherungspolice_KracherimmoGmbH_2025.pdf
+
+1. "Police hochladen" klicken
+2. Bezeichnung eingeben: Gebaeudeversicherung Wiener Staedtische 2025
+3. Datei auswaehlen: Versicherungspolice_KracherimmoGmbH_2025.pdf
+4. "Hochladen" klicken
+5. Pruefe:
+   - Police erscheint in der Liste mit gruener Badge?
+   - Name, Groesse und Datum korrekt angezeigt?
+   - "Download" Knopf oeffnet das PDF?
+   - Blauer KI-Hinweis-Banner sichtbar?
+
+WICHTIG: Diese Police wird spaeter in BLOCK 1.6 automatisch von der KI gelesen!
+
+### 1.5 Mietvertraege Bulk-Import
+
+Wo: Dashboard -> Dokumente -> "Bulk-Import" (oben rechts)
+
+Test-Dateien: HV-App/scripts/test-docs/Top 1.pdf bis Top 20.pdf
+
+1. "PDFs auswaehlen" klicken -> alle 20 "Top X.pdf" Dateien auf einmal auswaehlen
+   (Windows: Strg+A um alle zu markieren)
+2. Pruefe automatische Zuordnung:
+   - "Top 1.pdf" -> Einheit "Top 1" erkannt?
+   - "Top 10.pdf" -> Einheit "Top 10" erkannt?
+   - Wie viele von 20 wurden automatisch zugeordnet? (Ziel: alle 20)
+3. Falls eine Datei nicht erkannt wurde: manuell Einheit aus Dropdown auswaehlen
+4. "20 Mietvertraege hochladen" klicken
+5. Fortschrittsbalken beobachten...
+6. Pruefe am Ende:
+   - Gruene Bestaetigung: "20 Mietvertraege erfolgreich hochgeladen"?
+   - 0 Fehler?
+7. "Zu Dokumente" klicken
+8. Pruefe in der Dokumentenliste:
+   - 20 Mietvertraege sichtbar (Typ: Mietvertrag, blaue Badge)?
+   - Filter nach Einheit "Top 1" zeigt genau 1 Mietvertrag?
+
+WICHTIG: Diese Mietvertraege werden spaeter in BLOCK 1.6 automatisch von der KI gelesen!
+
+### 1.6 Fall mit KI-Unterstuetzung bearbeiten (ERST NACH BLOCK 2.2!)
 
 Wo: Dashboard -> Faelle -> Fall "Wasserschaden Kueche" oeffnen
 
@@ -130,10 +181,17 @@ Beim Oeffnen des Falls startet die KI-Analyse automatisch im Hintergrund.
 Du siehst einen Ladebalken im "KI-Analyse"-Bereich auf der rechten Seite.
 Nach wenigen Sekunden erscheint das Ergebnis.
 
-Pruefe im KI-Ergebnis:
-- Verantwortlichkeit klar angegeben (Mieter oder Vermieter)?
-- Gesetzliche Grundlage (MRG) erwaehnt?
-- Empfehlung fuer naechsten Schritt sichtbar?
+Pruefe im KI-Ergebnis (4 Abschnitte werden angezeigt):
+- 1. Zustaendigkeit: Vermieter oder Mieter klar benannt?
+- 2. Rechtsgrundlage: Gesetz zitiert (z.B. MRG SS 3, ABGB SS 1096)?
+- 3. Versicherungsrelevanz: Steht etwas von der Police drin?
+     Pruefe: "Gemaess Ihrer hinterlegten Versicherungspolice..." oder aehnliches sichtbar?
+- 4. Empfehlung: Konkreter naechster Schritt genannt?
+
+Extra-Check - Dokument-Status rechts im KI-Bereich:
+- "Mietvertrag gefunden" mit gruenem Haekchen sichtbar?
+- "Versicherungspolice gefunden" mit gruenem Haekchen sichtbar?
+- Beide sollten gruen sein wenn BLOCK 1.4 + 1.5 ausgefuehrt wurden!
 
 --- Schnellaktionen (erscheinen direkt nach der KI-Analyse) ---
 
@@ -176,7 +234,7 @@ Status -> "Erledigt"
 Kommentar: "Reparatur abgeschlossen. Rechnung liegt bei."
 Pruefe: Hat mathiaskracher@gmx.at eine Abschluss-E-Mail erhalten?
 
-### 1.5 Mieter-Uebersicht
+### 1.7 Mieter-Uebersicht
 
 Wo: Dashboard -> Mieter
 Anna Berger in der Liste? | Einheit, Name, E-Mail korrekt?
@@ -317,8 +375,10 @@ Impressum: Adresse Wildgansgasse 8/2, 7400 Oberwart, UID ATU81585679, GISA 37695
 | 1.1 | HV-Admin | Einheiten anlegen | [ ] OK / Fehler: |
 | 1.2 | HV-Admin | Werkstaetten anlegen | [ ] OK / Fehler: |
 | 1.3 | HV-Admin | Aktivierungscode pruefen | [ ] OK / Fehler: |
-| 1.4 | HV-Admin | Fall mit KI bearbeiten + Weiterleiten | [ ] OK / Fehler: |
-| 1.5 | HV-Admin | Mieter-Uebersicht | [ ] OK / Fehler: |
+| 1.4 | HV-Admin | Versicherungspolice hochladen | [ ] OK / Fehler: |
+| 1.5 | HV-Admin | Mietvertraege Bulk-Import (20x) | [ ] OK / Fehler: |
+| 1.6 | HV-Admin | Fall mit KI bearbeiten + Weiterleiten | [ ] OK / Fehler: |
+| 1.7 | HV-Admin | Mieter-Uebersicht | [ ] OK / Fehler: |
 | 2.1 | Mieter | Registrierung per Aktivierungslink | [ ] OK / Fehler: |
 | 2.2 | Mieter | Schadensmeldung einreichen | [ ] OK / Fehler: |
 | 2.3 | Mieter | Status-Verfolgung + E-Mails | [ ] OK / Fehler: |

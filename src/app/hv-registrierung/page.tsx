@@ -18,6 +18,7 @@ import {
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Checkbox } from "@/components/ui/checkbox"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import {
   Card,
   CardContent,
@@ -43,6 +44,7 @@ const schema = z
       .string()
       .min(2, "Firmenname muss mindestens 2 Zeichen lang sein")
       .max(200, "Firmenname darf maximal 200 Zeichen lang sein"),
+    country: z.enum(["AT", "DE", "CH"]),
     first_name: z
       .string()
       .min(1, "Vorname ist erforderlich")
@@ -87,6 +89,7 @@ export default function HvRegistrierungPage() {
     resolver: zodResolver(schema),
     defaultValues: {
       org_name: "",
+      country: "AT",
       first_name: "",
       last_name: "",
       email: "",
@@ -105,6 +108,7 @@ export default function HvRegistrierungPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           org_name: values.org_name,
+          country: values.country,
           first_name: values.first_name,
           last_name: values.last_name,
           email: values.email,
@@ -131,43 +135,67 @@ export default function HvRegistrierungPage() {
   if (step === "success") {
     return (
       <div className="min-h-screen bg-gradient-to-br from-background to-muted/30 flex items-center justify-center p-4">
-        <Card className="w-full max-w-md text-center">
+        <Card className="w-full max-w-lg">
           <CardContent className="pt-10 pb-8 px-8">
-            <div className="flex items-center justify-center mb-6">
-              <div className="h-16 w-16 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
+            <div className="flex items-center justify-center mb-5">
+              <div className="h-16 w-16 rounded-full bg-green-100 flex items-center justify-center">
                 <CheckCircle2 className="h-8 w-8 text-green-600" />
               </div>
             </div>
-            <h1 className="text-2xl font-bold mb-2">
-              Fast geschafft!
+            <h1 className="text-2xl font-bold text-center mb-1">
+              Konto erfolgreich erstellt!
             </h1>
-            <p className="text-muted-foreground mb-6">
-              Wir haben Ihnen eine Bestätigungs-E-Mail gesendet. Bitte klicken
-              Sie auf den Link in der E-Mail, um Ihr Konto zu aktivieren.
+            <p className="text-center text-muted-foreground mb-6">
+              Bitte bestaetigen Sie Ihre E-Mail-Adresse, um loszulegen.
             </p>
-            <div className="bg-muted/50 rounded-lg p-4 mb-6 text-sm text-left space-y-2">
-              <p className="font-medium">Nach der Bestätigung können Sie:</p>
-              <ul className="space-y-1 text-muted-foreground">
-                <li className="flex items-center gap-2">
-                  <CheckCircle2 className="h-3.5 w-3.5 text-green-600 shrink-0" />
-                  Wohneinheiten anlegen
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle2 className="h-3.5 w-3.5 text-green-600 shrink-0" />
-                  Mieter per Aktivierungscode einladen
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle2 className="h-3.5 w-3.5 text-green-600 shrink-0" />
-                  Schadensmeldungen verwalten
-                </li>
-              </ul>
+
+            <div className="space-y-3 mb-6">
+              <div className="flex items-start gap-3 p-3 rounded-lg bg-blue-50 border border-blue-100">
+                <div className="h-7 w-7 rounded-full bg-blue-600 text-white flex items-center justify-center text-sm font-bold shrink-0 mt-0.5">1</div>
+                <div>
+                  <p className="text-sm font-semibold text-blue-900">E-Mail pruefen &amp; bestaetigen</p>
+                  <p className="text-xs text-blue-700 mt-0.5">
+                    Wir haben Ihnen soeben eine E-Mail geschickt. Klicken Sie dort auf <strong>E-Mail bestaetigen</strong>.
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/50 border">
+                <div className="h-7 w-7 rounded-full bg-gray-400 text-white flex items-center justify-center text-sm font-bold shrink-0 mt-0.5">2</div>
+                <div>
+                  <p className="text-sm font-semibold">Einloggen</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    Nach der Bestaetigung kommen Sie automatisch zum Login. Melden Sie sich mit Ihren Zugangsdaten an.
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/50 border">
+                <div className="h-7 w-7 rounded-full bg-gray-400 text-white flex items-center justify-center text-sm font-bold shrink-0 mt-0.5">3</div>
+                <div>
+                  <p className="text-sm font-semibold">Schritt-fuer-Schritt einrichten</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    Im Dashboard finden Sie eine Einrichtungsanleitung mit 6 Schritten — von den ersten Einheiten bis zur ersten Schadensmeldung.
+                  </p>
+                </div>
+              </div>
             </div>
+
             <Button asChild className="w-full">
               <Link href="/login">
                 Zum Login
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
             </Button>
+
+            <p className="text-center text-xs text-muted-foreground mt-4">
+              Keine E-Mail erhalten? Pruefen Sie Ihren Spam-Ordner oder{" "}
+              <button
+                onClick={() => setStep("form")}
+                className="text-primary underline underline-offset-2"
+              >
+                registrieren Sie sich erneut
+              </button>
+              .
+            </p>
           </CardContent>
         </Card>
       </div>
@@ -226,6 +254,30 @@ export default function HvRegistrierungPage() {
                           {...field}
                         />
                       </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* Country */}
+                <FormField
+                  control={form.control}
+                  name="country"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Land</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isSubmitting}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Land wählen" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="AT">🇦🇹 Österreich (MRG/ABGB)</SelectItem>
+                          <SelectItem value="DE">🇩🇪 Deutschland (BGB)</SelectItem>
+                          <SelectItem value="CH">🇨🇭 Schweiz (OR)</SelectItem>
+                        </SelectContent>
+                      </Select>
                       <FormMessage />
                     </FormItem>
                   )}

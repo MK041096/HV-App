@@ -12,7 +12,13 @@ import {
   Home,
   Users,
   KeyRound,
-  Sparkles,
+  Wrench,
+  FileText,
+  ShieldCheck,
+  ChevronDown,
+  ChevronUp,
+  PlayCircle,
+  Info,
 } from "lucide-react"
 
 import { supabase } from "@/lib/supabase"
@@ -48,10 +54,116 @@ interface RecentCase {
   unit: { name: string } | null
 }
 
+interface OnboardingState {
+  hasUnits: boolean
+  hasWerkstaetten: boolean
+  hasVersicherung: boolean
+  hasMietvertraege: boolean
+  hasMieter: boolean
+  hasCases: boolean
+  loaded: boolean
+}
+
+interface OnboardingStep {
+  id: keyof Omit<OnboardingState, "loaded">
+  number: number
+  title: string
+  description: string
+  whyBox: string
+  href: string
+  linkText: string
+  icon: React.ElementType
+}
+
+const ONBOARDING_STEPS: OnboardingStep[] = [
+  {
+    id: "hasUnits",
+    number: 1,
+    title: "Einheiten anlegen",
+    description:
+      "Tragen Sie alle Wohnungen und Einheiten Ihrer Liegenschaft ein — z.B. \"Wohnung Top 1\", \"Büro EG\". Jede Einheit bekommt eine eigene Seite in der App, damit Meldungen und Dokumente immer der richtigen Wohnung zugeordnet sind.",
+    whyBox:
+      "Ohne Einheiten können Mieter keine Schadensmeldung abschicken — die Zuordnung läuft immer über die Einheit.",
+    href: "/dashboard/units",
+    linkText: "Zu den Einheiten",
+    icon: Home,
+  },
+  {
+    id: "hasWerkstaetten",
+    number: 2,
+    title: "Handwerker / Werkstätten eintragen",
+    description:
+      "Fügen Sie Ihre Vertrauenshandwerker ein — Elektriker, Installateur, Maler usw. Sie hinterlegen Name, Gewerk, Telefon und E-Mail. Die App schlägt Ihnen dann bei jeder Schadensmeldung automatisch den passenden Handwerker vor.",
+    whyBox:
+      "So sparen Sie bei jeder Meldung das lästige Suchen nach der richtigen Nummer. Mit einem Klick sehen Sie, wer für diesen Schadenstyp zuständig ist.",
+    href: "/dashboard/werkstaetten",
+    linkText: "Zu den Handwerkern",
+    icon: Wrench,
+  },
+  {
+    id: "hasVersicherung",
+    number: 3,
+    title: "Versicherungspolice hochladen",
+    description:
+      "Laden Sie die Versicherungspolice(n) Ihrer Liegenschaft hoch. Die App liest das Dokument automatisch aus und erkennt, was versichert ist — z.B. Glasbruch, Leitungswasser, Sturmschäden. Bei einer neuen Schadensmeldung zeigt die App dann direkt an: \"Dieser Schaden ist versichert.\"",
+    whyBox:
+      "Sie verlieren nie wieder Zeit damit, die Police zu suchen oder zu lesen. Die App sagt Ihnen sofort ob und was versichert ist.",
+    href: "/dashboard/dokumente",
+    linkText: "Dokumente hochladen",
+    icon: ShieldCheck,
+  },
+  {
+    id: "hasMietvertraege",
+    number: 4,
+    title: "Mietverträge hochladen",
+    description:
+      "Laden Sie die Mietverträge für Ihre Einheiten hoch. Die App analysiert automatisch wichtige Klauseln — z.B. wer ist für Kleinreparaturen zuständig, gibt es eine Glasklausel, welche Haustierhaltung ist erlaubt. Das spart bei jeder Meldung das Nachschlagen im Vertrag.",
+    whyBox:
+      "Wenn ein Mieter meldet \"Fensterscheibe kaputt\" sehen Sie sofort: Glasklausel vorhanden → Versicherungsfall. Kein manuelles Suchen mehr.",
+    href: "/dashboard/dokumente",
+    linkText: "Mietverträge hochladen",
+    icon: FileText,
+  },
+  {
+    id: "hasMieter",
+    number: 5,
+    title: "Mieter aktivieren",
+    description:
+      "Erstellen Sie Aktivierungscodes für Ihre Mieter und senden Sie den Link per E-Mail oder WhatsApp. Mit diesem Code kann sich der Mieter in wenigen Sekunden selbst registrieren — ohne dass Sie etwas ausfüllen müssen. Der Mieter erscheint dann automatisch in Ihrer Mieterliste.",
+    whyBox:
+      "Registrierte Mieter können direkt über das Portal Schäden melden — kein Telefon, keine WhatsApp, kein Zettel mehr. Alles läuft automatisch.",
+    href: "/dashboard/codes",
+    linkText: "Aktivierungscodes erstellen",
+    icon: KeyRound,
+  },
+  {
+    id: "hasCases",
+    number: 6,
+    title: "Erste Schadensmeldung",
+    description:
+      "Sobald ein Mieter registriert ist, kann er über sein Portal (mein-bereich) eine Schadensmeldung abschicken. Sie sehen die Meldung sofort in Ihrem Dashboard und können mit einem Klick: Status setzen, Handwerker zuweisen, Notizen hinzufügen und die Meldung abschließen.",
+    whyBox:
+      "Das Ziel: eine Schadensmeldung von Eingang bis Abschluss in unter 3 Minuten — statt wie bisher 20 Minuten mit Telefonaten, WhatsApp und Excel.",
+    href: "/dashboard/cases",
+    linkText: "Zu den Schadensmeldungen",
+    icon: ClipboardList,
+  },
+]
+
 export default function DashboardPage() {
   const [stats, setStats] = useState<DashboardStats | null>(null)
   const [recentCases, setRecentCases] = useState<RecentCase[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [onboarding, setOnboarding] = useState<OnboardingState>({
+    hasUnits: false,
+    hasWerkstaetten: false,
+    hasVersicherung: false,
+    hasMietvertraege: false,
+    hasMieter: false,
+    hasCases: false,
+    loaded: false,
+  })
+  const [expandedStep, setExpandedStep] = useState<number | null>(null)
 
   useEffect(() => {
     async function loadDashboard() {
@@ -68,20 +180,101 @@ export default function DashboardPage() {
           .single()
 
         if (!profile) return
+        const orgId = profile.organization_id
 
-        // Fetch counts by status
-        const { data: allCases } = await supabase
-          .from("damage_reports")
-          .select("id, status, urgency")
-          .eq("organization_id", profile.organization_id)
-          .eq("is_deleted", false)
+        // Load everything in parallel
+        const [
+          unitsRes,
+          werkRes,
+          docsRes,
+          mieterRes,
+          casesRes,
+          allCasesRes,
+          recentRes,
+        ] = await Promise.all([
+          supabase
+            .from("units")
+            .select("id", { count: "exact", head: true })
+            .eq("organization_id", orgId)
+            .eq("is_deleted", false),
+          supabase
+            .from("contractors")
+            .select("id", { count: "exact", head: true })
+            .eq("organization_id", orgId)
+            .eq("is_active", true),
+          supabase
+            .from("documents")
+            .select("id, document_type")
+            .eq("organization_id", orgId)
+            .eq("is_deleted", false),
+          supabase
+            .from("profiles")
+            .select("id", { count: "exact", head: true })
+            .eq("organization_id", orgId)
+            .eq("role", "mieter"),
+          supabase
+            .from("damage_reports")
+            .select("id", { count: "exact", head: true })
+            .eq("organization_id", orgId)
+            .eq("is_deleted", false),
+          supabase
+            .from("damage_reports")
+            .select("id, status, urgency")
+            .eq("organization_id", orgId)
+            .eq("is_deleted", false),
+          supabase
+            .from("damage_reports")
+            .select(
+              `id, case_number, title, urgency, status, created_at,
+              reporter:profiles!damage_reports_reporter_id_fkey(first_name, last_name),
+              unit:units(name)`
+            )
+            .eq("organization_id", orgId)
+            .eq("is_deleted", false)
+            .in("status", [
+              "neu",
+              "in_bearbeitung",
+              "warte_auf_handwerker",
+              "termin_vereinbart",
+            ])
+            .order("created_at", { ascending: false })
+            .limit(5),
+        ])
 
-        const cases = allCases || []
-        const statsData: DashboardStats = {
+        // Onboarding state
+        const docs = docsRes.data || []
+        const hasVersicherung = docs.some(
+          (d) => d.document_type === "versicherung"
+        )
+        const hasMietvertraege = docs.some(
+          (d) => d.document_type === "mietvertrag"
+        )
+
+        const newOnboarding: OnboardingState = {
+          hasUnits: (unitsRes.count ?? 0) > 0,
+          hasWerkstaetten: (werkRes.count ?? 0) > 0,
+          hasVersicherung,
+          hasMietvertraege,
+          hasMieter: (mieterRes.count ?? 0) > 0,
+          hasCases: (casesRes.count ?? 0) > 0,
+          loaded: true,
+        }
+        setOnboarding(newOnboarding)
+
+        // Auto-expand first incomplete step
+        const firstIncomplete = ONBOARDING_STEPS.findIndex(
+          (s) => !newOnboarding[s.id]
+        )
+        if (firstIncomplete !== -1) {
+          setExpandedStep(firstIncomplete)
+        }
+
+        // Stats
+        const cases = allCasesRes.data || []
+        setStats({
           total: cases.length,
           neu: cases.filter((c) => c.status === "neu").length,
-          in_bearbeitung: cases.filter((c) => c.status === "in_bearbeitung")
-            .length,
+          in_bearbeitung: cases.filter((c) => c.status === "in_bearbeitung").length,
           warte_auf_handwerker: cases.filter(
             (c) => c.status === "warte_auf_handwerker"
           ).length,
@@ -91,30 +284,10 @@ export default function DashboardPage() {
           erledigt: cases.filter((c) => c.status === "erledigt").length,
           notfall: cases.filter((c) => c.urgency === "notfall").length,
           dringend: cases.filter((c) => c.urgency === "dringend").length,
-        }
-        setStats(statsData)
+        })
 
-        // Fetch recent cases (newest 5 open cases)
-        const { data: recent } = await supabase
-          .from("damage_reports")
-          .select(
-            `id, case_number, title, urgency, status, created_at,
-            reporter:profiles!damage_reports_reporter_id_fkey(first_name, last_name),
-            unit:units(name)`
-          )
-          .eq("organization_id", profile.organization_id)
-          .eq("is_deleted", false)
-          .in("status", [
-            "neu",
-            "in_bearbeitung",
-            "warte_auf_handwerker",
-            "termin_vereinbart",
-          ])
-          .order("created_at", { ascending: false })
-          .limit(5)
-
-        if (recent) {
-          setRecentCases(recent as unknown as RecentCase[])
+        if (recentRes.data) {
+          setRecentCases(recentRes.data as unknown as RecentCase[])
         }
       } catch (err) {
         console.error("Failed to load dashboard:", err)
@@ -141,6 +314,12 @@ export default function DashboardPage() {
       stats.termin_vereinbart
     : 0
 
+  const completedSteps = onboarding.loaded
+    ? ONBOARDING_STEPS.filter((s) => onboarding[s.id]).length
+    : 0
+  const allDone = completedSteps === ONBOARDING_STEPS.length
+  const showOnboarding = onboarding.loaded && !allDone
+
   return (
     <div className="p-4 sm:p-6 lg:p-8 space-y-6">
       {/* Page Header */}
@@ -151,67 +330,166 @@ export default function DashboardPage() {
         </p>
       </div>
 
-      {/* Onboarding Widget — shown only when no cases exist yet */}
-      {stats?.total === 0 && (
-        <Card className="border-primary/20 bg-primary/5">
+      {/* Onboarding Guide */}
+      {onboarding.loaded && (
+        <Card className={allDone ? "border-green-500/30 bg-green-50/50" : "border-primary/20 bg-primary/5"}>
           <CardHeader className="pb-3">
-            <CardTitle className="text-base flex items-center gap-2">
-              <Sparkles className="h-4 w-4 text-primary" />
-              Erste Schritte — So starten Sie durch
-            </CardTitle>
-            <CardDescription>
-              Folgen Sie diesen 3 Schritten, um Ihre erste Schadensmeldung zu empfangen.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid gap-3 sm:grid-cols-3">
-              <Link
-                href="/dashboard/units"
-                className="flex items-start gap-3 p-3 rounded-lg border bg-background hover:bg-accent/50 transition-colors"
-              >
-                <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
-                  <Home className="h-4 w-4 text-primary" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium">1. Einheiten anlegen</p>
-                  <p className="text-xs text-muted-foreground mt-0.5">
-                    Tragen Sie Ihre Wohneinheiten mit Adresse ein
-                  </p>
-                </div>
-                <ArrowRight className="h-4 w-4 text-muted-foreground ml-auto shrink-0 mt-1" />
-              </Link>
-              <Link
-                href="/dashboard/codes"
-                className="flex items-start gap-3 p-3 rounded-lg border bg-background hover:bg-accent/50 transition-colors"
-              >
-                <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
-                  <KeyRound className="h-4 w-4 text-primary" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium">2. Aktivierungslinks</p>
-                  <p className="text-xs text-muted-foreground mt-0.5">
-                    Codes erstellen und an Mieter senden
-                  </p>
-                </div>
-                <ArrowRight className="h-4 w-4 text-muted-foreground ml-auto shrink-0 mt-1" />
-              </Link>
-              <Link
-                href="/dashboard/tenants"
-                className="flex items-start gap-3 p-3 rounded-lg border bg-background hover:bg-accent/50 transition-colors"
-              >
-                <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
-                  <Users className="h-4 w-4 text-primary" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium">3. Mieter verwalten</p>
-                  <p className="text-xs text-muted-foreground mt-0.5">
-                    Sobald Mieter registriert sind, erscheinen sie hier
-                  </p>
-                </div>
-                <ArrowRight className="h-4 w-4 text-muted-foreground ml-auto shrink-0 mt-1" />
-              </Link>
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-base flex items-center gap-2">
+                {allDone ? (
+                  <>
+                    <CheckCircle2 className="h-5 w-5 text-green-600" />
+                    <span className="text-green-800">Einrichtung abgeschlossen!</span>
+                  </>
+                ) : (
+                  <>
+                    <span className="text-primary">Schritt-für-Schritt Einrichtung</span>
+                    <span className="text-xs font-normal text-muted-foreground">
+                      {completedSteps} von {ONBOARDING_STEPS.length} erledigt
+                    </span>
+                  </>
+                )}
+              </CardTitle>
+              {/* Progress dots */}
+              <div className="flex gap-1.5">
+                {ONBOARDING_STEPS.map((step) => (
+                  <div
+                    key={step.id}
+                    className={cn(
+                      "h-2.5 w-2.5 rounded-full transition-colors",
+                      onboarding[step.id]
+                        ? "bg-green-500"
+                        : "bg-gray-300"
+                    )}
+                    title={step.title}
+                  />
+                ))}
+              </div>
             </div>
-          </CardContent>
+            {allDone && (
+              <CardDescription className="text-green-700">
+                Ihre App ist vollständig eingerichtet. Alle Meldungen, Dokumente und Handwerker sind bereit.
+              </CardDescription>
+            )}
+            {!allDone && (
+              <CardDescription>
+                Richten Sie die App einmalig ein — danach läuft alles automatisch. Klicken Sie auf einen Schritt für mehr Details.
+              </CardDescription>
+            )}
+          </CardHeader>
+
+          {showOnboarding && (
+            <CardContent className="pt-0">
+              <div className="space-y-2">
+                {ONBOARDING_STEPS.map((step, idx) => {
+                  const isDone = onboarding[step.id]
+                  const isExpanded = expandedStep === idx
+                  const Icon = step.icon
+
+                  return (
+                    <div
+                      key={step.id}
+                      className={cn(
+                        "rounded-lg border transition-colors",
+                        isDone
+                          ? "border-green-200 bg-green-50"
+                          : isExpanded
+                          ? "border-primary/30 bg-white"
+                          : "border-gray-200 bg-white hover:border-gray-300"
+                      )}
+                    >
+                      {/* Step Header (always visible) */}
+                      <button
+                        className="w-full flex items-center gap-3 p-3 text-left"
+                        onClick={() =>
+                          setExpandedStep(isExpanded ? null : idx)
+                        }
+                      >
+                        {/* Icon + Number */}
+                        <div
+                          className={cn(
+                            "h-8 w-8 rounded-full flex items-center justify-center shrink-0",
+                            isDone
+                              ? "bg-green-100"
+                              : "bg-primary/10"
+                          )}
+                        >
+                          {isDone ? (
+                            <CheckCircle2 className="h-4 w-4 text-green-600" />
+                          ) : (
+                            <Icon className="h-4 w-4 text-primary" />
+                          )}
+                        </div>
+
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs text-muted-foreground">
+                              Schritt {step.number}
+                            </span>
+                            {isDone && (
+                              <Badge
+                                variant="outline"
+                                className="text-[10px] px-1.5 py-0 border-green-400 text-green-700"
+                              >
+                                Erledigt
+                              </Badge>
+                            )}
+                          </div>
+                          <p
+                            className={cn(
+                              "text-sm font-medium",
+                              isDone && "text-green-800"
+                            )}
+                          >
+                            {step.title}
+                          </p>
+                        </div>
+
+                        {isExpanded ? (
+                          <ChevronUp className="h-4 w-4 text-muted-foreground shrink-0" />
+                        ) : (
+                          <ChevronDown className="h-4 w-4 text-muted-foreground shrink-0" />
+                        )}
+                      </button>
+
+                      {/* Expanded Content */}
+                      {isExpanded && (
+                        <div className="px-3 pb-4 space-y-3 border-t pt-3">
+                          <p className="text-sm text-muted-foreground leading-relaxed">
+                            {step.description}
+                          </p>
+
+                          {/* Why box */}
+                          <div className="flex gap-2 p-3 rounded-md bg-blue-50 border border-blue-100">
+                            <Info className="h-4 w-4 text-blue-500 shrink-0 mt-0.5" />
+                            <p className="text-xs text-blue-800 leading-relaxed">
+                              <span className="font-semibold">Warum wichtig?</span>{" "}
+                              {step.whyBox}
+                            </p>
+                          </div>
+
+                          {/* Video placeholder */}
+                          <div className="flex items-center gap-2 p-3 rounded-md bg-gray-50 border border-dashed border-gray-300">
+                            <PlayCircle className="h-5 w-5 text-gray-400 shrink-0" />
+                            <p className="text-xs text-gray-500">
+                              Video-Anleitung folgt — persönliches Onboarding inklusive
+                            </p>
+                          </div>
+
+                          <Button asChild size="sm">
+                            <Link href={step.href}>
+                              {step.linkText}
+                              <ArrowRight className="ml-2 h-4 w-4" />
+                            </Link>
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
+            </CardContent>
+          )}
         </Card>
       )}
 

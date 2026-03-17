@@ -1,4 +1,9 @@
-import { NextRequest, NextResponse } from 'next/server'
+#!/usr/bin/env python3
+"""Script to write the enhanced ki-analyse route"""
+
+path = 'c:/Users/tradi/Hausverwaltungs App/HV-App/src/app/api/hv/cases/[id]/ki-analyse/route.ts'
+
+content = r"""import { NextRequest, NextResponse } from 'next/server'
 import Anthropic from '@anthropic-ai/sdk'
 import { createServerSupabaseClient } from '@/lib/supabase-server'
 
@@ -272,3 +277,8 @@ export async function POST(
     return NextResponse.json({ error: 'KI-Analyse fehlgeschlagen' }, { status: 500 })
   }
 }
+"""
+
+with open(path, 'w', encoding='utf-8') as f:
+    f.write(content)
+print('Done - wrote', len(content), 'chars')

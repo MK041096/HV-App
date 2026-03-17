@@ -15,6 +15,7 @@ export const createOrganizationSchema = z.object({
     ),
   plan: z.enum(['standard', 'premium']).default('standard'),
   einheiten_anzahl: z.number().int().min(0).default(0),
+  country: z.enum(['AT', 'DE', 'CH']).default('AT'),
 })
 
 export const updateOrganizationSchema = z.object({

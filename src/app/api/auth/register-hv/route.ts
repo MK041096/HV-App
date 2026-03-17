@@ -29,6 +29,7 @@ const registerHvSchema = z.object({
   avv_accepted: z.literal(true, {
     error: 'AVV muss akzeptiert werden',
   }),
+  country: z.enum(['AT', 'DE', 'CH']).default('AT'),
 })
 
 function slugify(str: string): string {
@@ -56,7 +57,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const { org_name, first_name, last_name, email, password } = parsed.data
+    const { org_name, first_name, last_name, email, password, country } = parsed.data
 
     // Capture client IP for AVV audit trail (Art. 28 DSGVO)
     const clientIp =
@@ -101,6 +102,7 @@ export async function POST(request: NextRequest) {
       .insert({
         name: org_name,
         slug,
+        country,
         is_deleted: false,
         avv_accepted_at: new Date().toISOString(),
         avv_accepted_ip: clientIp,

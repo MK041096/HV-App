@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { useSearchParams } from 'next/navigation'
+import Link from 'next/link'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -14,6 +15,7 @@ import {
   Trash2,
   Plus,
   File,
+  FolderUp,
 } from 'lucide-react'
 
 const DOC_TYPE_LABELS: Record<string, string> = {
@@ -197,9 +199,18 @@ export default function DokumentePage() {
             <p className="text-muted-foreground text-sm mt-1">Mietverträge, Hausordnungen und weitere Dokumente</p>
           )}
         </div>
-        <Button onClick={() => setShowForm(!showForm)}>
-          <Plus className="h-4 w-4 mr-2" /> Dokument hochladen
-        </Button>
+        <div className="flex gap-2">
+          {!unitFromUrl && (
+            <Button variant="outline" asChild>
+              <Link href="/dashboard/dokumente/bulk-import">
+                <FolderUp className="h-4 w-4 mr-2" /> Bulk-Import
+              </Link>
+            </Button>
+          )}
+          <Button onClick={() => setShowForm(!showForm)}>
+            <Plus className="h-4 w-4 mr-2" /> Dokument hochladen
+          </Button>
+        </div>
       </div>
 
       {/* Upload Form */}

@@ -9,6 +9,7 @@ import {
   DoorOpen,
   AlertTriangle,
   Wrench,
+  Layers,
   ShowerHead,
   HelpCircle,
   ArrowLeft,
@@ -89,9 +90,21 @@ const CATEGORY_ICONS: Record<DamageCategory, React.ElementType> = {
   fenster_tueren: DoorOpen,
   schimmel: AlertTriangle,
   sanitaer: ShowerHead,
-  boeden_waende: Wrench,
+  boeden_waende: Layers,
   aussenbereich: Wrench,
   sonstiges: HelpCircle,
+}
+
+const CATEGORY_EXAMPLES: Record<DamageCategory, string> = {
+  wasserschaden: "Rohrbruch, Leck, Überflutung",
+  heizung: "Heizung kalt, Thermostat defekt",
+  elektrik: "Steckdose, Licht, Sicherung",
+  fenster_tueren: "Schliesst nicht, Glasbruch, Griff",
+  schimmel: "Schwarze Flecken an Wand oder Decke",
+  sanitaer: "Wasserhahn, WC, Dusche, Abfluss",
+  boeden_waende: "Fliesen, Parkett, Risse, Tapete",
+  aussenbereich: "Fassade, Dach, Balkon, Eingang",
+  sonstiges: "Passt in keine andere Kategorie",
 }
 
 const CATEGORY_COLORS: Record<DamageCategory, string> = {
@@ -650,6 +663,9 @@ function Step1Category({
               <Icon className="h-8 w-8" />
               <span className="text-sm font-medium leading-tight">
                 {CATEGORY_LABELS[cat]}
+              </span>
+              <span className="text-xs text-muted-foreground leading-tight">
+                {CATEGORY_EXAMPLES[cat]}
               </span>
             </button>
           )

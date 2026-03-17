@@ -16,6 +16,7 @@ import {
   Menu,
   X,
   Wrench,
+  ShieldCheck,
 } from "lucide-react"
 
 import { supabase } from "@/lib/supabase"
@@ -65,6 +66,11 @@ const NAV_ITEMS = [
     label: "Werkstätten",
     href: "/dashboard/werkstaetten",
     icon: Wrench,
+  },
+  {
+    label: "Versicherungen",
+    href: "/dashboard/versicherungen",
+    icon: ShieldCheck,
   },
   {
     label: "Dokumente",
