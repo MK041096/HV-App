@@ -11,7 +11,6 @@ import {
   Loader2,
   Home,
   Users,
-  KeyRound,
   Wrench,
   FileText,
   ShieldCheck,
@@ -81,9 +80,9 @@ const ONBOARDING_STEPS: OnboardingStep[] = [
     number: 1,
     title: "Einheiten anlegen",
     description:
-      "Tragen Sie alle Einheiten ein, die Sie in Ihrem Unternehmen verwalten — z.B. „Wohnung Top 1“, „Büro EG“ oder „Gewerbefläche 3. OG“. Tipp: Mit dem Excel-Import können Sie hunderte Einheiten auf einmal hochladen — kein manuelles Eintippen notwendig.",
+      "Tragen Sie alle Einheiten ein, die Sie in Ihrem Unternehmen verwalten — z.B. „Wohnung Top 1“, „Büro EG“ oder „Gewerbefläche 3. OG“. Tipp: Mit dem Excel-Import können Sie hunderte Einheiten auf einmal hochladen — kein manuelles Eintippen notwendig. Wichtig: Jede Einheit benötigt einen Namen, eine Adresse sowie eine E-Mail-Adresse oder Telefonnummer des Mieters — nur so kann der Aktivierungscode automatisch an den Mieter gesendet werden.",
     whyBox:
-      "Ohne Einheiten können Mieter keine Schadensmeldung abschicken — die Zuordnung läuft immer über die Einheit.",
+      "Ohne Einheiten können Mieter keine Schadensmeldung abschicken — die Zuordnung läuft immer über die Einheit. Sobald eine Mieter-E-Mail hinterlegt ist, verschickt die App den Aktivierungscode vollautomatisch.",
     href: "/dashboard/units",
     linkText: "Zu den Einheiten",
     icon: Home,
@@ -125,20 +124,8 @@ const ONBOARDING_STEPS: OnboardingStep[] = [
     icon: FileText,
   },
   {
-    id: "hasMieter",
-    number: 5,
-    title: "Mieter aktivieren",
-    description:
-      "Erstellen Sie Aktivierungscodes für Ihre Mieter und senden Sie den Link per E-Mail oder WhatsApp. Mit diesem Code kann sich der Mieter in wenigen Sekunden selbst registrieren — ohne dass Sie etwas ausfüllen müssen. Der Mieter erscheint dann automatisch in Ihrer Mieterliste.",
-    whyBox:
-      "Registrierte Mieter können direkt über das Portal Schäden melden — kein Telefon, keine WhatsApp, kein Zettel mehr. Alles läuft automatisch.",
-    href: "/dashboard/codes",
-    linkText: "Aktivierungscodes erstellen",
-    icon: KeyRound,
-  },
-  {
     id: "hasCases",
-    number: 6,
+    number: 5,
     title: "Erste Schadensmeldung",
     description:
       "Sobald ein Mieter registriert ist, kann er über sein Portal (mein-bereich) eine Schadensmeldung abschicken. Sie sehen die Meldung sofort in Ihrem Dashboard und können mit einem Klick: Status setzen, Handwerker zuweisen, Notizen hinzufügen und die Meldung abschließen.",
