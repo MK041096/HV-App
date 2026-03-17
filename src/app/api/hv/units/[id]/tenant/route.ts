@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createServerSupabaseClient } from '@/lib/supabase-server'
+import { createServerSupabaseClient, createAdminClient } from '@/lib/supabase-server'
 import {
   hvAssignTenantSchema,
   hvUnassignTenantSchema,
@@ -30,6 +30,7 @@ export async function PUT(
 ) {
   try {
     const supabase = await createServerSupabaseClient()
+    const adminSupabase = createAdminClient()
     const { id: unitId } = await params
 
     const {
@@ -114,7 +115,7 @@ export async function PUT(
     // If tenant is already assigned to another unit, remove them from that unit
     if (tenant.unit_id && tenant.unit_id !== unitId) {
       // This is an intentional reassignment - log it
-      await supabase.from('audit_logs').insert({
+      await adminSupabase.from('audit_logs').insert({
         user_id: user.id,
         organization_id: hvProfile.organization_id,
         action: 'tenant_unassigned_from_unit',
@@ -125,7 +126,7 @@ export async function PUT(
     }
 
     // Assign tenant to unit
-    const { data: updated, error: updateError } = await supabase
+    const { data: updated, error: updateError } = await adminSupabase
       .from('profiles')
       .update({
         unit_id: unitId,
@@ -144,7 +145,7 @@ export async function PUT(
     }
 
     // Audit log
-    await supabase.from('audit_logs').insert({
+    await adminSupabase.from('audit_logs').insert({
       user_id: user.id,
       organization_id: hvProfile.organization_id,
       action: 'tenant_assigned_to_unit',
@@ -174,6 +175,7 @@ export async function DELETE(
 ) {
   try {
     const supabase = await createServerSupabaseClient()
+    const adminSupabase = createAdminClient()
     const { id: unitId } = await params
 
     const {
@@ -222,27 +224,27 @@ export async function DELETE(
 
     if (tenant) {
       tenantName = [tenant.first_name, tenant.last_name].filter(Boolean).join(' ')
-      await supabase
+      await adminSupabase
         .from('profiles')
         .update({ is_deleted: true, unit_id: null, updated_at: new Date().toISOString() })
         .eq('id', tenant.id)
     }
 
     // Deactivate all pending activation codes for this unit
-    await supabase
+    await adminSupabase
       .from('activation_codes')
       .update({ status: 'deactivated', updated_at: new Date().toISOString() })
       .eq('unit_id', unitId)
       .eq('status', 'pending')
 
     // Soft-delete the unit itself
-    await supabase
+    await adminSupabase
       .from('units')
       .update({ is_deleted: true, updated_at: new Date().toISOString() })
       .eq('id', unitId)
 
     // Audit log
-    await supabase.from('audit_logs').insert({
+    await adminSupabase.from('audit_logs').insert({
       user_id: user.id,
       organization_id: hvProfile.organization_id,
       action: 'tenant_removed_from_unit',
