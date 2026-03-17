@@ -188,7 +188,7 @@ export default function ImportPage() {
                 3
               </div>
               <div>
-                <p className="font-medium">Mieter bekommen E-Mail</p>
+                <p className="font-medium">E-Mail wird versendet</p>
                 <p className="text-muted-foreground text-xs mt-0.5">
                   Mieter erhalten ihren Aktivierungscode
                 </p>
@@ -207,7 +207,7 @@ export default function ImportPage() {
               <div>
                 <p className="text-sm font-medium">Vorlage herunterladen</p>
                 <p className="text-xs text-muted-foreground mt-0.5">
-                  Sie haben bereits eine Excel? Laden Sie sie direkt hoch — die App erkennt die Spalten automatisch. Oder laden Sie diese Vorlage herunter und füllen Sie sie aus.
+                  Sie haben bereits eine Excel? Laden Sie sie direkt hoch, die App erkennt die Spalten automatisch. Oder laden Sie diese Vorlage herunter und füllen Sie sie aus.
                 </p>
               </div>
             </div>
@@ -223,11 +223,10 @@ export default function ImportPage() {
             <p className="font-medium text-foreground">Unterstützte Spalten:</p>
             <div className="grid grid-cols-2 gap-x-4 gap-y-0.5">
               <span><span className="text-foreground font-medium">Einheit</span> — Pflichtfeld</span>
-              <span><span className="text-foreground font-medium">Mieter</span> — Vor- und Nachname</span>
-              <span><span className="text-foreground font-medium">E-Mail</span> — für automatischen Versand</span>
-              <span><span className="text-foreground">Telefon</span> — optional</span>
+              <span><span className="text-foreground font-medium">Mieter</span> mit Vor- und Nachname — Pflichtfeld</span>
+              <span><span className="text-foreground font-medium">E-Mail</span> — Pflichtfeld</span>
+              <span><span className="text-foreground font-medium">Telefon</span> — Pflichtfeld wenn keine E-Mail vorhanden</span>
             </div>
-            <p className="text-xs text-muted-foreground mt-2">E-Mail oder Telefon — mindestens eines angeben. Automatischer Versand des Aktivierungscodes nur per E-Mail möglich.</p>
           </div>
         </CardContent>
       </Card>
