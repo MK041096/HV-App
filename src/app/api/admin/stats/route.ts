@@ -25,10 +25,12 @@ export async function GET() {
 
     const admin = createAdminClient()
 
-    // Fetch counts in parallel using admin client (bypasses RLS)
+    const PLATFORM_ORG_ID = 'aaaaaaaa-0000-0000-0000-000000000001'
+
+    // Fetch counts in parallel — exclude platform-internal org/user
     const [orgsResult, usersResult, casesResult, unitsResult] = await Promise.all([
-      admin.from('organizations').select('id, created_at', { count: 'exact' }),
-      admin.from('profiles').select('id', { count: 'exact' }).eq('is_deleted', false),
+      admin.from('organizations').select('id, created_at', { count: 'exact' }).neq('id', PLATFORM_ORG_ID),
+      admin.from('profiles').select('id', { count: 'exact' }).eq('is_deleted', false).neq('role', 'platform_admin'),
       admin
         .from('damage_reports')
         .select('id', { count: 'exact' })
@@ -41,7 +43,7 @@ export async function GET() {
     const total_cases = casesResult.count ?? 0
     const total_units = unitsResult.count ?? 0
 
-    // New orgs this month
+    // New orgs this month (excluding platform org)
     const startOfMonth = new Date()
     startOfMonth.setDate(1)
     startOfMonth.setHours(0, 0, 0, 0)
@@ -49,6 +51,7 @@ export async function GET() {
     const { count: newOrgsCount } = await admin
       .from('organizations')
       .select('id', { count: 'exact' })
+      .neq('id', PLATFORM_ORG_ID)
       .gte('created_at', startOfMonth.toISOString())
 
     return NextResponse.json({
