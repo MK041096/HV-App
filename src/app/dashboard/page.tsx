@@ -81,7 +81,7 @@ const ONBOARDING_STEPS: OnboardingStep[] = [
     number: 1,
     title: "Einheiten anlegen",
     description:
-      "Tragen Sie alle Wohnungen und Einheiten Ihrer Liegenschaft ein — z.B. \"Wohnung Top 1\", \"Büro EG\". Jede Einheit bekommt eine eigene Seite in der App, damit Meldungen und Dokumente immer der richtigen Wohnung zugeordnet sind.",
+      "Tragen Sie alle Einheiten ein, die Sie in Ihrem Unternehmen verwalten — z.B. „Wohnung Top 1“, „Büro EG“ oder „Gewerbefläche 3. OG“. Jede Einheit erhält eine eigene Seite für Meldungen und Dokumente.",
     whyBox:
       "Ohne Einheiten können Mieter keine Schadensmeldung abschicken — die Zuordnung läuft immer über die Einheit.",
     href: "/dashboard/units",
