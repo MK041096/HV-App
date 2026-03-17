@@ -229,7 +229,7 @@ export default function ImportPage() {
           <div className="text-xs text-muted-foreground space-y-1">
             <p className="font-medium text-foreground">Unterstützte Spalten:</p>
             <div className="grid grid-cols-2 gap-x-4 gap-y-0.5">
-              <span><span className="text-foreground font-medium">Einheit</span> — Pflichtfeld</span>
+              <span><span className="text-foreground font-medium">Einheit (Adresse)</span> — Pflichtfeld</span>
               <span><span className="text-foreground font-medium">Mieter</span> mit Vor- und Nachname — Pflichtfeld</span>
               <span><span className="text-foreground font-medium">E-Mail</span> — Pflichtfeld</span>
               <span><span className="text-foreground font-medium">Telefon</span> — Pflichtfeld wenn keine E-Mail vorhanden</span>
