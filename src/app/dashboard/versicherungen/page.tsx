@@ -557,23 +557,16 @@ export default function VersicherungenPage() {
         </Card>
       )}
 
-      {/* Info box */}
-      <Card className="border-dashed">
-        <CardContent className="pt-4 pb-4">
-          <div className="flex items-start gap-3">
-            <Info className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
-            <div className="text-sm text-muted-foreground space-y-1">
-              <p className="font-medium text-foreground">Welche Policen sind sinnvoll?</p>
-              <ul className="space-y-0.5 ml-2">
-                <li>• <strong>Gebäudeversicherung</strong> — Sturm, Leitungswasser, Feuer, Hagel</li>
-                <li>• <strong>Haftpflichtversicherung</strong> — Schäden gegenüber Dritten</li>
-                <li>• <strong>Rechtsschutzversicherung</strong> — bei Streitigkeiten mit Mietern</li>
-                <li>• <strong>Elementarschadenversicherung</strong> — Überschwemmung, Erdrutsch</li>
-              </ul>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      {/* Search */}
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <Input
+          placeholder="Liegenschaft suchen…"
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          className="pl-9"
+        />
+      </div>
 
       {/* Liegenschaft cards */}
       {liegenschaften.length === 0 ? (
@@ -588,15 +581,6 @@ export default function VersicherungenPage() {
         </Card>
       ) : (
         <div className="space-y-4">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Liegenschaft suchen…"
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              className="pl-9"
-            />
-          </div>
           {liegenschaften.filter(lg => lg.address.toLowerCase().includes(search.toLowerCase())).map(lg => (
             <Card key={lg.address} className={lg.docs.length > 0 ? 'border-green-200' : 'border-orange-200'}>
               <CardHeader className="pb-3">
