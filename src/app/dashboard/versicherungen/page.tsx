@@ -317,18 +317,17 @@ export default function VersicherungenPage() {
           <CardHeader>
             <CardTitle className="text-base flex items-center gap-2">
               <Sparkles className="h-4 w-4" />
-              Policen importieren — automatische Erkennung
+              Policen importieren
             </CardTitle>
             <CardDescription>
-              Laden Sie mehrere Policen auf einmal hoch. Das System liest Versicherungsart, Versicherer
-              und Liegenschaft direkt aus dem PDF-Text — vollautomatisch.
+              Laden Sie mehrere Policen auf einmal hoch. Das System liest Versicherungsart, Versicherer und Liegenschaft direkt aus dem PDF-Text und ordnet sie richtig zu.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             {bulkItems.length === 0 ? (
               <div className="space-y-3">
                 <div className="space-y-2">
-                  <Label>PDFs auswählen (mehrere möglich)</Label>
+                  <Label>Datei hochladen</Label>
                   <input
                     ref={bulkInputRef}
                     type="file"
@@ -338,9 +337,14 @@ export default function VersicherungenPage() {
                     className="block w-full text-sm text-muted-foreground file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-primary file:text-primary-foreground hover:file:bg-primary/90 cursor-pointer"
                   />
                 </div>
-                <p className="text-xs text-muted-foreground">
-                  Tipp: Halten Sie Strg (Windows) oder ⌘ (Mac) gedrückt um mehrere Dateien gleichzeitig auszuwählen.
-                </p>
+                <div className="space-y-1">
+                  <p className="text-xs text-muted-foreground">
+                    Tipp: Halten Sie Strg (Windows) oder ⌘ (Mac) gedrückt um mehrere Dateien gleichzeitig auszuwählen.
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Nur PDF-Dateien werden unterstützt. Google Docs bitte zuerst als PDF exportieren (Datei → Herunterladen → PDF).
+                  </p>
+                </div>
               </div>
             ) : (
               <div className="space-y-4">
