@@ -86,6 +86,8 @@ export default function WerkstaettenPage() {
 
   // Delete state
   const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [deleteTarget, setDeleteTarget] = useState<Contractor | null>(null)
+  const [deleteOpen, setDeleteOpen] = useState(false)
 
   async function loadContractors() {
     setIsLoading(true)
@@ -195,13 +197,15 @@ export default function WerkstaettenPage() {
     }
   }
 
-  async function handleDelete(id: string) {
-    if (!confirm("Werkstatt wirklich löschen?")) return
-    setDeletingId(id)
+  async function handleDelete() {
+    if (!deleteTarget) return
+    setDeletingId(deleteTarget.id)
     try {
-      const res = await fetch(`/api/hv/contractors/${id}`, { method: "DELETE" })
+      const res = await fetch(`/api/hv/contractors/${deleteTarget.id}`, { method: "DELETE" })
       const json = await res.json()
       if (!res.ok) throw new Error(json.error || "Fehler beim Löschen")
+      setDeleteOpen(false)
+      setDeleteTarget(null)
       await loadContractors()
     } catch (err) {
       setPageError(err instanceof Error ? err.message : "Fehler beim Löschen")
@@ -316,7 +320,7 @@ export default function WerkstaettenPage() {
                         variant="ghost"
                         size="icon"
                         className="h-8 w-8 text-destructive hover:text-destructive"
-                        onClick={() => handleDelete(contractor.id)}
+                        onClick={() => { setDeleteTarget(contractor); setDeleteOpen(true) }}
                         disabled={deletingId === contractor.id}
                         title="Löschen"
                       >
@@ -334,6 +338,27 @@ export default function WerkstaettenPage() {
           </Table>
         </div>
       )}
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={deleteOpen} onOpenChange={(o) => { if (!o) { setDeleteOpen(false); setDeleteTarget(null) } }}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Werkstatt löschen</DialogTitle>
+            <DialogDescription>
+              {deleteTarget && `"${deleteTarget.name}" wird gelöscht. Diese Aktion kann nicht rückgängig gemacht werden.`}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => { setDeleteOpen(false); setDeleteTarget(null) }} disabled={!!deletingId}>
+              Abbrechen
+            </Button>
+            <Button variant="destructive" onClick={handleDelete} disabled={!!deletingId}>
+              {deletingId ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+              Löschen
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Add / Edit Dialog */}
       <Dialog open={dialogOpen} onOpenChange={(open) => { if (!open) closeDialog() }}>
