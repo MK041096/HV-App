@@ -102,13 +102,23 @@ export default function VersicherungenPage() {
     if (!selectedFile) return
     setUploading(true)
     try {
-      const name = docName.trim() || `Versicherungspolice ${new Date().toLocaleDateString('de-AT')}`
-
       const formData = new FormData()
       formData.append('file', selectedFile)
       const uploadRes = await fetch('/api/documents/upload', { method: 'POST', body: formData })
       const uploadData = await uploadRes.json()
       if (!uploadRes.ok) { alert(uploadData.error || 'Upload fehlgeschlagen'); return }
+
+      // Auto-detect name from PDF
+      let name = `Versicherungspolice ${new Date().toLocaleDateString('de-AT')}`
+      try {
+        const analyseRes = await fetch('/api/documents/analyse', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ file_path: uploadData.file_path }),
+        })
+        const analyseData = await analyseRes.json()
+        if (analyseData.suggested_name) name = analyseData.suggested_name
+      } catch { /* ignore, use fallback name */ }
 
       const metaRes = await fetch('/api/documents', {
         method: 'POST',
@@ -126,7 +136,6 @@ export default function VersicherungenPage() {
       if (!metaRes.ok) { alert('Fehler beim Speichern'); return }
 
       setSelectedFile(null)
-      setDocName('')
       setSelectedLiegenschaft('')
       setShowForm(false)
       if (fileInputRef.current) fileInputRef.current.value = ''
@@ -511,30 +520,6 @@ export default function VersicherungenPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label>Liegenschaft *</Label>
-              <Select value={selectedLiegenschaft} onValueChange={setSelectedLiegenschaft}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Liegenschaft auswählen..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {liegenschaften.map(lg => (
-                    <SelectItem key={lg.address} value={lg.address}>
-                      {lg.address} ({lg.unitCount} {lg.unitCount === 1 ? 'Einheit' : 'Einheiten'})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label>Bezeichnung der Police</Label>
-              <Input
-                placeholder="z.B. Gebäudeversicherung Wiener Städtische 2025"
-                value={docName}
-                onChange={e => setDocName(e.target.value)}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Datei (PDF — max. 20 MB)</Label>
               <input
                 ref={fileInputRef}
                 type="file"
@@ -548,7 +533,7 @@ export default function VersicherungenPage() {
                   variant="outline"
                   onClick={() => fileInputRef.current?.click()}
                 >
-                  PDF auswählen
+                  PDF-Datei hochladen
                 </Button>
                 {selectedFile && (
                   <span className="text-sm text-muted-foreground truncate">{selectedFile.name}</span>
