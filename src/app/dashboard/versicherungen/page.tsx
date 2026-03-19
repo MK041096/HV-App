@@ -296,9 +296,7 @@ export default function VersicherungenPage() {
             <ShieldCheck className="h-6 w-6 text-green-600" />
             Versicherungspolicen
           </h1>
-          <p className="text-muted-foreground text-sm mt-1">
-            Policen werden pro Liegenschaft hinterlegt — die Schadensanalyse wählt automatisch die richtige
-          </p>
+
         </div>
         <Button onClick={() => { setShowBulk(!showBulk); setShowForm(false) }}>
           <Sparkles className="h-4 w-4 mr-2" /> Policen importieren
