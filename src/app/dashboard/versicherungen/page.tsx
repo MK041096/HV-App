@@ -30,8 +30,12 @@ import {
   Plus,
   File,
   Info,
-  Brain,
   Building2,
+  CheckCircle2,
+  XCircle,
+  Loader2,
+  Sparkles,
+  AlertCircle,
 } from 'lucide-react'
 
 interface LiegenschaftDoc {
@@ -46,6 +50,17 @@ interface Liegenschaft {
   docs: LiegenschaftDoc[]
 }
 
+interface BulkItem {
+  file: File
+  status: 'pending' | 'uploading' | 'analysing' | 'done' | 'error' | 'not_found'
+  liegenschaft: string | null
+  overrideLiegenschaft: string | null
+  file_path?: string
+  file_size?: number
+  mime_type?: string
+  errorMsg?: string
+}
+
 export default function VersicherungenPage() {
   const [liegenschaften, setLiegenschaften] = useState<Liegenschaft[]>([])
   const [loading, setLoading] = useState(true)
@@ -57,6 +72,14 @@ export default function VersicherungenPage() {
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null)
   const [deleteOpen, setDeleteOpen] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
+
+  // Bulk upload state
+  const [showBulk, setShowBulk] = useState(false)
+  const [bulkItems, setBulkItems] = useState<BulkItem[]>([])
+  const [bulkProcessing, setBulkProcessing] = useState(false)
+  const [bulkDone, setBulkDone] = useState(false)
+  const [bulkSaving, setBulkSaving] = useState(false)
+  const bulkInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => { loadData() }, [])
 
@@ -129,6 +152,125 @@ export default function VersicherungenPage() {
     await loadData()
   }
 
+  // ── Bulk upload ────────────────────────────────────────────────────────────
+
+  function handleBulkFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
+    const files = Array.from(e.target.files || [])
+    if (files.length === 0) return
+    setBulkItems(files.map(f => ({
+      file: f,
+      status: 'pending',
+      liegenschaft: null,
+      overrideLiegenschaft: null,
+    })))
+    setBulkDone(false)
+  }
+
+  async function startBulkProcessing() {
+    if (bulkItems.length === 0) return
+    setBulkProcessing(true)
+    setBulkDone(false)
+
+    const updated = [...bulkItems]
+
+    for (let i = 0; i < updated.length; i++) {
+      const item = updated[i]
+
+      // 1. Upload file
+      updated[i] = { ...item, status: 'uploading' }
+      setBulkItems([...updated])
+
+      const formData = new FormData()
+      formData.append('file', item.file)
+      let uploadData: { file_path?: string; file_size?: number; mime_type?: string; error?: string }
+      try {
+        const uploadRes = await fetch('/api/documents/upload', { method: 'POST', body: formData })
+        uploadData = await uploadRes.json()
+        if (!uploadRes.ok) {
+          updated[i] = { ...updated[i], status: 'error', errorMsg: uploadData.error || 'Upload fehlgeschlagen' }
+          setBulkItems([...updated])
+          continue
+        }
+      } catch {
+        updated[i] = { ...updated[i], status: 'error', errorMsg: 'Netzwerkfehler beim Upload' }
+        setBulkItems([...updated])
+        continue
+      }
+
+      // 2. Analyse PDF text for Liegenschaft
+      updated[i] = { ...updated[i], status: 'analysing', file_path: uploadData.file_path, file_size: uploadData.file_size, mime_type: uploadData.mime_type }
+      setBulkItems([...updated])
+
+      try {
+        const analyseRes = await fetch('/api/documents/analyse', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ file_path: uploadData.file_path }),
+        })
+        const analyseData = await analyseRes.json()
+
+        if (analyseData.liegenschaft) {
+          updated[i] = { ...updated[i], status: 'done', liegenschaft: analyseData.liegenschaft }
+        } else {
+          updated[i] = { ...updated[i], status: 'not_found', liegenschaft: null }
+        }
+      } catch {
+        updated[i] = { ...updated[i], status: 'not_found', liegenschaft: null }
+      }
+
+      setBulkItems([...updated])
+    }
+
+    setBulkProcessing(false)
+    setBulkDone(true)
+  }
+
+  async function saveBulkResults() {
+    setBulkSaving(true)
+    try {
+      const toSave = bulkItems.filter(item =>
+        (item.status === 'done' || item.status === 'not_found') && item.file_path
+      )
+
+      for (const item of toSave) {
+        const lg = item.overrideLiegenschaft ?? item.liegenschaft
+        const name = item.file.name.replace(/\.pdf$/i, '')
+        await fetch('/api/documents', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name,
+            file_path: item.file_path,
+            file_size: item.file_size,
+            mime_type: item.mime_type || 'application/pdf',
+            document_type: 'versicherung',
+            unit_id: null,
+            liegenschaft: lg || null,
+          }),
+        })
+      }
+
+      setBulkItems([])
+      setBulkDone(false)
+      setShowBulk(false)
+      if (bulkInputRef.current) bulkInputRef.current.value = ''
+      await loadData()
+    } finally {
+      setBulkSaving(false)
+    }
+  }
+
+  function resetBulk() {
+    setBulkItems([])
+    setBulkDone(false)
+    setBulkProcessing(false)
+    if (bulkInputRef.current) bulkInputRef.current.value = ''
+  }
+
+  const bulkProgress = bulkItems.length > 0
+    ? Math.round((bulkItems.filter(i => ['done', 'error', 'not_found'].includes(i.status)).length / bulkItems.length) * 100)
+    : 0
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
@@ -146,23 +288,28 @@ export default function VersicherungenPage() {
         <div>
           <h1 className="text-2xl font-bold flex items-center gap-2">
             <ShieldCheck className="h-6 w-6 text-green-600" />
-            Versicherungspolizen
+            Versicherungspolicen
           </h1>
           <p className="text-muted-foreground text-sm mt-1">
-            Polizen werden pro Liegenschaft hinterlegt — die Schadensanalyse wählt automatisch die richtige
+            Policen werden pro Liegenschaft hinterlegt — die Schadensanalyse wählt automatisch die richtige
           </p>
         </div>
-        <Button onClick={() => setShowForm(!showForm)}>
-          <Plus className="h-4 w-4 mr-2" /> Police hochladen
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={() => { setShowBulk(!showBulk); setShowForm(false) }}>
+            <Sparkles className="h-4 w-4 mr-2" /> Massen-Upload
+          </Button>
+          <Button onClick={() => { setShowForm(!showForm); setShowBulk(false) }}>
+            <Plus className="h-4 w-4 mr-2" /> Police hochladen
+          </Button>
+        </div>
       </div>
 
-      {/* KI-Hinweis */}
+      {/* Hinweis */}
       <Card className="border-blue-200 bg-blue-50">
         <CardContent className="flex items-start gap-3 pt-4 pb-4">
-          <Brain className="h-5 w-5 text-blue-600 shrink-0 mt-0.5" />
+          <Building2 className="h-5 w-5 text-blue-600 shrink-0 mt-0.5" />
           <div className="text-sm text-blue-800">
-            <p className="font-medium">Automatische Analyse wählt die richtige Police</p>
+            <p className="font-medium">Automatische Zuordnung zur richtigen Liegenschaft</p>
             <p className="mt-1 text-blue-700">
               Bei einer Schadensmeldung erkennt das System anhand der Adresse welche Liegenschaft
               betroffen ist und liest die passende Police aus.
@@ -171,7 +318,168 @@ export default function VersicherungenPage() {
         </CardContent>
       </Card>
 
-      {/* Upload Form */}
+      {/* ── Bulk Upload ─────────────────────────────────────────────────────── */}
+      {showBulk && (
+        <Card className="border-primary/30">
+          <CardHeader>
+            <CardTitle className="text-base flex items-center gap-2">
+              <Sparkles className="h-4 w-4" />
+              Massen-Upload — automatische Erkennung
+            </CardTitle>
+            <CardDescription>
+              Laden Sie mehrere Policen auf einmal hoch. Das System liest die Adresse aus jedem
+              PDF und ordnet es automatisch der richtigen Liegenschaft zu.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {bulkItems.length === 0 ? (
+              <div className="space-y-3">
+                <div className="space-y-2">
+                  <Label>PDFs auswählen (mehrere möglich)</Label>
+                  <input
+                    ref={bulkInputRef}
+                    type="file"
+                    accept=".pdf"
+                    multiple
+                    onChange={handleBulkFileSelect}
+                    className="block w-full text-sm text-muted-foreground file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-primary file:text-primary-foreground hover:file:bg-primary/90 cursor-pointer"
+                  />
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Tipp: Halten Sie Strg (Windows) oder ⌘ (Mac) gedrückt um mehrere Dateien gleichzeitig auszuwählen.
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {/* Progress bar while processing */}
+                {bulkProcessing && (
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-muted-foreground">Analysiere Policen…</span>
+                      <span className="font-medium">{bulkProgress}%</span>
+                    </div>
+                    <div className="w-full bg-muted rounded-full h-2"><div className="bg-primary h-2 rounded-full transition-all" style={{ width: bulkProgress + '%' }} /></div>
+                  </div>
+                )}
+
+                {/* Results table */}
+                <div className="border rounded-lg overflow-hidden">
+                  <table className="w-full text-sm">
+                    <thead className="bg-muted/50">
+                      <tr>
+                        <th className="text-left px-3 py-2 font-medium">Dateiname</th>
+                        <th className="text-left px-3 py-2 font-medium">Erkannte Liegenschaft</th>
+                        <th className="text-left px-3 py-2 font-medium w-32">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y">
+                      {bulkItems.map((item, idx) => (
+                        <tr key={idx} className="hover:bg-muted/20">
+                          <td className="px-3 py-2 font-medium max-w-[200px] truncate" title={item.file.name}>
+                            {item.file.name}
+                          </td>
+                          <td className="px-3 py-2">
+                            {item.status === 'done' || item.status === 'not_found' ? (
+                              <Select
+                                value={item.overrideLiegenschaft ?? item.liegenschaft ?? '__none__'}
+                                onValueChange={(val) => {
+                                  const updated = [...bulkItems]
+                                  updated[idx] = {
+                                    ...updated[idx],
+                                    overrideLiegenschaft: val === '__none__' ? null : val,
+                                  }
+                                  setBulkItems(updated)
+                                }}
+                              >
+                                <SelectTrigger className="h-8 text-sm">
+                                  <SelectValue placeholder="Nicht erkannt — bitte zuordnen" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="__none__">— Keine Zuordnung —</SelectItem>
+                                  {liegenschaften.map(lg => (
+                                    <SelectItem key={lg.address} value={lg.address}>
+                                      {lg.address}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            ) : (
+                              <span className="text-muted-foreground">—</span>
+                            )}
+                          </td>
+                          <td className="px-3 py-2">
+                            {item.status === 'pending' && (
+                              <span className="text-muted-foreground text-xs">Wartend</span>
+                            )}
+                            {item.status === 'uploading' && (
+                              <span className="flex items-center gap-1 text-blue-600 text-xs">
+                                <Loader2 className="h-3 w-3 animate-spin" /> Upload…
+                              </span>
+                            )}
+                            {item.status === 'analysing' && (
+                              <span className="flex items-center gap-1 text-blue-600 text-xs">
+                                <Loader2 className="h-3 w-3 animate-spin" /> Analyse…
+                              </span>
+                            )}
+                            {item.status === 'done' && (
+                              <span className="flex items-center gap-1 text-green-700 text-xs">
+                                <CheckCircle2 className="h-3 w-3" /> Erkannt
+                              </span>
+                            )}
+                            {item.status === 'not_found' && (
+                              <span className="flex items-center gap-1 text-orange-600 text-xs">
+                                <AlertCircle className="h-3 w-3" /> Nicht erkannt
+                              </span>
+                            )}
+                            {item.status === 'error' && (
+                              <span className="flex items-center gap-1 text-red-600 text-xs" title={item.errorMsg}>
+                                <XCircle className="h-3 w-3" /> Fehler
+                              </span>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Action buttons */}
+                <div className="flex gap-2 flex-wrap">
+                  {!bulkDone && !bulkProcessing && (
+                    <Button onClick={startBulkProcessing}>
+                      <Sparkles className="h-4 w-4 mr-2" />
+                      Automatisch zuordnen ({bulkItems.length} {bulkItems.length === 1 ? 'Police' : 'Policen'})
+                    </Button>
+                  )}
+                  {bulkDone && (
+                    <Button onClick={saveBulkResults} disabled={bulkSaving}>
+                      {bulkSaving ? (
+                        <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Wird gespeichert…</>
+                      ) : (
+                        <><CheckCircle2 className="h-4 w-4 mr-2" /> Alle übernehmen &amp; speichern</>
+                      )}
+                    </Button>
+                  )}
+                  <Button variant="outline" onClick={resetBulk} disabled={bulkProcessing || bulkSaving}>
+                    Zurücksetzen
+                  </Button>
+                  <Button variant="ghost" onClick={() => setShowBulk(false)} disabled={bulkProcessing || bulkSaving}>
+                    Abbrechen
+                  </Button>
+                </div>
+
+                {bulkDone && (
+                  <p className="text-xs text-muted-foreground">
+                    Nicht erkannte Policen können Sie oben manuell einer Liegenschaft zuordnen, bevor Sie speichern.
+                  </p>
+                )}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* ── Single Upload Form ───────────────────────────────────────────────── */}
       {showForm && (
         <Card className="border-primary/30">
           <CardHeader>
@@ -236,7 +544,7 @@ export default function VersicherungenPage() {
           <div className="flex items-start gap-3">
             <Info className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
             <div className="text-sm text-muted-foreground space-y-1">
-              <p className="font-medium text-foreground">Welche Polizen sind sinnvoll?</p>
+              <p className="font-medium text-foreground">Welche Policen sind sinnvoll?</p>
               <ul className="space-y-0.5 ml-2">
                 <li>• <strong>Gebäudeversicherung</strong> — Sturm, Leitungswasser, Feuer, Hagel</li>
                 <li>• <strong>Haftpflichtversicherung</strong> — Schäden gegenüber Dritten</li>
@@ -263,7 +571,7 @@ export default function VersicherungenPage() {
         <div className="space-y-4">
           <p className="text-sm text-muted-foreground">
             {liegenschaften.length} {liegenschaften.length === 1 ? 'Liegenschaft' : 'Liegenschaften'} erkannt
-            {totalPolicies > 0 && ` · ${totalPolicies} ${totalPolicies === 1 ? 'Police' : 'Polizen'} hinterlegt`}
+            {totalPolicies > 0 && ` · ${totalPolicies} ${totalPolicies === 1 ? 'Police' : 'Policen'} hinterlegt`}
           </p>
           {liegenschaften.map(lg => (
             <Card key={lg.address} className={lg.docs.length > 0 ? 'border-green-200' : 'border-orange-200'}>
@@ -301,6 +609,7 @@ export default function VersicherungenPage() {
                       onClick={() => {
                         setSelectedLiegenschaft(lg.address)
                         setShowForm(true)
+                        setShowBulk(false)
                         window.scrollTo({ top: 0, behavior: 'smooth' })
                       }}
                     >
@@ -345,6 +654,7 @@ export default function VersicherungenPage() {
                       onClick={() => {
                         setSelectedLiegenschaft(lg.address)
                         setShowForm(true)
+                        setShowBulk(false)
                         window.scrollTo({ top: 0, behavior: 'smooth' })
                       }}
                     >

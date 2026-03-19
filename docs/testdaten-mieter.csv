@@ -1,21 +1,21 @@
-Einheit,Adresse,Stockwerk,Mieter E-Mail,Mieter Vorname,Mieter Nachname
-Wohnung Top 1,Schönbrunner Straße 42/1/1 1050 Wien,EG,mathiaskracher@gmx.at,Anna,Berger
-Wohnung Top 2,Schönbrunner Straße 42/1/2 1050 Wien,1. OG,mathiaskracher@gmx.at,Thomas,Hofmann
-Wohnung Top 3,Schönbrunner Straße 42/1/3 1050 Wien,1. OG,mathiaskracher@gmx.at,Maria,Schneider
-Wohnung Top 4,Schönbrunner Straße 42/1/4 1050 Wien,2. OG,mathiaskracher@gmx.at,Klaus,Bauer
-Wohnung Top 5,Schönbrunner Straße 42/1/5 1050 Wien,2. OG,mathiaskracher@gmx.at,Sandra,Wagner
-Wohnung Top 6,Schönbrunner Straße 42/1/6 1050 Wien,3. OG,mathiaskracher@gmx.at,Michael,Müller
-Wohnung Top 7,Schönbrunner Straße 42/1/7 1050 Wien,3. OG,mathiaskracher@gmx.at,Elisabeth,Fischer
-Wohnung Top 8,Schönbrunner Straße 42/1/8 1050 Wien,4. OG,mathiaskracher@gmx.at,Robert,Gruber
-Wohnung Top 9,Schönbrunner Straße 42/1/9 1050 Wien,4. OG,mathiaskracher@gmx.at,Christine,Weber
-Wohnung Top 10,Schönbrunner Straße 42/1/10 1050 Wien,DG,mathiaskracher@gmx.at,Franz,Huber
-Wohnung Top 11,Schönbrunner Straße 42/2/11 1050 Wien,EG,mathiaskracher@gmx.at,Sabine,Maier
-Wohnung Top 12,Schönbrunner Straße 42/2/12 1050 Wien,EG,mathiaskracher@gmx.at,Johann,Schwarz
-Wohnung Top 13,Schönbrunner Straße 42/2/13 1050 Wien,1. OG,mathiaskracher@gmx.at,Andrea,Braunstein
-Wohnung Top 14,Schönbrunner Straße 42/2/14 1050 Wien,1. OG,mathiaskracher@gmx.at,Wolfgang,Keller
-Wohnung Top 15,Schönbrunner Straße 42/2/15 1050 Wien,2. OG,mathiaskracher@gmx.at,Monika,Steiner
-Wohnung Top 16,Schönbrunner Straße 42/2/16 1050 Wien,2. OG,mathiaskracher@gmx.at,Gerhard,Zimmermann
-Wohnung Top 17,Schönbrunner Straße 42/2/17 1050 Wien,3. OG,mathiaskracher@gmx.at,Helga,Braun
-Wohnung Top 18,Schönbrunner Straße 42/2/18 1050 Wien,3. OG,mathiaskracher@gmx.at,Manfred,Koch
-Wohnung Top 19,Schönbrunner Straße 42/2/19 1050 Wien,4. OG,mathiaskracher@gmx.at,Brigitte,Lehner
-Wohnung Top 20,Schönbrunner Straße 42/2/20 1050 Wien,4. OG,mathiaskracher@gmx.at,Stefan,Pichler
+﻿Einheit (Adresse),Mieter,E-Mail,Telefon
+Schönbrunner Straße 42/Top 1, 1050 Wien,Anna Berger,mathiaskracher@gmx.at,
+Schönbrunner Straße 42/Top 2, 1050 Wien,Thomas Hofmann,mathiaskracher@gmx.at,
+Schönbrunner Straße 42/Top 3, 1050 Wien,Maria Schneider,mathiaskracher@gmx.at,
+Schönbrunner Straße 42/Top 4, 1050 Wien,Klaus Bauer,mathiaskracher@gmx.at,
+Schönbrunner Straße 42/Top 5, 1050 Wien,Sandra Wagner,mathiaskracher@gmx.at,
+Schönbrunner Straße 42/Top 6, 1050 Wien,Michael Müller,mathiaskracher@gmx.at,
+Schönbrunner Straße 42/Top 7, 1050 Wien,Elisabeth Fischer,mathiaskracher@gmx.at,
+Schönbrunner Straße 42/Top 8, 1050 Wien,Robert Gruber,mathiaskracher@gmx.at,
+Schönbrunner Straße 42/Top 9, 1050 Wien,Christine Weber,mathiaskracher@gmx.at,
+Schönbrunner Straße 42/Top 10, 1050 Wien,Franz Huber,mathiaskracher@gmx.at,
+Mariahilfer Straße 88/Top 1, 1060 Wien,Sabine Maier,mathiaskracher@gmx.at,
+Mariahilfer Straße 88/Top 2, 1060 Wien,Johann Schwarz,mathiaskracher@gmx.at,
+Mariahilfer Straße 88/Top 3, 1060 Wien,Andrea Braunstein,mathiaskracher@gmx.at,
+Mariahilfer Straße 88/Top 4, 1060 Wien,Wolfgang Keller,mathiaskracher@gmx.at,
+Mariahilfer Straße 88/Top 5, 1060 Wien,Monika Steiner,mathiaskracher@gmx.at,
+Mariahilfer Straße 88/Top 6, 1060 Wien,Gerhard Zimmermann,mathiaskracher@gmx.at,
+Mariahilfer Straße 88/Top 7, 1060 Wien,Helga Bräun,mathiaskracher@gmx.at,
+Mariahilfer Straße 88/Top 8, 1060 Wien,Manfred Koch,mathiaskracher@gmx.at,
+Mariahilfer Straße 88/Top 9, 1060 Wien,Brigitte Lehner,mathiaskracher@gmx.at,
+Mariahilfer Straße 88/Top 10, 1060 Wien,Stefan Pichler,mathiaskracher@gmx.at,

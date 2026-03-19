@@ -37,7 +37,9 @@
 
 | PROJ-21 | Liegenschaft-basierte Versicherungszuordnung | Deployed | PROJ-21-liegenschaft-versicherung.md | 2026-03-19 |
 
-## Next Available ID: PROJ-22
+| PROJ-22 | Massen-Upload Versicherungspolicen mit Auto-Liegenschaft-Erkennung | Deployed | PROJ-22-bulk-upload-policen.md | 2026-03-19 |
+
+## Next Available ID: PROJ-23
 
 ## Build Order (empfohlen)
 **Phase 1 — MVP (P0):** PROJ-1 → PROJ-2 → PROJ-3 → PROJ-4 → PROJ-5 → PROJ-6 → PROJ-7
