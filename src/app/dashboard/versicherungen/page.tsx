@@ -149,7 +149,7 @@ export default function VersicherungenPage() {
             Versicherungspolizen
           </h1>
           <p className="text-muted-foreground text-sm mt-1">
-            Polizen werden pro Liegenschaft hinterlegt — die KI wählt automatisch die richtige
+            Polizen werden pro Liegenschaft hinterlegt — die Schadensanalyse wählt automatisch die richtige
           </p>
         </div>
         <Button onClick={() => setShowForm(!showForm)}>
@@ -162,9 +162,9 @@ export default function VersicherungenPage() {
         <CardContent className="flex items-start gap-3 pt-4 pb-4">
           <Brain className="h-5 w-5 text-blue-600 shrink-0 mt-0.5" />
           <div className="text-sm text-blue-800">
-            <p className="font-medium">KI-Analyse wählt automatisch die richtige Police</p>
+            <p className="font-medium">Automatische Analyse wählt die richtige Police</p>
             <p className="mt-1 text-blue-700">
-              Bei einer Schadensmeldung erkennt die KI anhand der Adresse welche Liegenschaft
+              Bei einer Schadensmeldung erkennt das System anhand der Adresse welche Liegenschaft
               betroffen ist und liest die passende Police aus.
             </p>
           </div>
@@ -364,7 +364,7 @@ export default function VersicherungenPage() {
           <DialogHeader>
             <DialogTitle>Police löschen?</DialogTitle>
             <DialogDescription>
-              <strong>{deleteTarget?.name}</strong> wird unwiderruflich gelöscht. Die KI-Analyse
+              <strong>{deleteTarget?.name}</strong> wird unwiderruflich gelöscht. Das System
               kann diese Police danach nicht mehr verwenden.
             </DialogDescription>
           </DialogHeader>
