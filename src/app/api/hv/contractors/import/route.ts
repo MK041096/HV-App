@@ -137,6 +137,7 @@ export async function POST(request: NextRequest) {
       const { error: insertErr } = await adminSupabase.from('contractors').insert({
         organization_id: orgId,
         name: company,
+        company,
         phone,
         email,
         specialties: [],
