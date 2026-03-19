@@ -7,7 +7,7 @@ import {
   Search, Filter, ArrowUpDown, ArrowUp, ArrowDown,
   ChevronLeft, ChevronRight, Loader2, Home, X,
   UserCheck, Clock, CircleDashed, ClipboardList, MapPin,
-  Users, FileSpreadsheet, Copy, Check, Mail, AlertTriangle, Trash2, FileText,
+  Users, FileSpreadsheet, Copy, Check, Mail, AlertTriangle, Trash2, FileText, Plus,
 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
@@ -189,6 +189,10 @@ export default function UnitsListPage() {
   const [page, setPage] = useState(1)
   const [filtersOpen, setFiltersOpen] = useState(false)
   const [debouncedSearch, setDebouncedSearch] = useState(searchQuery)
+  const [newUnitOpen, setNewUnitOpen] = useState(false)
+  const [isCreatingUnit, setIsCreatingUnit] = useState(false)
+  const [newUnitError, setNewUnitError] = useState<string | null>(null)
+  const [newUnitForm, setNewUnitForm] = useState({ name: "", address: "", floor: "", first_name: "", last_name: "", email: "", phone: "" })
 
   useEffect(() => {
     const timer = setTimeout(() => { setDebouncedSearch(searchQuery); setPage(1) }, 400)
@@ -224,7 +228,29 @@ export default function UnitsListPage() {
 
   useEffect(() => { fetchUnits() }, [fetchUnits])
 
-  async function handleDelete(unit: UnitItem) {
+  async function handleCreateUnit(e: React.FormEvent) {
+    e.preventDefault()
+    setIsCreatingUnit(true)
+    setNewUnitError(null)
+    try {
+      const res = await fetch("/api/hv/units", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(newUnitForm),
+      })
+      const json = await res.json()
+      if (!res.ok) throw new Error(json.error || "Fehler beim Erstellen der Einheit")
+      setNewUnitOpen(false)
+      setNewUnitForm({ name: "", address: "", floor: "", first_name: "", last_name: "", email: "", phone: "" })
+      fetchUnits()
+    } catch (err) {
+      setNewUnitError(err instanceof Error ? err.message : "Unbekannter Fehler")
+    } finally {
+      setIsCreatingUnit(false)
+    }
+  }
+
+    async function handleDelete(unit: UnitItem) {
     setIsDeleting(true)
     try {
       const res = await fetch(`/api/hv/units/${unit.id}/tenant`, { method: 'DELETE' })
@@ -277,11 +303,16 @@ export default function UnitsListPage() {
             {summary && <span className="ml-1">({summary.total_units} gesamt)</span>}
           </p>
         </div>
-        <Button asChild variant="outline">
-          <Link href="/dashboard/units/import">
-            <FileSpreadsheet className="mr-2 h-4 w-4" />Excel importieren
-          </Link>
-        </Button>
+        <div className="flex gap-2">
+          <Button asChild variant="outline">
+            <Link href="/dashboard/units/import">
+              <FileSpreadsheet className="mr-2 h-4 w-4" />Excel importieren
+            </Link>
+          </Button>
+          <Button onClick={() => { setNewUnitOpen(true); setNewUnitError(null) }}>
+            <Plus className="mr-2 h-4 w-4" />Neue Einheit
+          </Button>
+        </div>
       </div>
 
       {/* Summary Cards */}
@@ -579,6 +610,58 @@ export default function UnitsListPage() {
         </DialogContent>
       </Dialog>
 
+
+      {/* New Unit Dialog */}
+      <Dialog open={newUnitOpen} onOpenChange={(o) => { if (!o) { setNewUnitOpen(false); setNewUnitError(null) } }}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Neue Einheit anlegen</DialogTitle>
+            <DialogDescription>Erstellen Sie eine neue Wohneinheit und laden Sie optional sofort einen Mieter ein.</DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleCreateUnit} className="space-y-4 py-2">
+            <div className="space-y-1.5">
+              <Label htmlFor="nu-name">Einheit <span className="text-destructive">*</span></Label>
+              <Input id="nu-name" placeholder="z.B. Top 3 oder Musterstr. 1/2" value={newUnitForm.name} onChange={(e) => setNewUnitForm((f) => ({ ...f, name: e.target.value }))} required />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label htmlFor="nu-address">Adresse</Label>
+                <Input id="nu-address" placeholder="Musterstraße 1" value={newUnitForm.address} onChange={(e) => setNewUnitForm((f) => ({ ...f, address: e.target.value }))} />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="nu-floor">Stockwerk</Label>
+                <Input id="nu-floor" placeholder="z.B. EG, 1. OG" value={newUnitForm.floor} onChange={(e) => setNewUnitForm((f) => ({ ...f, floor: e.target.value }))} />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label htmlFor="nu-firstname">Vorname Mieter</Label>
+                <Input id="nu-firstname" placeholder="Max" value={newUnitForm.first_name} onChange={(e) => setNewUnitForm((f) => ({ ...f, first_name: e.target.value }))} />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="nu-lastname">Nachname Mieter</Label>
+                <Input id="nu-lastname" placeholder="Mustermann" value={newUnitForm.last_name} onChange={(e) => setNewUnitForm((f) => ({ ...f, last_name: e.target.value }))} />
+              </div>
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="nu-email">E-Mail <span className="text-destructive">*</span></Label>
+              <Input id="nu-email" type="email" placeholder="mieter@beispiel.at" value={newUnitForm.email} onChange={(e) => setNewUnitForm((f) => ({ ...f, email: e.target.value }))} />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="nu-phone">Telefon {!newUnitForm.email && <span className="text-destructive">*</span>}</Label>
+              <Input id="nu-phone" type="tel" placeholder="+43 664 123 456" value={newUnitForm.phone} onChange={(e) => setNewUnitForm((f) => ({ ...f, phone: e.target.value }))} />
+              <p className="text-xs text-muted-foreground">E-Mail oder Telefon: mindestens eines muss ausgefüllt sein.</p>
+            </div>
+            {newUnitError && <p className="text-sm text-destructive">{newUnitError}</p>}
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setNewUnitOpen(false)} disabled={isCreatingUnit}>Abbrechen</Button>
+              <Button type="submit" disabled={isCreatingUnit || (!newUnitForm.email && !newUnitForm.phone)}>
+                {isCreatingUnit ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Wird angelegt...</> : <><Plus className="mr-2 h-4 w-4" />Einheit anlegen</>}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
       <InviteDialog
         unit={inviteUnit}
         open={inviteOpen}

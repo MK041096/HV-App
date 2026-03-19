@@ -1,8 +1,131 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { createServerSupabaseClient } from '@/lib/supabase-server'
-import { hvUnitListSchema } from '@/lib/validations/hv-tenant-management'
+import { NextRequest, NextResponse } from "next/server"
+import { createServerSupabaseClient, createAdminClient } from "@/lib/supabase-server"
+import { hvUnitListSchema } from "@/lib/validations/hv-tenant-management"
+import { sendTenantInviteEmail } from "@/lib/email"
 
-const HV_ROLES = ['hv_admin', 'hv_mitarbeiter', 'platform_admin']
+const HV_ROLES = ["hv_admin", "hv_mitarbeiter", "platform_admin"]
+const CODE_CHARSET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
+
+function generateCode(): string {
+  let code = ""
+  for (let i = 0; i < 8; i++) {
+    code += CODE_CHARSET[Math.floor(Math.random() * CODE_CHARSET.length)]
+  }
+  return code
+}
+
+// POST /api/hv/units - Create a single unit manually
+export async function POST(request: NextRequest) {
+  try {
+    const supabase = await createServerSupabaseClient()
+    const adminSupabase = createAdminClient()
+
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return NextResponse.json({ error: "Nicht authentifiziert" }, { status: 401 })
+
+    const { data: profile, error: profileError } = await supabase
+      .from("profiles")
+      .select("organization_id, role")
+      .eq("id", user.id)
+      .eq("is_deleted", false)
+      .single()
+
+    if (profileError || !profile) return NextResponse.json({ error: "Benutzerprofil nicht gefunden" }, { status: 403 })
+    if (!HV_ROLES.includes(profile.role)) return NextResponse.json({ error: "Keine Berechtigung" }, { status: 403 })
+
+    const body = await request.json()
+    const { name, address, floor, first_name, last_name, email, phone } = body
+
+    if (!name || typeof name !== "string" || !name.trim()) {
+      return NextResponse.json({ error: "Einheitenname ist erforderlich" }, { status: 400 })
+    }
+    if (!email && !phone) {
+      return NextResponse.json({ error: "E-Mail oder Telefonnummer ist erforderlich" }, { status: 400 })
+    }
+
+    const { data: newUnit, error: unitError } = await adminSupabase
+      .from("units")
+      .insert({
+        organization_id: profile.organization_id,
+        name: name.trim(),
+        address: address?.trim() || null,
+        floor: floor?.trim() || null,
+        is_deleted: false,
+      })
+      .select("id, name")
+      .single()
+
+    if (unitError || !newUnit) {
+      return NextResponse.json({ error: "Einheit konnte nicht erstellt werden" }, { status: 500 })
+    }
+
+    const expiresAt = new Date()
+    expiresAt.setDate(expiresAt.getDate() + 30)
+    const expiresAtStr = expiresAt.toISOString()
+
+    let code = ""
+    for (let attempt = 0; attempt < 10; attempt++) {
+      const candidate = generateCode()
+      const { data: existing } = await adminSupabase
+        .from("activation_codes")
+        .select("id")
+        .eq("code", candidate)
+        .limit(1)
+      if (!existing || existing.length === 0) { code = candidate; break }
+    }
+    if (!code) return NextResponse.json({ error: "Aktivierungscode konnte nicht generiert werden" }, { status: 500 })
+
+    const tenantName = [first_name?.trim(), last_name?.trim()].filter(Boolean).join(" ") || null
+
+    const { data: codeData, error: codeError } = await adminSupabase
+      .from("activation_codes")
+      .insert({
+        organization_id: profile.organization_id,
+        unit_id: newUnit.id,
+        code,
+        status: "pending",
+        expires_at: expiresAtStr,
+        created_by: user.id,
+        invited_email: email?.trim() || null,
+        invited_first_name: first_name?.trim() || null,
+        invited_last_name: last_name?.trim() || null,
+      })
+      .select("id, code, expires_at")
+      .single()
+
+    if (codeError || !codeData) {
+      return NextResponse.json({ error: "Aktivierungscode konnte nicht gespeichert werden" }, { status: 500 })
+    }
+
+    if (email?.trim()) {
+      const { data: org } = await supabase
+        .from("organizations")
+        .select("name")
+        .eq("id", profile.organization_id)
+        .single()
+
+      await sendTenantInviteEmail({
+        to: email.trim(),
+        tenantName,
+        activationCode: code,
+        expiresAt: expiresAtStr,
+        orgName: org?.name || "Ihre Hausverwaltung",
+        unitName: newUnit.name,
+      })
+    }
+
+    return NextResponse.json({
+      data: {
+        unit: newUnit,
+        code: codeData.code,
+        expires_at: codeData.expires_at,
+      }
+    }, { status: 201 })
+  } catch (err) {
+    console.error("Unexpected error:", err)
+    return NextResponse.json({ error: "Interner Serverfehler" }, { status: 500 })
+  }
+}
 
 // GET /api/hv/units - List all units with tenant status for HV portal
 // Returns enriched unit data: unit info + assigned tenant + activation code status
