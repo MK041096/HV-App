@@ -55,6 +55,8 @@ interface BulkItem {
   status: 'pending' | 'uploading' | 'analysing' | 'done' | 'error' | 'not_found'
   liegenschaft: string | null
   overrideLiegenschaft: string | null
+  suggestedName: string | null
+  overrideName: string | null
   file_path?: string
   file_size?: number
   mime_type?: string
@@ -162,6 +164,8 @@ export default function VersicherungenPage() {
       status: 'pending',
       liegenschaft: null,
       overrideLiegenschaft: null,
+      suggestedName: null,
+      overrideName: null,
     })))
     setBulkDone(false)
   }
@@ -210,12 +214,12 @@ export default function VersicherungenPage() {
         const analyseData = await analyseRes.json()
 
         if (analyseData.liegenschaft) {
-          updated[i] = { ...updated[i], status: 'done', liegenschaft: analyseData.liegenschaft }
+          updated[i] = { ...updated[i], status: 'done', liegenschaft: analyseData.liegenschaft, suggestedName: analyseData.suggested_name || null }
         } else {
-          updated[i] = { ...updated[i], status: 'not_found', liegenschaft: null }
+          updated[i] = { ...updated[i], status: 'not_found', liegenschaft: null, suggestedName: analyseData.suggested_name || null }
         }
       } catch {
-        updated[i] = { ...updated[i], status: 'not_found', liegenschaft: null }
+        updated[i] = { ...updated[i], status: 'not_found', liegenschaft: null, suggestedName: null }
       }
 
       setBulkItems([...updated])
@@ -234,7 +238,7 @@ export default function VersicherungenPage() {
 
       for (const item of toSave) {
         const lg = item.overrideLiegenschaft ?? item.liegenschaft
-        const name = item.file.name.replace(/\.pdf$/i, '')
+        const name = item.overrideName ?? item.suggestedName ?? item.file.name.replace(/\.pdf$/i, '')
         await fetch('/api/documents', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -368,15 +372,33 @@ export default function VersicherungenPage() {
                     <thead className="bg-muted/50">
                       <tr>
                         <th className="text-left px-3 py-2 font-medium">Dateiname</th>
-                        <th className="text-left px-3 py-2 font-medium">Erkannte Liegenschaft</th>
-                        <th className="text-left px-3 py-2 font-medium w-32">Status</th>
+                        <th className="text-left px-3 py-2 font-medium">Bezeichnung (automatisch)</th>
+                        <th className="text-left px-3 py-2 font-medium">Liegenschaft</th>
+                        <th className="text-left px-3 py-2 font-medium w-28">Status</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y">
                       {bulkItems.map((item, idx) => (
                         <tr key={idx} className="hover:bg-muted/20">
-                          <td className="px-3 py-2 font-medium max-w-[200px] truncate" title={item.file.name}>
+                          <td className="px-3 py-2 font-medium max-w-[160px] truncate text-xs text-muted-foreground" title={item.file.name}>
                             {item.file.name}
+                          </td>
+                          <td className="px-3 py-2">
+                            {item.status === 'done' || item.status === 'not_found' ? (
+                              <input
+                                type="text"
+                                className="w-full text-sm border rounded px-2 py-1 bg-background"
+                                value={item.overrideName ?? item.suggestedName ?? ''}
+                                placeholder="Bezeichnung eingeben…"
+                                onChange={(e) => {
+                                  const updated = [...bulkItems]
+                                  updated[idx] = { ...updated[idx], overrideName: e.target.value }
+                                  setBulkItems(updated)
+                                }}
+                              />
+                            ) : (
+                              <span className="text-muted-foreground text-xs">—</span>
+                            )}
                           </td>
                           <td className="px-3 py-2">
                             {item.status === 'done' || item.status === 'not_found' ? (
