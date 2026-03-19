@@ -137,7 +137,7 @@ export default function WerkstaettenImportPage() {
               <div>
                 <p className="text-sm font-medium">Vorlage herunterladen</p>
                 <p className="text-xs text-muted-foreground mt-0.5">
-                  Excel-Datei mit allen Spalten inkl. Beispieldaten
+                  Sie haben bereits eine Excel? Laden Sie sie direkt hoch, das System erkennt die Spalten automatisch. Oder laden Sie diese Vorlage herunter und füllen Sie sie aus.
                 </p>
               </div>
             </div>
@@ -149,8 +149,8 @@ export default function WerkstaettenImportPage() {
 
           <Separator className="my-4" />
 
-          <div className="text-xs text-muted-foreground space-y-2">
-            <p className="font-medium text-foreground">Spalten in der Excel-Datei:</p>
+          <div className="text-xs text-muted-foreground space-y-1">
+            <p className="font-medium text-foreground">Unterstützte Spalten:</p>
             <div className="grid grid-cols-2 gap-x-4 gap-y-0.5">
               <span><span className="text-foreground font-medium">Firmenname</span> — Pflichtfeld</span>
               <span><span className="text-foreground font-medium">Telefon</span> — Pflichtfeld</span>
