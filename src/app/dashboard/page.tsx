@@ -92,7 +92,7 @@ const ONBOARDING_STEPS: OnboardingStep[] = [
     number: 2,
     title: "Handwerker / Werkstätten eintragen",
     description:
-      "Fügen Sie Ihre Vertrauenshandwerker ein — Elektriker, Installateur, Maler usw. Sie hinterlegen Name, Gewerk, Telefon und E-Mail. Die App schlägt Ihnen dann bei jeder Schadensmeldung automatisch den passenden Handwerker vor.",
+      "Fügen Sie Ihre Handwerker ein, Elektriker, Installateur, Maler usw. Sie hinterlegen Name, Gewerk, Telefon und E-Mail. Die App schlägt Ihnen dann bei jeder Schadensmeldung automatisch den passenden Handwerker vor.",
     whyBox:
       "So sparen Sie bei jeder Meldung das lästige Suchen nach der richtigen Nummer. Mit einem Klick sehen Sie, wer für diesen Schadenstyp zuständig ist.",
     href: "/dashboard/werkstaetten",

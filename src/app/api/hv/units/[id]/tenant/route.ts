@@ -224,6 +224,8 @@ export async function DELETE(
 
     if (tenant) {
       tenantName = [tenant.first_name, tenant.last_name].filter(Boolean).join(' ')
+      // Delete the Supabase Auth account so the email can be re-used for future registrations
+      await adminSupabase.auth.admin.deleteUser(tenant.id)
       await adminSupabase
         .from('profiles')
         .update({ is_deleted: true, unit_id: null, updated_at: new Date().toISOString() })
