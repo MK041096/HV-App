@@ -342,7 +342,7 @@ export default function VersicherungenPage() {
                     onClick={() => bulkInputRef.current?.click()}
                     className="w-full"
                   >
-                    PDF-Dateien auswählen
+                    PDF-Dateien hochladen
                   </Button>
                 </div>
                 <div className="space-y-1">
