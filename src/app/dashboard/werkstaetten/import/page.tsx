@@ -113,9 +113,9 @@ export default function WerkstaettenImportPage() {
         <CardContent>
           <div className="grid gap-4 sm:grid-cols-3 text-sm">
             {[
-              { n: "1", title: "Excel ausfüllen", desc: "Name, Firma, Kontaktdaten und Gewerk pro Werkstatt" },
-              { n: "2", title: "Datei hochladen", desc: "Drag & Drop oder Klick. Alle Werkstätten werden sofort angelegt." },
-              { n: "3", title: "Fertig", desc: "Bei jeder Schadensmeldung schlägt das System automatisch die passende Werkstatt vor." },
+              { n: "1", title: "Datei vorbereiten", desc: "Firmenname, Kontaktdaten und Tätigkeit der Werkstatt" },
+              { n: "2", title: "Datei hochladen", desc: "Alle Werkstätten werden sofort angelegt." },
+              { n: "3", title: "Werkstätten sind aktiv.", desc: "Bei einer Schadensmeldung schlägt das System die passende Werkstatt vor." },
             ].map(({ n, title, desc }) => (
               <div key={n} className="flex gap-3">
                 <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-bold">{n}</div>
