@@ -506,11 +506,8 @@ export default function VersicherungenPage() {
           <CardHeader>
             <CardTitle className="text-base flex items-center gap-2">
               <Upload className="h-4 w-4" />
-              Neue Versicherungspolice hochladen
+              Police hochladen
             </CardTitle>
-            <CardDescription>
-              Wählen Sie die Liegenschaft aus, für die diese Police gilt
-            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
@@ -543,8 +540,20 @@ export default function VersicherungenPage() {
                 type="file"
                 accept=".pdf"
                 onChange={e => setSelectedFile(e.target.files?.[0] || null)}
-                className="block w-full text-sm text-muted-foreground file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-primary file:text-primary-foreground hover:file:bg-primary/90 cursor-pointer"
+                className="hidden"
               />
+              <div className="flex items-center gap-3">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  PDF auswählen
+                </Button>
+                {selectedFile && (
+                  <span className="text-sm text-muted-foreground truncate">{selectedFile.name}</span>
+                )}
+              </div>
             </div>
             <div className="flex gap-2">
               <Button
