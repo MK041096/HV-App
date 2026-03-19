@@ -268,25 +268,13 @@ export default function WerkstaettenPage() {
           <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
         </div>
       ) : contractors.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-20 text-center space-y-4">
+        <div className="flex flex-col items-center justify-center py-20 text-center space-y-3">
           <Wrench className="h-14 w-14 text-muted-foreground/40" />
           <div>
             <p className="font-medium text-lg">Noch keine Werkstätten angelegt</p>
             <p className="text-sm text-muted-foreground mt-1">
               Fügen Sie Ihre Handwerker und Dienstleister hinzu, um sie schnell bei Schadensfällen zuzuweisen.
             </p>
-          </div>
-          <div className="flex gap-2">
-            <Button variant="outline" asChild>
-              <Link href="/dashboard/werkstaetten/import">
-                <FileSpreadsheet className="mr-2 h-4 w-4" />
-                Excel importieren
-              </Link>
-            </Button>
-            <Button onClick={openAddDialog}>
-              <Plus className="mr-2 h-4 w-4" />
-              Manuell anlegen
-            </Button>
           </div>
         </div>
       ) : (
