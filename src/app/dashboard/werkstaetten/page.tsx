@@ -17,7 +17,6 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { Badge } from "@/components/ui/badge"
 import {
   Table,
   TableBody,
@@ -53,53 +52,22 @@ interface Contractor {
 
 interface FormState {
   name: string
-  company: string
   email: string
   phone: string
-  specialties: string
-  notes: string
+  taetigkeit: string
+  beschreibung: string
 }
 
-const EMPTY_FORM: FormState = {
-  name: "",
-  company: "",
-  email: "",
-  phone: "",
-  specialties: "",
-  notes: "",
+const EMPTY_FORM: FormState = { name: "", email: "", phone: "", taetigkeit: "", beschreibung: "" }
+
+function extractTaetigkeit(notes: string | null): string {
+  if (!notes) return ""
+  return notes.split("\n")[0] || ""
 }
 
-const SPECIALTY_HINTS = [
-  "wasser", "sanitaer", "heizung", "elektrik", "schimmel",
-  "boeden", "fenster_tueren", "aussenbereich", "dach",
-  "maler", "aufzug", "reinigung", "allgemein",
-]
-
-const SPECIALTY_LABELS: Record<string, string> = {
-  wasser: "Wasser",
-  sanitaer: "Sanitär",
-  heizung: "Heizung",
-  elektrik: "Elektrik",
-  schimmel: "Schimmel",
-  boeden: "Böden",
-  fenster_tueren: "Fenster/Türen",
-  aussenbereich: "Außenbereich",
-  dach: "Dach",
-  maler: "Maler",
-  aufzug: "Aufzug",
-  reinigung: "Reinigung",
-  allgemein: "Allgemein",
-}
-
-function specialtyLabel(s: string): string {
-  return SPECIALTY_LABELS[s] || s
-}
-
-function parseSpecialties(raw: string): string[] {
-  return raw
-    .split(",")
-    .map((s) => s.trim().toLowerCase().replace(/\s+/g, "_"))
-    .filter(Boolean)
+function extractBeschreibung(notes: string | null): string {
+  if (!notes) return ""
+  return notes.split("\n").slice(1).join("\n").trim()
 }
 
 // ── Page ──
@@ -149,11 +117,10 @@ export default function WerkstaettenPage() {
     setEditingContractor(contractor)
     setForm({
       name: contractor.name,
-      company: contractor.company || "",
       email: contractor.email || "",
       phone: contractor.phone || "",
-      specialties: contractor.specialties.join(", "),
-      notes: contractor.notes || "",
+      taetigkeit: extractTaetigkeit(contractor.notes),
+      beschreibung: extractBeschreibung(contractor.notes),
     })
     setFormError(null)
     setDialogOpen(true)
@@ -168,24 +135,36 @@ export default function WerkstaettenPage() {
 
   async function handleSave() {
     if (!form.name.trim()) {
-      setFormError("Name ist ein Pflichtfeld")
+      setFormError("Firmenname ist ein Pflichtfeld")
       return
     }
-    if (!form.email.trim() && !form.phone.trim()) {
-      setFormError("E-Mail-Adresse oder Telefonnummer ist erforderlich")
+    if (!form.phone.trim()) {
+      setFormError("Telefon ist ein Pflichtfeld")
+      return
+    }
+    if (!form.email.trim()) {
+      setFormError("E-Mail ist ein Pflichtfeld")
+      return
+    }
+    if (!form.taetigkeit.trim()) {
+      setFormError("Tätigkeit ist ein Pflichtfeld")
       return
     }
 
     setIsSaving(true)
     setFormError(null)
 
+    const notes = form.beschreibung.trim()
+      ? `${form.taetigkeit.trim()}\n${form.beschreibung.trim()}`
+      : form.taetigkeit.trim()
+
     const payload = {
       name: form.name.trim(),
-      company: form.company.trim() || null,
-      email: form.email.trim() || null,
-      phone: form.phone.trim() || null,
-      specialties: parseSpecialties(form.specialties),
-      notes: form.notes.trim() || null,
+      company: form.name.trim(),
+      email: form.email.trim(),
+      phone: form.phone.trim(),
+      specialties: [],
+      notes,
     }
 
     try {
@@ -282,9 +261,8 @@ export default function WerkstaettenPage() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Firma</TableHead>
-                <TableHead className="hidden md:table-cell">Gewerk / Spezialität</TableHead>
+                <TableHead>Firmenname</TableHead>
+                <TableHead className="hidden md:table-cell">Tätigkeit</TableHead>
                 <TableHead className="hidden sm:table-cell">Telefon</TableHead>
                 <TableHead className="hidden lg:table-cell">E-Mail</TableHead>
                 <TableHead className="text-right">Aktionen</TableHead>
@@ -294,21 +272,8 @@ export default function WerkstaettenPage() {
               {contractors.map((contractor) => (
                 <TableRow key={contractor.id}>
                   <TableCell className="font-medium">{contractor.name}</TableCell>
-                  <TableCell className="text-muted-foreground">
-                    {contractor.company || "—"}
-                  </TableCell>
-                  <TableCell className="hidden md:table-cell">
-                    {contractor.specialties.length > 0 ? (
-                      <div className="flex flex-wrap gap-1">
-                        {contractor.specialties.map((s) => (
-                          <Badge key={s} variant="secondary" className="text-[11px]">
-                            {specialtyLabel(s)}
-                          </Badge>
-                        ))}
-                      </div>
-                    ) : (
-                      <span className="text-muted-foreground text-sm">—</span>
-                    )}
+                  <TableCell className="hidden md:table-cell text-sm text-muted-foreground">
+                    {extractTaetigkeit(contractor.notes) || "—"}
                   </TableCell>
                   <TableCell className="hidden sm:table-cell">
                     {contractor.phone ? (
@@ -393,29 +358,21 @@ export default function WerkstaettenPage() {
 
             <div className="space-y-1.5">
               <Label htmlFor="wk-name">
-                Name <span className="text-destructive">*</span>
+                Firmenname <span className="text-destructive">*</span>
               </Label>
               <Input
                 id="wk-name"
-                placeholder="z.B. Johann Müller"
+                placeholder="z.B. Huber Sanitär GmbH"
                 value={form.name}
                 onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
               />
             </div>
 
-            <div className="space-y-1.5">
-              <Label htmlFor="wk-company">Firma</Label>
-              <Input
-                id="wk-company"
-                placeholder="z.B. Müller Installationen GmbH"
-                value={form.company}
-                onChange={(e) => setForm((f) => ({ ...f, company: e.target.value }))}
-              />
-            </div>
-
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
-                <Label htmlFor="wk-phone">Telefon</Label>
+                <Label htmlFor="wk-phone">
+                  Telefon <span className="text-destructive">*</span>
+                </Label>
                 <Input
                   id="wk-phone"
                   type="tel"
@@ -425,7 +382,9 @@ export default function WerkstaettenPage() {
                 />
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="wk-email">E-Mail</Label>
+                <Label htmlFor="wk-email">
+                  E-Mail <span className="text-destructive">*</span>
+                </Label>
                 <Input
                   id="wk-email"
                   type="email"
@@ -437,37 +396,24 @@ export default function WerkstaettenPage() {
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor="wk-specialties">Spezialitäten</Label>
+              <Label htmlFor="wk-taetigkeit">
+                Tätigkeit <span className="text-destructive">*</span>
+              </Label>
               <Input
-                id="wk-specialties"
-                placeholder="z.B. wasser, heizung, sanitaer"
-                value={form.specialties}
-                onChange={(e) => setForm((f) => ({ ...f, specialties: e.target.value }))}
+                id="wk-taetigkeit"
+                placeholder="z.B. Sanitär & Wasserschaden"
+                value={form.taetigkeit}
+                onChange={(e) => setForm((f) => ({ ...f, taetigkeit: e.target.value }))}
               />
-              <p className="text-[11px] text-muted-foreground">
-                Kommagetrennt. Mögliche Werte:{" "}
-                <span className="font-mono">
-                  {SPECIALTY_HINTS.join(", ")}
-                </span>
-              </p>
-              {form.specialties.trim() && (
-                <div className="flex flex-wrap gap-1 pt-1">
-                  {parseSpecialties(form.specialties).map((s) => (
-                    <Badge key={s} variant="secondary" className="text-[11px]">
-                      {specialtyLabel(s)}
-                    </Badge>
-                  ))}
-                </div>
-              )}
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor="wk-notes">Notizen</Label>
+              <Label htmlFor="wk-beschreibung">Beschreibung</Label>
               <Textarea
-                id="wk-notes"
-                placeholder="Interne Notizen, Konditionen, Kontaktzeiten..."
-                value={form.notes}
-                onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))}
+                id="wk-beschreibung"
+                placeholder="z.B. Rohrbruch, Wasserinstallation, Badezimmerrenovierung..."
+                value={form.beschreibung}
+                onChange={(e) => setForm((f) => ({ ...f, beschreibung: e.target.value }))}
                 rows={3}
                 className="resize-none"
               />
