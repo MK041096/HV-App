@@ -334,8 +334,16 @@ export default function VersicherungenPage() {
                     accept=".pdf"
                     multiple
                     onChange={handleBulkFileSelect}
-                    className="block w-full text-sm text-muted-foreground file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-primary file:text-primary-foreground hover:file:bg-primary/90 cursor-pointer"
+                    className="hidden"
                   />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => bulkInputRef.current?.click()}
+                    className="w-full"
+                  >
+                    PDF-Dateien auswählen
+                  </Button>
                 </div>
                 <div className="space-y-1">
                   <p className="text-xs text-muted-foreground">
