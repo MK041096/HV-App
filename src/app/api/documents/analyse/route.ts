@@ -1,15 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabaseClient } from '@/lib/supabase-server'
 // eslint-disable-next-line @typescript-eslint/no-require-imports
-const pdfParseModule = require('pdf-parse')
-// pdf-parse v2 exports a class, v1 exports a function
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const pdfParse: (buf: Buffer) => Promise<{ text: string }> =
-  typeof pdfParseModule === 'function'
-    ? pdfParseModule
-    : pdfParseModule.default && typeof pdfParseModule.default === 'function'
-    ? pdfParseModule.default
-    : (buf: Buffer) => new pdfParseModule.PDFParse().parse(buf)
+const pdfParse = require('pdf-parse')
 
 // Normalizes an address string for fuzzy matching
 function normalize(str: string): string {
