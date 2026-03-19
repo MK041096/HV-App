@@ -36,6 +36,7 @@ import {
   Loader2,
   Sparkles,
   AlertCircle,
+  Search,
 } from 'lucide-react'
 
 interface LiegenschaftDoc {
@@ -82,6 +83,7 @@ export default function VersicherungenPage() {
   const [bulkDone, setBulkDone] = useState(false)
   const [bulkSaving, setBulkSaving] = useState(false)
   const bulkInputRef = useRef<HTMLInputElement>(null)
+  const [search, setSearch] = useState<string>('')
 
   useEffect(() => { loadData() }, [])
 
@@ -298,14 +300,9 @@ export default function VersicherungenPage() {
             Policen werden pro Liegenschaft hinterlegt — die Schadensanalyse wählt automatisch die richtige
           </p>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={() => { setShowBulk(!showBulk); setShowForm(false) }}>
-            <Sparkles className="h-4 w-4 mr-2" /> Massen-Upload
-          </Button>
-          <Button onClick={() => { setShowForm(!showForm); setShowBulk(false) }}>
-            <Plus className="h-4 w-4 mr-2" /> Police hochladen
-          </Button>
-        </div>
+        <Button onClick={() => { setShowBulk(!showBulk); setShowForm(false) }}>
+          <Sparkles className="h-4 w-4 mr-2" /> Policen importieren
+        </Button>
       </div>
 
       {/* Hinweis */}
@@ -328,11 +325,11 @@ export default function VersicherungenPage() {
           <CardHeader>
             <CardTitle className="text-base flex items-center gap-2">
               <Sparkles className="h-4 w-4" />
-              Massen-Upload — automatische Erkennung
+              Policen importieren — automatische Erkennung
             </CardTitle>
             <CardDescription>
-              Laden Sie mehrere Policen auf einmal hoch. Das System liest die Adresse aus jedem
-              PDF und ordnet es automatisch der richtigen Liegenschaft zu.
+              Laden Sie mehrere Policen auf einmal hoch. Das System liest Versicherungsart, Versicherer
+              und Liegenschaft direkt aus dem PDF-Text — vollautomatisch.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -591,11 +588,16 @@ export default function VersicherungenPage() {
         </Card>
       ) : (
         <div className="space-y-4">
-          <p className="text-sm text-muted-foreground">
-            {liegenschaften.length} {liegenschaften.length === 1 ? 'Liegenschaft' : 'Liegenschaften'} erkannt
-            {totalPolicies > 0 && ` · ${totalPolicies} ${totalPolicies === 1 ? 'Police' : 'Policen'} hinterlegt`}
-          </p>
-          {liegenschaften.map(lg => (
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Liegenschaft suchen…"
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              className="pl-9"
+            />
+          </div>
+          {liegenschaften.filter(lg => lg.address.toLowerCase().includes(search.toLowerCase())).map(lg => (
             <Card key={lg.address} className={lg.docs.length > 0 ? 'border-green-200' : 'border-orange-200'}>
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
