@@ -192,11 +192,11 @@ export default function DokumentePage() {
     <div className="max-w-4xl mx-auto space-y-6 p-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">Dokumente</h1>
+          <h1 className="text-2xl font-bold">Mietverträge</h1>
           {contextUnit ? (
             <p className="text-muted-foreground text-sm mt-1">Einheit: <span className="font-medium text-foreground">{contextUnit.name}</span></p>
           ) : (
-            <p className="text-muted-foreground text-sm mt-1">Mietverträge, Hausordnungen und weitere Dokumente</p>
+            <p className="text-muted-foreground text-sm mt-1">Mietverträge aller Einheiten verwalten</p>
           )}
         </div>
         <div className="flex gap-2">
@@ -208,7 +208,7 @@ export default function DokumentePage() {
             </Button>
           )}
           <Button onClick={() => setShowForm(!showForm)}>
-            <Plus className="h-4 w-4 mr-2" /> Dokument hochladen
+            <Plus className="h-4 w-4 mr-2" /> Mietvertrag hochladen
           </Button>
         </div>
       </div>
@@ -219,26 +219,12 @@ export default function DokumentePage() {
           <CardHeader>
             <CardTitle className="text-base flex items-center gap-2">
               <Upload className="h-4 w-4" />
-              {contextUnit ? `Dokument für ${contextUnit.name}` : 'Neues Dokument'}
+              {contextUnit ? `Mietvertrag für ${contextUnit.name}` : 'Mietvertrag hochladen'}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Dokumententyp</Label>
-                <Select value={docType} onValueChange={setDocType}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {Object.entries(DOC_TYPE_LABELS).map(([value, label]) => (
-                      <SelectItem key={value} value={value}>{label}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {!unitFromUrl && (
+{!unitFromUrl && (
                 <div className="space-y-2">
                   <Label>Einheit (optional)</Label>
                   <Select value={docUnit} onValueChange={setDocUnit}>
@@ -306,9 +292,9 @@ export default function DokumentePage() {
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-16 text-center">
             <FileText className="h-12 w-12 text-muted-foreground/40 mb-4" />
-            <p className="text-muted-foreground font-medium">Noch keine Dokumente</p>
+            <p className="text-muted-foreground font-medium">Noch keine Mietverträge</p>
             <p className="text-sm text-muted-foreground mt-1">
-              {contextUnit ? `Laden Sie Dokumente für ${contextUnit.name} hoch` : 'Laden Sie Mietverträge und andere Dokumente hoch'}
+              {contextUnit ? `Laden Sie Dokumente für ${contextUnit.name} hoch` : 'Laden Sie den Mietvertrag für diese Einheit hoch'}
             </p>
             <Button className="mt-4" onClick={() => setShowForm(true)}>
               <Plus className="h-4 w-4 mr-2" /> Jetzt hochladen

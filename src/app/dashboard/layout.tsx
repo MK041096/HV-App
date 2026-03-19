@@ -73,7 +73,7 @@ const NAV_ITEMS = [
     icon: ShieldCheck,
   },
   {
-    label: "Dokumente",
+    label: "Mietverträge",
     href: "/dashboard/dokumente",
     icon: FolderOpen,
   },
