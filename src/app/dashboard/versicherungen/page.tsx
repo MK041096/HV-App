@@ -303,9 +303,13 @@ export default function VersicherungenPage() {
         </Button>
       </div>
 
-      <p className="text-sm text-muted-foreground">
-        Laden Sie für jede Liegenschaft alle relevanten Policen hoch — das System wählt beim Schaden automatisch die passende aus.
-      </p>
+      <Card className="border-blue-200 bg-blue-50">
+        <CardContent className="pt-4 pb-4">
+          <p className="text-sm text-blue-800">
+            Laden Sie für jede Liegenschaft alle relevanten Policen hoch, das System wählt beim Schaden automatisch die passende aus.
+          </p>
+        </CardContent>
+      </Card>
 
       {/* ── Bulk Upload ─────────────────────────────────────────────────────── */}
       {showBulk && (
