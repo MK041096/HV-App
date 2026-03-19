@@ -94,7 +94,7 @@ const ONBOARDING_STEPS: OnboardingStep[] = [
     description:
       "Fügen Sie Ihre Handwerker ein, Elektriker, Installateur, Maler usw. Sie hinterlegen Name, Gewerk, Telefon und E-Mail. Die App schlägt Ihnen dann bei jeder Schadensmeldung automatisch den passenden Handwerker vor.",
     whyBox:
-      "So sparen Sie bei jeder Meldung das lästige Suchen nach der richtigen Nummer. Mit einem Klick sehen Sie, wer für diesen Schadenstyp zuständig ist.",
+      "Nie wieder überlegen, welche Werkstatt für welchen Schaden zuständig ist. Die App wählt automatisch den passenden Handwerker aus und kontaktiert ihn direkt.",
     href: "/dashboard/werkstaetten",
     linkText: "Zu den Handwerkern",
     icon: Wrench,
