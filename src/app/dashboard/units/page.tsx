@@ -620,26 +620,16 @@ export default function UnitsListPage() {
           </DialogHeader>
           <form onSubmit={handleCreateUnit} className="space-y-4 py-2">
             <div className="space-y-1.5">
-              <Label htmlFor="nu-name">Einheit <span className="text-destructive">*</span></Label>
-              <Input id="nu-name" placeholder="z.B. Top 3 oder Musterstr. 1/2" value={newUnitForm.name} onChange={(e) => setNewUnitForm((f) => ({ ...f, name: e.target.value }))} required />
+              <Label htmlFor="nu-name">Einheit (Adresse) <span className="text-destructive">*</span></Label>
+              <Input id="nu-name" placeholder="z.B. Mariahilfer Straße 88/Top 1, 1060 Wien" value={newUnitForm.name} onChange={(e) => setNewUnitForm((f) => ({ ...f, name: e.target.value }))} required />
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
-                <Label htmlFor="nu-address">Adresse</Label>
-                <Input id="nu-address" placeholder="Musterstraße 1" value={newUnitForm.address} onChange={(e) => setNewUnitForm((f) => ({ ...f, address: e.target.value }))} />
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="nu-floor">Stockwerk</Label>
-                <Input id="nu-floor" placeholder="z.B. EG, 1. OG" value={newUnitForm.floor} onChange={(e) => setNewUnitForm((f) => ({ ...f, floor: e.target.value }))} />
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1.5">
-                <Label htmlFor="nu-firstname">Vorname Mieter</Label>
+                <Label htmlFor="nu-firstname">Vorname</Label>
                 <Input id="nu-firstname" placeholder="Max" value={newUnitForm.first_name} onChange={(e) => setNewUnitForm((f) => ({ ...f, first_name: e.target.value }))} />
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="nu-lastname">Nachname Mieter</Label>
+                <Label htmlFor="nu-lastname">Nachname</Label>
                 <Input id="nu-lastname" placeholder="Mustermann" value={newUnitForm.last_name} onChange={(e) => setNewUnitForm((f) => ({ ...f, last_name: e.target.value }))} />
               </div>
             </div>
@@ -648,7 +638,7 @@ export default function UnitsListPage() {
               <Input id="nu-email" type="email" placeholder="mieter@beispiel.at" value={newUnitForm.email} onChange={(e) => setNewUnitForm((f) => ({ ...f, email: e.target.value }))} />
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="nu-phone">Telefon {!newUnitForm.email && <span className="text-destructive">*</span>}</Label>
+              <Label htmlFor="nu-phone">Telefonnummer <span className="text-destructive">*</span></Label>
               <Input id="nu-phone" type="tel" placeholder="+43 664 123 456" value={newUnitForm.phone} onChange={(e) => setNewUnitForm((f) => ({ ...f, phone: e.target.value }))} />
               <p className="text-xs text-muted-foreground">E-Mail oder Telefon: mindestens eines muss ausgefüllt sein.</p>
             </div>
