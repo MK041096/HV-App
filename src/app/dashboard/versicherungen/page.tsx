@@ -327,7 +327,6 @@ export default function VersicherungenPage() {
             {bulkItems.length === 0 ? (
               <div className="space-y-3">
                 <div className="space-y-2">
-                  <Label>Datei hochladen</Label>
                   <input
                     ref={bulkInputRef}
                     type="file"
@@ -340,7 +339,6 @@ export default function VersicherungenPage() {
                     type="button"
                     variant="outline"
                     onClick={() => bulkInputRef.current?.click()}
-                    className="w-full"
                   >
                     PDF-Dateien hochladen
                   </Button>
