@@ -305,19 +305,9 @@ export default function VersicherungenPage() {
         </Button>
       </div>
 
-      {/* Hinweis */}
-      <Card className="border-blue-200 bg-blue-50">
-        <CardContent className="flex items-start gap-3 pt-4 pb-4">
-          <Building2 className="h-5 w-5 text-blue-600 shrink-0 mt-0.5" />
-          <div className="text-sm text-blue-800">
-            <p className="font-medium">Automatische Zuordnung zur richtigen Liegenschaft</p>
-            <p className="mt-1 text-blue-700">
-              Bei einer Schadensmeldung erkennt das System anhand der Adresse welche Liegenschaft
-              betroffen ist und liest die passende Police aus.
-            </p>
-          </div>
-        </CardContent>
-      </Card>
+      <p className="text-sm text-muted-foreground">
+        Laden Sie für jede Liegenschaft alle relevanten Policen hoch — das System wählt beim Schaden automatisch die passende aus.
+      </p>
 
       {/* ── Bulk Upload ─────────────────────────────────────────────────────── */}
       {showBulk && (
