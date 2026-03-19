@@ -4,18 +4,12 @@ import { createServerSupabaseClient, createAdminClient } from '@/lib/supabase-se
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024
 
-const VALID_SPECIALTIES = [
-  'wasserschaden', 'heizung', 'elektrik', 'fenster_tueren',
-  'schimmel', 'sanitaer', 'boeden_waende', 'aussenbereich', 'sonstiges',
-]
-
 // Column aliases
-const COL_NAME     = ['name', 'vorname nachname', 'kontakt', 'ansprechpartner', 'handwerker', 'person']
-const COL_COMPANY  = ['firma', 'unternehmen', 'company', 'betrieb', 'firmenname', 'unternehmensname']
-const COL_PHONE    = ['telefon', 'tel', 'phone', 'mobil', 'handy', 'telefonnummer', 'tel.', 'mobilnummer']
-const COL_EMAIL    = ['email', 'e-mail', 'mail', 'e mail', 'emailadresse', 'mailadresse']
-const COL_SPECIALTY = ['gewerk', 'spezialisierung', 'specialty', 'fachgebiet', 'kategorie', 'bereich', 'spezialitaet', 'leistung']
-const COL_NOTES    = ['notiz', 'notizen', 'notes', 'anmerkung', 'beschreibung', 'kommentar', 'info']
+const COL_COMPANY     = ['firmenname', 'firma', 'unternehmen', 'company', 'betrieb', 'unternehmensname', 'name']
+const COL_PHONE       = ['telefon', 'tel', 'phone', 'mobil', 'handy', 'telefonnummer', 'tel.', 'mobilnummer']
+const COL_EMAIL       = ['email', 'e-mail', 'mail', 'e mail', 'emailadresse', 'mailadresse']
+const COL_TAETIGKEIT  = ['tätigkeit', 'taetigkeit', 'tätigkeit der werkstatt', 'leistung', 'fachgebiet', 'gewerk', 'spezialisierung']
+const COL_BESCHREIBUNG = ['beschreibung', 'notiz', 'notizen', 'notes', 'anmerkung', 'kommentar', 'info']
 
 function normalize(s: string): string {
   return s.toLowerCase().trim()
@@ -28,15 +22,6 @@ function findCol(headers: string[], aliases: string[]): number {
     const n = normalize(h)
     return aliases.some(a => n.includes(a) || a.includes(n))
   })
-}
-
-function parseSpecialties(raw: string): string[] {
-  if (!raw) return []
-  // Split by comma, semicolon or slash
-  return raw
-    .split(/[,;/]/)
-    .map(s => s.trim().toLowerCase())
-    .filter(s => VALID_SPECIALTIES.includes(s))
 }
 
 interface ImportResult {
@@ -89,65 +74,78 @@ export async function POST(request: NextRequest) {
     }
 
     const headers = (rows[0] || []).map(String)
-    const colName      = findCol(headers, COL_NAME)
-    const colCompany   = findCol(headers, COL_COMPANY)
-    const colPhone     = findCol(headers, COL_PHONE)
-    const colEmail     = findCol(headers, COL_EMAIL)
-    const colSpecialty = findCol(headers, COL_SPECIALTY)
-    const colNotes     = findCol(headers, COL_NOTES)
+    const colCompany      = findCol(headers, COL_COMPANY)
+    const colPhone        = findCol(headers, COL_PHONE)
+    const colEmail        = findCol(headers, COL_EMAIL)
+    const colTaetigkeit   = findCol(headers, COL_TAETIGKEIT)
+    const colBeschreibung = findCol(headers, COL_BESCHREIBUNG)
 
-    if (colName === -1) {
+    if (colCompany === -1) {
       return NextResponse.json(
-        { error: 'Keine Name-Spalte gefunden. Erkannte Spalten: ' + headers.join(', ') },
+        { error: 'Keine Firmenname-Spalte gefunden. Erkannte Spalten: ' + headers.join(', ') },
         { status: 400 }
       )
     }
 
-    // Fetch existing to detect duplicates (by name + company)
+    // Fetch existing to detect duplicates (by name + phone)
     const { data: existing } = await supabase
       .from('contractors')
-      .select('name, company')
+      .select('name, phone')
       .eq('organization_id', orgId)
       .eq('is_active', true)
       .limit(2000)
 
     const existingKeys = new Set(
-      (existing || []).map(c => `${c.name?.toLowerCase()}|${c.company?.toLowerCase() || ''}`)
+      (existing || []).map(c => `${c.name?.toLowerCase()}|${c.phone?.toLowerCase() || ''}`)
     )
 
     const result: ImportResult = { contractors_created: 0, contractors_skipped: 0, errors: [] }
 
     for (let i = 1; i < rows.length; i++) {
       const row = rows[i] || []
-      const name = row[colName]?.toString().trim()
-      if (!name) continue
+      const company = row[colCompany]?.toString().trim()
+      if (!company) continue
 
-      const company  = colCompany  >= 0 ? row[colCompany]?.toString().trim()  || null : null
-      const phone    = colPhone    >= 0 ? row[colPhone]?.toString().trim()    || null : null
-      const email    = colEmail    >= 0 ? row[colEmail]?.toString().trim().toLowerCase() || null : null
-      const notesRaw = colNotes    >= 0 ? row[colNotes]?.toString().trim()    || null : null
-      const specRaw  = colSpecialty >= 0 ? row[colSpecialty]?.toString().trim() || '' : ''
-      const specialties = parseSpecialties(specRaw)
+      const phone       = colPhone        >= 0 ? row[colPhone]?.toString().trim()       || null : null
+      const email       = colEmail        >= 0 ? row[colEmail]?.toString().trim().toLowerCase() || null : null
+      const taetigkeit  = colTaetigkeit   >= 0 ? row[colTaetigkeit]?.toString().trim()  || null : null
+      const beschreibung = colBeschreibung >= 0 ? row[colBeschreibung]?.toString().trim() || null : null
 
-      const key = `${name.toLowerCase()}|${company?.toLowerCase() || ''}`
+      // Validate required fields
+      if (!phone) {
+        result.errors.push({ row: i + 1, message: `"${company}": Telefonnummer fehlt (Pflichtfeld)` })
+        continue
+      }
+      if (!email) {
+        result.errors.push({ row: i + 1, message: `"${company}": E-Mail fehlt (Pflichtfeld)` })
+        continue
+      }
+      if (!taetigkeit) {
+        result.errors.push({ row: i + 1, message: `"${company}": Tätigkeit fehlt (Pflichtfeld)` })
+        continue
+      }
+
+      const key = `${company.toLowerCase()}|${phone.toLowerCase()}`
       if (existingKeys.has(key)) {
         result.contractors_skipped++
         continue
       }
 
+      // Combine Tätigkeit + Beschreibung into notes
+      const notes = beschreibung ? `${taetigkeit}\n${beschreibung}` : taetigkeit
+
       const { error: insertErr } = await adminSupabase.from('contractors').insert({
         organization_id: orgId,
-        name,
-        company,
+        name: company,
         phone,
         email,
-        specialties,
-        notes: notesRaw,
+        specialties: [],
+        notes,
         is_active: true,
       })
 
       if (insertErr) {
-        result.errors.push({ row: i + 1, message: `"${name}" konnte nicht gespeichert werden: ${insertErr.message}` })
+        result.errors.push({ row: i + 1, message: `"${company}" konnte nicht gespeichert werden: ${insertErr.message}` })
         continue
       }
 

@@ -2,6 +2,7 @@
 
 import { useState, useRef, useCallback } from "react"
 import Link from "next/link"
+import * as XLSX from "xlsx"
 import {
   Upload, FileSpreadsheet, X, Loader2, CheckCircle2,
   AlertCircle, ChevronLeft, Download, Wrench, Info,
@@ -19,20 +20,18 @@ interface ImportResult {
 }
 
 function downloadTemplate() {
-  const csvContent = [
-    "Name,Firma,Telefon,E-Mail,Gewerk,Notiz",
-    'Thomas Huber,Huber Sanitaer GmbH,+43 664 111 2233,huber@example.at,"wasserschaden,sanitaer",Rohrbruch und Wasserinstallation',
-    "Klaus Brandner,Elektro Brandner eU,+43 664 222 3344,brandner@example.at,elektrik,Elektroinstallation und Reparaturen",
-    "Maria Fuchs,Fuchs Bau KG,+43 664 333 4455,fuchs@example.at,schimmel,Schimmelsanierung",
-  ].join("\n")
+  const data = [
+    ["Firmenname", "Telefon", "E-Mail", "Tätigkeit", "Beschreibung"],
+    ["Huber Sanitär GmbH", "+43 664 111 2233", "huber@example.at", "Sanitär & Wasserschaden", "Rohrbruch, Wasserinstallation, Badezimmerrenovierung"],
+    ["Elektro Brandner eU", "+43 664 222 3344", "brandner@example.at", "Elektroinstallation", "Reparaturen, Zählerkasten, Beleuchtung"],
+    ["Fuchs Bau KG", "+43 664 333 4455", "fuchs@example.at", "Schimmel & Trockenbau", "Schimmelsanierung, Wandverputz, Malerarbeiten"],
+  ]
 
-  const blob = new Blob(["\uFEFF" + csvContent], { type: "text/csv;charset=utf-8;" })
-  const url = URL.createObjectURL(blob)
-  const a = document.createElement("a")
-  a.href = url
-  a.download = "SchadensMelder_Werkstaetten_Vorlage.csv"
-  a.click()
-  URL.revokeObjectURL(url)
+  const ws = XLSX.utils.aoa_to_sheet(data)
+  ws["!cols"] = [{ wch: 28 }, { wch: 20 }, { wch: 28 }, { wch: 28 }, { wch: 40 }]
+  const wb = XLSX.utils.book_new()
+  XLSX.utils.book_append_sheet(wb, ws, "Werkstätten")
+  XLSX.writeFile(wb, "SchadensMelder_Werkstaetten_Vorlage.xlsx")
 }
 
 export default function WerkstaettenImportPage() {
@@ -97,8 +96,8 @@ export default function WerkstaettenImportPage() {
         </Button>
         <h1 className="text-2xl font-bold tracking-tight">Werkstätten importieren</h1>
         <p className="text-muted-foreground mt-1">
-          Importieren Sie Ihre Handwerker und Dienstleister aus einer Excel- oder CSV-Datei.
-          Die Gewerkszuordnung ermöglicht automatische Vorschläge bei Schadensmeldungen.
+          Importieren Sie Ihre Handwerker und Dienstleister aus einer Excel-Datei.
+          Das System schlägt bei einer Schadensmeldung automatisch die passende Werkstatt vor.
         </p>
       </div>
 
@@ -138,34 +137,26 @@ export default function WerkstaettenImportPage() {
               <div>
                 <p className="text-sm font-medium">Vorlage herunterladen</p>
                 <p className="text-xs text-muted-foreground mt-0.5">
-                  CSV mit allen Spalten inkl. Beispieldaten
+                  Excel-Datei mit allen Spalten inkl. Beispieldaten
                 </p>
               </div>
             </div>
             <Button variant="outline" size="sm" onClick={downloadTemplate}>
               <Download className="mr-2 h-4 w-4" />
-              Vorlage (CSV)
+              Vorlage (Excel)
             </Button>
           </div>
 
           <Separator className="my-4" />
 
           <div className="text-xs text-muted-foreground space-y-2">
-            <p className="font-medium text-foreground">Unterstützte Spalten:</p>
+            <p className="font-medium text-foreground">Spalten in der Excel-Datei:</p>
             <div className="grid grid-cols-2 gap-x-4 gap-y-0.5">
-              <span><span className="text-foreground font-medium">Name</span> — Pflichtfeld</span>
-              <span><span className="text-foreground">Firma</span> — optional</span>
-              <span><span className="text-foreground">Telefon</span> — optional</span>
-              <span><span className="text-foreground">E-Mail</span> — optional</span>
-              <span><span className="text-foreground">Gewerk</span> — für Vorschläge</span>
-              <span><span className="text-foreground">Notiz</span> — optional</span>
-            </div>
-            <Separator className="my-2" />
-            <p className="font-medium text-foreground">Gültige Gewerk-Werte (Komma-getrennt):</p>
-            <div className="flex flex-wrap gap-1 mt-1">
-              {["wasserschaden","heizung","elektrik","fenster_tueren","schimmel","sanitaer","boeden_waende","aussenbereich","sonstiges"].map(s => (
-                <Badge key={s} variant="outline" className="text-[10px]">{s}</Badge>
-              ))}
+              <span><span className="text-foreground font-medium">Firmenname</span> — Pflichtfeld</span>
+              <span><span className="text-foreground font-medium">Telefon</span> — Pflichtfeld</span>
+              <span><span className="text-foreground font-medium">E-Mail</span> — Pflichtfeld</span>
+              <span><span className="text-foreground font-medium">Tätigkeit</span> — Pflichtfeld</span>
+              <span><span className="text-foreground">Beschreibung</span> — optional</span>
             </div>
           </div>
         </CardContent>
