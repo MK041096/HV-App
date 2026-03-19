@@ -533,7 +533,7 @@ export default function VersicherungenPage() {
                   variant="outline"
                   onClick={() => fileInputRef.current?.click()}
                 >
-                  PDF-Datei hochladen
+                  PDF-Datei auswählen
                 </Button>
                 {selectedFile && (
                   <span className="text-sm text-muted-foreground truncate">{selectedFile.name}</span>
