@@ -5,7 +5,6 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import {
   Select,
   SelectContent,
@@ -29,7 +28,6 @@ import {
   Trash2,
   Plus,
   File,
-  Info,
   Building2,
   CheckCircle2,
   XCircle,
@@ -37,6 +35,8 @@ import {
   Sparkles,
   AlertCircle,
   Search,
+  ChevronDown,
+  ChevronUp,
 } from 'lucide-react'
 
 interface LiegenschaftDoc {
@@ -84,6 +84,16 @@ export default function VersicherungenPage() {
   const [bulkSaving, setBulkSaving] = useState(false)
   const bulkInputRef = useRef<HTMLInputElement>(null)
   const [search, setSearch] = useState<string>('')
+  const [expandedCards, setExpandedCards] = useState<Set<string>>(new Set())
+
+  function toggleCard(address: string) {
+    setExpandedCards(prev => {
+      const next = new Set(prev)
+      if (next.has(address)) next.delete(address)
+      else next.add(address)
+      return next
+    })
+  }
 
   useEffect(() => { loadData() }, [])
 
@@ -576,99 +586,122 @@ export default function VersicherungenPage() {
           </CardContent>
         </Card>
       ) : (
-        <div className="space-y-4">
-          {liegenschaften.filter(lg => lg.address.toLowerCase().includes(search.toLowerCase())).map(lg => (
-            <Card key={lg.address} className={lg.docs.length > 0 ? 'border-green-200' : 'border-orange-200'}>
-              <CardHeader className="pb-3">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-base flex items-center gap-2">
-                    <Building2 className="h-4 w-4 text-muted-foreground" />
-                    {lg.address}
-                  </CardTitle>
-                  {lg.docs.length > 0 ? (
-                    <Badge className="bg-green-100 text-green-800 border-0">
-                      <ShieldCheck className="h-3 w-3 mr-1" />
-                      Versichert
-                    </Badge>
-                  ) : (
-                    <Badge variant="outline" className="border-orange-300 text-orange-700">
-                      <ShieldAlert className="h-3 w-3 mr-1" />
-                      Keine Police
-                    </Badge>
-                  )}
-                </div>
-                <CardDescription>
-                  {lg.unitCount} {lg.unitCount === 1 ? 'Einheit' : 'Einheiten'} in dieser Liegenschaft
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="pt-0">
-                {lg.docs.length === 0 ? (
-                  <div className="flex items-center gap-2">
-                    <p className="text-sm text-muted-foreground flex-1">
-                      Noch keine Versicherungspolice für diese Liegenschaft hinterlegt
-                    </p>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => {
-                        setSelectedLiegenschaft(lg.address)
-                        setShowForm(true)
-                        setShowBulk(false)
-                        window.scrollTo({ top: 0, behavior: 'smooth' })
-                      }}
-                    >
-                      <Plus className="h-3 w-3 mr-1" /> Police hinzufügen
-                    </Button>
+        <div className="space-y-3">
+          {liegenschaften.filter(lg => lg.address.toLowerCase().includes(search.toLowerCase())).map(lg => {
+            const isExpanded = expandedCards.has(lg.address)
+            const isInsured = lg.docs.length > 0
+            return (
+              <Card key={lg.address} className={isInsured ? 'border-green-200' : 'border-orange-200'}>
+                {/* Collapsed header — always visible, clickable */}
+                <CardHeader
+                  className="pb-3 cursor-pointer select-none"
+                  onClick={() => toggleCard(lg.address)}
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 flex-1 min-w-0">
+                      <Building2 className="h-4 w-4 text-muted-foreground shrink-0" />
+                      <span className="font-semibold text-base truncate">{lg.address}</span>
+                    </div>
+                    <div className="flex items-center gap-2 ml-3 shrink-0">
+                      {isInsured ? (
+                        <Badge className="bg-green-100 text-green-800 border-0">
+                          <ShieldCheck className="h-3 w-3 mr-1" />
+                          Police vorhanden
+                        </Badge>
+                      ) : (
+                        <Badge variant="outline" className="border-orange-300 text-orange-700">
+                          <ShieldAlert className="h-3 w-3 mr-1" />
+                          Keine Police
+                        </Badge>
+                      )}
+                      {isExpanded
+                        ? <ChevronUp className="h-4 w-4 text-muted-foreground" />
+                        : <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                      }
+                    </div>
                   </div>
-                ) : (
-                  <div className="space-y-2">
-                    {lg.docs.map(doc => (
-                      <div
-                        key={doc.id}
-                        className="flex items-center justify-between py-2 px-3 rounded-md bg-muted/40"
-                      >
-                        <div className="flex items-center gap-2 flex-1 min-w-0">
-                          <File className="h-4 w-4 text-green-700 shrink-0" />
-                          <div className="min-w-0">
-                            <p className="text-sm font-medium truncate">{doc.name}</p>
-                            <p className="text-xs text-muted-foreground">
-                              {new Date(doc.created_at).toLocaleDateString('de-AT')}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-1 ml-3">
-                          <Button variant="ghost" size="sm" onClick={() => handleDownload(doc.id)}>
-                            <Download className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => confirmDelete(doc)}
-                            className="text-red-500 hover:text-red-700"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
+                  <CardDescription className="mt-1">
+                    {lg.unitCount} {lg.unitCount === 1 ? 'Einheit' : 'Einheiten'} in dieser Liegenschaft
+                    {isInsured && !isExpanded && (
+                      <span className="ml-2 text-green-700">· {lg.docs.length} {lg.docs.length === 1 ? 'Police' : 'Policen'}</span>
+                    )}
+                  </CardDescription>
+                </CardHeader>
+
+                {/* Expanded content */}
+                {isExpanded && (
+                  <CardContent className="pt-0">
+                    {lg.docs.length === 0 ? (
+                      <div className="flex items-center gap-2">
+                        <p className="text-sm text-muted-foreground flex-1">
+                          Noch keine Versicherungspolice für diese Liegenschaft hinterlegt
+                        </p>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            setSelectedLiegenschaft(lg.address)
+                            setShowForm(true)
+                            setShowBulk(false)
+                            window.scrollTo({ top: 0, behavior: 'smooth' })
+                          }}
+                        >
+                          <Plus className="h-3 w-3 mr-1" /> Police hinzufügen
+                        </Button>
                       </div>
-                    ))}
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="text-muted-foreground"
-                      onClick={() => {
-                        setSelectedLiegenschaft(lg.address)
-                        setShowForm(true)
-                        setShowBulk(false)
-                        window.scrollTo({ top: 0, behavior: 'smooth' })
-                      }}
-                    >
-                      <Plus className="h-3 w-3 mr-1" /> Weitere Police hinzufügen
-                    </Button>
-                  </div>
+                    ) : (
+                      <div className="space-y-2">
+                        {lg.docs.map(doc => (
+                          <div
+                            key={doc.id}
+                            className="flex items-center justify-between py-2 px-3 rounded-md bg-muted/40"
+                          >
+                            <div className="flex items-center gap-2 flex-1 min-w-0">
+                              <File className="h-4 w-4 text-green-700 shrink-0" />
+                              <div className="min-w-0">
+                                <p className="text-sm font-medium truncate">{doc.name}</p>
+                                <p className="text-xs text-muted-foreground">
+                                  {new Date(doc.created_at).toLocaleDateString('de-AT')}
+                                </p>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-1 ml-3">
+                              <Button variant="ghost" size="sm" onClick={() => handleDownload(doc.id)}>
+                                <Download className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => confirmDelete(doc)}
+                                className="text-red-500 hover:text-red-700"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </div>
+                        ))}
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="text-muted-foreground"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            setSelectedLiegenschaft(lg.address)
+                            setShowForm(true)
+                            setShowBulk(false)
+                            window.scrollTo({ top: 0, behavior: 'smooth' })
+                          }}
+                        >
+                          <Plus className="h-3 w-3 mr-1" /> Weitere Police hinzufügen
+                        </Button>
+                      </div>
+                    )}
+                  </CardContent>
                 )}
-              </CardContent>
-            </Card>
-          ))}
+              </Card>
+            )
+          })}
         </div>
       )}
 

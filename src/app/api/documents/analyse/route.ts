@@ -121,30 +121,94 @@ export async function POST(request: NextRequest) {
     // Extract policy name from PDF text
     const suggested_name = extractPolicyName(pdfText)
 
-    // Match Liegenschaft
+    // Match Liegenschaft — contextual search first, full-text fallback
     let bestMatch: string | null = null
-    let bestMatchLength = 0
 
     if (liegenschaften.length > 0) {
-      const normalizedPdf = normalize(pdfText)
-
-      for (const lg of liegenschaften) {
-        const normalizedLg = normalize(lg)
-        if (normalizedPdf.includes(normalizedLg) && normalizedLg.length > bestMatchLength) {
-          bestMatch = lg
-          bestMatchLength = normalizedLg.length
+      // Step 1: Extract context windows around "Versichertes Objekt" labels
+      // Covers label variations used by Austrian/German insurers (Wiener Städtische,
+      // Allianz, Generali, UNIQA, HDI, Helvetia, Grazer Wechselseitige, etc.)
+      const objectLabels = [
+        // Most common
+        'versichertes objekt',
+        'versicherungsobjekt',
+        'das versicherte objekt',
+        // Liegenschaft-based
+        'liegenschaftsadresse',
+        'geschützte liegenschaft',
+        'geschuetzte liegenschaft',
+        'versicherte liegenschaft',
+        'liegenschaft',
+        // Risiko-based (Allianz, HDI, Helvetia)
+        'risikoanschrift',
+        'risikoadresse',
+        'risikoort',
+        'risikostandort',
+        'ort der risikobelegenheit',
+        'belegenheitsadresse',
+        'belegenheitsort',
+        // Standort / Gebäude
+        'versicherter standort',
+        'versicherungsort',
+        'objektadresse',
+        'gebäudeadresse',
+        'gebaeudeadresse',
+        'versichertes gebäude',
+        'versichertes gebaeude',
+        // Sonstige
+        'versicherter gegenstand',
+        'versichertes risiko',
+        'anschrift des risikos',
+        'lageadresse',
+        'standortadresse',
+      ]
+      const contextWindows: string[] = []
+      const lowerText = pdfText.toLowerCase()
+      for (const label of objectLabels) {
+        let pos = lowerText.indexOf(label)
+        while (pos !== -1) {
+          // Take 400 chars after the label (where the address follows)
+          const window = pdfText.slice(pos, pos + 400)
+          contextWindows.push(window)
+          pos = lowerText.indexOf(label, pos + 1)
         }
       }
 
-      if (!bestMatch) {
+      // Helper: search liegenschaften in a given text block
+      const findMatch = (searchText: string): string | null => {
+        const normalizedSearch = normalize(searchText)
+        let found: string | null = null
+        let foundLen = 0
         for (const lg of liegenschaften) {
-          const streetPart = lg.split(',')[0].trim()
-          const normalizedStreet = normalize(streetPart)
-          if (normalizedStreet.length > 5 && normalize(pdfText).includes(normalizedStreet)) {
-            bestMatch = lg
-            break
+          const normalizedLg = normalize(lg)
+          if (normalizedSearch.includes(normalizedLg) && normalizedLg.length > foundLen) {
+            found = lg
+            foundLen = normalizedLg.length
           }
         }
+        if (!found) {
+          // Street-only fallback (ignore house number and city)
+          for (const lg of liegenschaften) {
+            const streetPart = lg.split(',')[0].trim()
+            const normalizedStreet = normalize(streetPart)
+            if (normalizedStreet.length > 5 && normalizedSearch.includes(normalizedStreet)) {
+              found = lg
+              break
+            }
+          }
+        }
+        return found
+      }
+
+      // Step 2: Search in context windows (high confidence)
+      for (const window of contextWindows) {
+        const match = findMatch(window)
+        if (match) { bestMatch = match; break }
+      }
+
+      // Step 3: Full-text fallback (lower confidence, still useful)
+      if (!bestMatch) {
+        bestMatch = findMatch(pdfText)
       }
     }
 
