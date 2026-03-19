@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
     let query = supabase
       .from('documents')
       .select(`
-        id, name, file_path, file_size, mime_type, document_type, created_at,
+        id, name, file_path, file_size, mime_type, document_type, liegenschaft, created_at,
         unit:units(id, name),
         uploader:profiles!documents_uploaded_by_fkey(first_name, last_name)
       `)
@@ -65,7 +65,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { name, file_path, file_size, mime_type, document_type, unit_id } = body
+    const { name, file_path, file_size, mime_type, document_type, unit_id, liegenschaft } = body
 
     if (!name || !file_path || !file_size) {
       return NextResponse.json({ error: 'Pflichtfelder fehlen' }, { status: 400 })
@@ -77,6 +77,7 @@ export async function POST(request: NextRequest) {
         organization_id: profile.organization_id,
         uploaded_by: user.id,
         unit_id: unit_id || null,
+        liegenschaft: liegenschaft || null,
         name,
         file_path,
         file_size,

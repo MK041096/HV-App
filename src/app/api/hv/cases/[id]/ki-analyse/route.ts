@@ -145,29 +145,47 @@ export async function POST(
       }
     }
 
-    // Load Versicherungspolice for this org (unit_id IS NULL = org-level document)
+    // Load Versicherungspolice: match by Liegenschaft (address before "/"), fallback to unassigned
     let insuranceContent: string | null = null
     let insuranceFound = false
 
-    const { data: insuranceDocs } = await supabase
+    // Derive Liegenschaft from unit address (e.g. "Schönbrunnerstraße 42/Top 1" → "Schönbrunnerstraße 42")
+    const liegenschaft = unit?.address
+      ? (unit.address.includes('/') ? unit.address.split('/')[0].trim() : unit.address.trim())
+      : null
+
+    let insuranceQuery = supabase
       .from('documents')
-      .select('id, name, file_path, mime_type')
+      .select('id, name, file_path, mime_type, liegenschaft')
       .eq('organization_id', profile.organization_id)
       .eq('document_type', 'versicherung')
       .eq('is_deleted', false)
       .is('unit_id', null)
       .order('created_at', { ascending: false })
-      .limit(1)
+      .limit(10)
 
-    if (insuranceDocs && insuranceDocs.length > 0) {
-      const doc = insuranceDocs[0]
+    const { data: allInsuranceDocs } = await insuranceQuery
+
+    // Prefer a doc matching the exact Liegenschaft; fall back to docs without liegenschaft set
+    let chosenInsuranceDoc: { id: string; name: string; file_path: string; mime_type: string } | null = null
+    if (allInsuranceDocs && allInsuranceDocs.length > 0) {
+      if (liegenschaft) {
+        chosenInsuranceDoc = allInsuranceDocs.find(d => d.liegenschaft === liegenschaft) || null
+      }
+      if (!chosenInsuranceDoc) {
+        // Fallback: use a doc without an assigned Liegenschaft
+        chosenInsuranceDoc = allInsuranceDocs.find(d => !d.liegenschaft) || allInsuranceDocs[0]
+      }
+    }
+
+    if (chosenInsuranceDoc) {
       const { data: fileData, error: downloadError } = await supabase.storage
         .from('documents')
-        .download(doc.file_path)
+        .download(chosenInsuranceDoc.file_path)
 
       if (!downloadError && fileData) {
         insuranceFound = true
-        if (doc.mime_type === 'application/pdf') {
+        if (chosenInsuranceDoc.mime_type === 'application/pdf') {
           const arrayBuffer = await fileData.arrayBuffer()
           insuranceContent = Buffer.from(arrayBuffer).toString('base64')
         } else {
