@@ -213,7 +213,12 @@ export async function POST(request: NextRequest) {
     }
 
     // Extract Top/unit number from PDF text (for Mietvertrag matching)
-    const topMatch = pdfText.match(/(?:wohnung[:\s]+top\s*|top\s+nr\.?\s*|top\s*[-/]?\s*)(\d+)/i)
+    // Priority: specific context (Wohnung/Mietobjekt + Top N) → Top Nr. N → standalone Top N
+    // Negative lookahead (?!\s*[-–]\s*\d) prevents matching "Top 1" in ranges like "Top 1-10"
+    const topMatch =
+      pdfText.match(/\b(?:wohnung|mietobjekt|einheit)[^.\n]{0,80}\bTop\s+(\d{1,3})\b(?!\s*[-–]\s*\d)/i) ??
+      pdfText.match(/\bTop\s+Nr\.?\s*(\d{1,3})\b/i) ??
+      pdfText.match(/\bTop\s+(\d{1,3})\b(?!\s*[-–]\s*\d)/i)
     const unit_top = topMatch ? topMatch[1] : null
 
     return NextResponse.json({

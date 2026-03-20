@@ -227,12 +227,12 @@ export default function DokumentePage() {
             matchedUnitId = candidates[0].id
           } else if (candidates.length > 1 && analyseData.unit_top) {
             // Mehrere Einheiten (Top 1-10) — Top-Nummer aus PDF nutzen
+            // \b-Wortgrenze verhindert dass "Top 1" auf "Top 10" matcht
             const topStr = String(analyseData.unit_top)
+            const topRegex = new RegExp(`\\bTop\\s+${topStr}\\b`, 'i')
             const exact = candidates.find(e =>
-              e.address?.toLowerCase().includes(`top ${topStr},`) ||
-              e.address?.toLowerCase().includes(`top ${topStr} `) ||
-              e.address?.toLowerCase().endsWith(`top ${topStr}`) ||
-              e.name?.toLowerCase().includes(`top ${topStr}`)
+              topRegex.test(e.address || '') ||
+              topRegex.test(e.name || '')
             )
             matchedUnitId = exact?.id ?? null
           }
