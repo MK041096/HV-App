@@ -18,11 +18,11 @@ export const CATEGORY_LABELS: Record<typeof DAMAGE_CATEGORIES[number], string> =
   wasserschaden: 'Wasserschaden',
   heizung: 'Heizung',
   elektrik: 'Elektrik',
-  fenster_tueren: 'Fenster & Tueren',
+  fenster_tueren: 'Fenster & Türen',
   schimmel: 'Schimmel',
-  sanitaer: 'Sanitaer',
-  boeden_waende: 'Boeden & Waende',
-  aussenbereich: 'Aussenbereich',
+  sanitaer: 'Sanitär',
+  boeden_waende: 'Böden & Wände',
+  aussenbereich: 'Außenbereich',
   sonstiges: 'Sonstiges',
 }
 
@@ -39,7 +39,7 @@ export const SUBCATEGORIES: Record<typeof DAMAGE_CATEGORIES[number], string[]> =
   sonstiges: ['sonstiges'],
 }
 
-// Valid rooms matching DB CHECK constraint
+// Valid rooms matching DB CHECK constraint (legacy single-room field)
 export const ROOMS = [
   'kueche',
   'bad',
@@ -54,15 +54,48 @@ export const ROOMS = [
 ] as const
 
 export const ROOM_LABELS: Record<typeof ROOMS[number], string> = {
-  kueche: 'Kueche',
+  kueche: 'Küche',
   bad: 'Bad',
   wc: 'WC',
   schlafzimmer: 'Schlafzimmer',
   wohnzimmer: 'Wohnzimmer',
-  flur: 'Flur',
+  flur: 'Flur / Gang',
   keller: 'Keller',
   balkon: 'Balkon',
   terrasse: 'Terrasse',
+  sonstiges: 'Sonstiges',
+}
+
+// Extended room list for multi-select (includes exterior/communal areas)
+export const ROOMS_EXTENDED = [
+  'kueche',
+  'bad',
+  'wc',
+  'schlafzimmer',
+  'wohnzimmer',
+  'flur',
+  'keller',
+  'balkon',
+  'terrasse',
+  'dachboden',
+  'aussenbereich_fassade',
+  'gemeinschaftsbereich',
+  'sonstiges',
+] as const
+
+export const ROOM_LABELS_EXTENDED: Record<string, string> = {
+  kueche: 'Küche',
+  bad: 'Bad',
+  wc: 'WC',
+  schlafzimmer: 'Schlafzimmer',
+  wohnzimmer: 'Wohnzimmer',
+  flur: 'Flur / Gang',
+  keller: 'Keller',
+  balkon: 'Balkon',
+  terrasse: 'Terrasse',
+  dachboden: 'Dachboden / Speicher',
+  aussenbereich_fassade: 'Außenbereich / Fassade',
+  gemeinschaftsbereich: 'Gemeinschaftsbereich',
   sonstiges: 'Sonstiges',
 }
 
@@ -75,11 +108,36 @@ export const URGENCY_LABELS: Record<typeof URGENCY_LEVELS[number], string> = {
   normal: 'Normal (innerhalb 2 Wochen)',
 }
 
+// Innen/Außen distinction — determines if damage belongs to unit or building
+export const DAMAGE_SIDES = ['innen', 'aussen', 'beides'] as const
+
+export const DAMAGE_SIDE_LABELS: Record<string, string> = {
+  innen: 'Innenseite (Wohnung)',
+  aussen: 'Außenseite (Gebäude / Liegenschaft)',
+  beides: 'Innen- und Außenseite',
+}
+
+export const DAMAGE_SIDE_DESCRIPTIONS: Record<string, string> = {
+  innen: 'Der Schaden befindet sich innerhalb der Wohnung. Zuständigkeit: Mieter oder HV je nach Mietvertrag.',
+  aussen: 'Der Schaden betrifft Fassade, Außenwand oder Gemeinschaftsbereiche. Zuständigkeit: Hausverwaltung / Liegenschaft.',
+  beides: 'Der Schaden betrifft sowohl die Wohnung als auch das Gebäude.',
+}
+
+// Categories where innen/außen question is shown
+export const CATEGORIES_WITH_SIDE = [
+  'fenster_tueren',
+  'boeden_waende',
+  'aussenbereich',
+  'schimmel',
+  'wasserschaden',
+] as const
+
 // Schema for creating a damage report
 export const createDamageReportSchema = z.object({
   category: z.enum(DAMAGE_CATEGORIES, {
     error: 'Bitte wählen Sie eine Kategorie',
   }),
+  // Legacy single-value fields (kept for backward compat, populated from arrays)
   subcategory: z
     .string()
     .max(100, 'Unterkategorie darf maximal 100 Zeichen lang sein')
@@ -88,6 +146,21 @@ export const createDamageReportSchema = z.object({
   room: z.enum(ROOMS, {
     error: 'Bitte wählen Sie einen Raum',
   }).optional().nullable(),
+  // New multi-value fields
+  subcategories: z
+    .array(z.string().max(100))
+    .max(10, 'Maximal 10 Unterkategorien')
+    .optional()
+    .default([]),
+  rooms: z
+    .array(z.string().max(100))
+    .max(10, 'Maximal 10 Räume')
+    .optional()
+    .default([]),
+  damage_side: z
+    .enum(DAMAGE_SIDES, { error: 'Ungültiger Wert' })
+    .optional()
+    .nullable(),
   title: z
     .string()
     .min(1, 'Titel ist erforderlich')
@@ -110,9 +183,14 @@ export const createDamageReportSchema = z.object({
     .datetime({ message: 'Ungültiges Datumsformat' })
     .optional()
     .nullable(),
+  damage_since: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, 'Ungültiges Datumsformat')
+    .optional()
+    .nullable(),
   access_notes: z
     .string()
-    .max(500, 'Zugangshinweise duerfen maximal 500 Zeichen lang sein')
+    .max(500, 'Zugangshinweise dürfen maximal 500 Zeichen lang sein')
     .optional()
     .nullable(),
   photo_ids: z
