@@ -20,15 +20,21 @@ export async function GET() {
       return NextResponse.json({ error: 'Keine Berechtigung' }, { status: 403 })
     }
 
-    // Load all units
+    // Load all units (no DB-level order — we sort numerically below)
     const { data: units, error: unitsError } = await supabase
       .from('units')
       .select('id, name, address')
       .eq('organization_id', profile.organization_id)
       .eq('is_deleted', false)
-      .order('name')
 
     if (unitsError) throw unitsError
+
+    // Sort: address alphabetically, then Top number numerically (Top 2 before Top 10)
+    ;(units || []).sort((a, b) => {
+      const addrCmp = (a.address || '').localeCompare(b.address || '', 'de', { numeric: true, sensitivity: 'base' })
+      if (addrCmp !== 0) return addrCmp
+      return (a.name || '').localeCompare(b.name || '', 'de', { numeric: true, sensitivity: 'base' })
+    })
 
     // Load all mietvertrag docs that are assigned to a unit
     const { data: docs } = await supabase
