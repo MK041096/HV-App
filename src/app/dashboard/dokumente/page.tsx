@@ -58,6 +58,7 @@ interface BulkItem {
   overrideUnitId: string | null
   suggestedName: string | null
   overrideName: string | null
+  pdfLiegenschaft: string | null
   file_path?: string
   file_size?: number
   mime_type?: string
@@ -174,6 +175,7 @@ export default function DokumentePage() {
       overrideUnitId: null,
       suggestedName: null,
       overrideName: null,
+      pdfLiegenschaft: null,
     })))
     setBulkDone(false)
   }
@@ -244,6 +246,7 @@ export default function DokumentePage() {
           status: matchedUnitId ? 'done' : 'not_found',
           suggestedUnitId: matchedUnitId,
           suggestedName,
+          pdfLiegenschaft: analyseData.liegenschaft ?? null,
         }
       } catch {
         updated[i] = { ...updated[i], status: 'not_found', suggestedUnitId: null, suggestedName: null }
@@ -255,6 +258,25 @@ export default function DokumentePage() {
   }
 
   async function saveBulkResults() {
+    // Warn if any item has an address mismatch
+    const mismatches = bulkItems.filter(item => {
+      const selectedUnitId = item.overrideUnitId ?? item.suggestedUnitId
+      const selectedUnit = selectedUnitId ? einheiten.find(e => e.id === selectedUnitId) : null
+      return !!(
+        selectedUnit &&
+        item.pdfLiegenschaft &&
+        selectedUnit.address &&
+        !selectedUnit.address.toLowerCase().includes(
+          item.pdfLiegenschaft.toLowerCase().split(',')[0].trim()
+        )
+      )
+    })
+    if (mismatches.length > 0) {
+      const ok = window.confirm(
+        `${mismatches.length} Vertrag${mismatches.length > 1 ? 'e' : ''} ${mismatches.length > 1 ? 'haben' : 'hat'} eine Adresse die nicht zur gewählten Einheit passt.\n\nTrotzdem speichern?`
+      )
+      if (!ok) return
+    }
     setBulkSaving(true)
     try {
       const toSave = bulkItems.filter(item =>
@@ -379,8 +401,19 @@ export default function DokumentePage() {
                       </tr>
                     </thead>
                     <tbody className="divide-y">
-                      {bulkItems.map((item, idx) => (
-                        <tr key={idx} className="hover:bg-muted/20">
+                      {bulkItems.map((item, idx) => {
+                        const selectedUnitId = item.overrideUnitId ?? item.suggestedUnitId
+                        const selectedUnit = selectedUnitId ? einheiten.find(e => e.id === selectedUnitId) : null
+                        const hasMismatch = !!(
+                          selectedUnit &&
+                          item.pdfLiegenschaft &&
+                          selectedUnit.address &&
+                          !selectedUnit.address.toLowerCase().includes(
+                            item.pdfLiegenschaft.toLowerCase().split(',')[0].trim()
+                          )
+                        )
+                        return (
+                        <tr key={idx} className={hasMismatch ? 'bg-red-50 hover:bg-red-100' : 'hover:bg-muted/20'}>
                           <td className="px-3 py-2 max-w-[160px] truncate text-xs text-muted-foreground" title={item.file.name}>{item.file.name}</td>
                           <td className="px-3 py-2">
                             {item.status === 'done' || item.status === 'not_found' ? (
@@ -391,16 +424,24 @@ export default function DokumentePage() {
                           </td>
                           <td className="px-3 py-2">
                             {item.status === 'done' || item.status === 'not_found' ? (
-                              <Select value={item.overrideUnitId ?? item.suggestedUnitId ?? '__none__'}
-                                onValueChange={(val) => { const u = [...bulkItems]; u[idx] = { ...u[idx], overrideUnitId: val === '__none__' ? null : val }; setBulkItems(u) }}>
-                                <SelectTrigger className="h-8 text-sm"><SelectValue placeholder="Einheit zuordnen…" /></SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="__none__">— Keine Zuordnung —</SelectItem>
-                                  {einheiten.map(e => (
-                                    <SelectItem key={e.id} value={e.id}>{e.name}{e.address ? ` · ${e.address}` : ''}</SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
+                              <div className="space-y-1">
+                                <Select value={item.overrideUnitId ?? item.suggestedUnitId ?? '__none__'}
+                                  onValueChange={(val) => { const u = [...bulkItems]; u[idx] = { ...u[idx], overrideUnitId: val === '__none__' ? null : val }; setBulkItems(u) }}>
+                                  <SelectTrigger className={`h-8 text-sm ${hasMismatch ? 'border-red-400' : ''}`}><SelectValue placeholder="Einheit zuordnen…" /></SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="__none__">— Keine Zuordnung —</SelectItem>
+                                    {einheiten.map(e => (
+                                      <SelectItem key={e.id} value={e.id}>{e.name}{e.address ? ` · ${e.address}` : ''}</SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                                {hasMismatch && (
+                                  <p className="text-xs text-red-600 flex items-center gap-1">
+                                    <XCircle className="h-3 w-3 shrink-0" />
+                                    Adresse im Vertrag passt nicht zur gewählten Einheit
+                                  </p>
+                                )}
+                              </div>
                             ) : <span className="text-muted-foreground">—</span>}
                           </td>
                           <td className="px-3 py-2">
@@ -412,7 +453,8 @@ export default function DokumentePage() {
                             {item.status === 'error' && <span className="flex items-center gap-1 text-red-600 text-xs" title={item.errorMsg}><XCircle className="h-3 w-3" /> Fehler</span>}
                           </td>
                         </tr>
-                      ))}
+                        )
+                      })}
                     </tbody>
                   </table>
                 </div>
