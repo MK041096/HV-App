@@ -307,7 +307,7 @@ export default function DokumentePage() {
       <Card className="border-blue-200 bg-blue-50">
         <CardContent className="pt-4 pb-4">
           <p className="text-sm text-blue-800">
-            Hinterlegen Sie für jede Einheit den aktuellen Mietvertrag als PDF. So haben Sie alle Verträge jederzeit im Zugriff.
+            Laden Sie für jede Einheit den Mietvertrag hoch — bei Bedarf sofort abrufbar, kein Suchen in Ordnern mehr.
           </p>
         </CardContent>
       </Card>
