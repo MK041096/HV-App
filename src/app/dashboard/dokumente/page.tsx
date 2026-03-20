@@ -59,6 +59,7 @@ interface BulkItem {
   suggestedName: string | null
   overrideName: string | null
   pdfLiegenschaft: string | null
+  pdfUnitTop: string | null
   file_path?: string
   file_size?: number
   mime_type?: string
@@ -212,6 +213,7 @@ export default function DokumentePage() {
       suggestedName: null,
       overrideName: null,
       pdfLiegenschaft: null,
+      pdfUnitTop: null,
     })))
     setBulkDone(false)
   }
@@ -283,6 +285,7 @@ export default function DokumentePage() {
           suggestedUnitId: matchedUnitId,
           suggestedName,
           pdfLiegenschaft: analyseData.liegenschaft ?? null,
+          pdfUnitTop: analyseData.unit_top ?? null,
         }
       } catch {
         updated[i] = { ...updated[i], status: 'not_found', suggestedUnitId: null, suggestedName: null }
@@ -296,16 +299,16 @@ export default function DokumentePage() {
   async function saveBulkResults() {
     // Warn if any item has an address mismatch
     const mismatches = bulkItems.filter(item => {
-      const selectedUnitId = item.overrideUnitId ?? item.suggestedUnitId
-      const selectedUnit = selectedUnitId ? einheiten.find(e => e.id === selectedUnitId) : null
-      return !!(
-        selectedUnit &&
-        item.pdfLiegenschaft &&
-        selectedUnit.address &&
-        !selectedUnit.address.toLowerCase().includes(
-          item.pdfLiegenschaft.toLowerCase().split(',')[0].trim()
-        )
-      )
+      const uid = item.overrideUnitId ?? item.suggestedUnitId
+      const unit = uid ? einheiten.find(e => e.id === uid) : null
+      if (!unit) return false
+      const lgFromPdf = item.pdfLiegenschaft
+        ? item.pdfLiegenschaft.toLowerCase().split(',')[0].trim()
+        : null
+      const addrMismatch = !!(lgFromPdf && unit.address && !unit.address.toLowerCase().includes(lgFromPdf))
+      const topRx = item.pdfUnitTop ? new RegExp(`\\bTop\\s*${item.pdfUnitTop}\\b`, 'i') : null
+      const topMismatch = !!(topRx && !topRx.test(unit.address || '') && !topRx.test(unit.name || ''))
+      return addrMismatch || topMismatch
     })
     if (mismatches.length > 0) {
       const ok = window.confirm(
@@ -440,14 +443,30 @@ export default function DokumentePage() {
                       {bulkItems.map((item, idx) => {
                         const selectedUnitId = item.overrideUnitId ?? item.suggestedUnitId
                         const selectedUnit = selectedUnitId ? einheiten.find(e => e.id === selectedUnitId) : null
-                        const hasMismatch = !!(
+                        const lgFromPdf = item.pdfLiegenschaft
+                          ? item.pdfLiegenschaft.toLowerCase().split(',')[0].trim()
+                          : null
+                        const addressMismatch = !!(
                           selectedUnit &&
-                          item.pdfLiegenschaft &&
+                          lgFromPdf &&
                           selectedUnit.address &&
-                          !selectedUnit.address.toLowerCase().includes(
-                            item.pdfLiegenschaft.toLowerCase().split(',')[0].trim()
-                          )
+                          !selectedUnit.address.toLowerCase().includes(lgFromPdf)
                         )
+                        const topRegexBulk = item.pdfUnitTop
+                          ? new RegExp(`\\bTop\\s*${item.pdfUnitTop}\\b`, 'i')
+                          : null
+                        const topMismatch = !!(
+                          selectedUnit &&
+                          topRegexBulk &&
+                          !topRegexBulk.test(selectedUnit.address || '') &&
+                          !topRegexBulk.test(selectedUnit.name || '')
+                        )
+                        const hasMismatch = addressMismatch || topMismatch
+                        const mismatchMsg = addressMismatch
+                          ? 'Adresse im Vertrag passt nicht zur gewählten Einheit'
+                          : topMismatch
+                          ? `Vertrag enthält Top ${item.pdfUnitTop}, gewählte Einheit ist aber "${selectedUnit?.name}"`
+                          : null
                         return (
                         <tr key={idx} className={hasMismatch ? 'bg-red-50 hover:bg-red-100' : 'hover:bg-muted/20'}>
                           <td className="px-3 py-2 max-w-[160px] truncate text-xs text-muted-foreground" title={item.file.name}>{item.file.name}</td>
@@ -471,10 +490,10 @@ export default function DokumentePage() {
                                     ))}
                                   </SelectContent>
                                 </Select>
-                                {hasMismatch && (
+                                {hasMismatch && mismatchMsg && (
                                   <p className="text-xs text-red-600 flex items-center gap-1">
                                     <XCircle className="h-3 w-3 shrink-0" />
-                                    Adresse im Vertrag passt nicht zur gewählten Einheit
+                                    {mismatchMsg}
                                   </p>
                                 )}
                               </div>
