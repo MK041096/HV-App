@@ -121,7 +121,7 @@ export default function DokumentePage() {
       const uploadData = await uploadRes.json()
       if (!uploadRes.ok) { alert(uploadData.error || 'Upload fehlgeschlagen'); return }
 
-      // 2. Analyse PDF — check if address matches selected unit
+      // 2. Analyse PDF — check if full address (street + Top number) matches selected unit
       const analyseRes = await fetch('/api/documents/analyse', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -129,14 +129,25 @@ export default function DokumentePage() {
       })
       if (analyseRes.ok) {
         const analyseData = await analyseRes.json()
-        if (analyseData.liegenschaft) {
-          const unit = einheiten.find(e => e.id === selectedUnitId)
+        const unit = einheiten.find(e => e.id === selectedUnitId)
+        if (unit && analyseData.liegenschaft) {
+          // Check street address
           const lgFromPdf = analyseData.liegenschaft.toLowerCase().split(',')[0].trim()
-          if (unit?.address && !unit.address.toLowerCase().includes(lgFromPdf)) {
+          if (!unit.address?.toLowerCase().includes(lgFromPdf)) {
             setUploadMismatch(
               `Die Adresse im Vertrag (${analyseData.liegenschaft}) stimmt nicht mit der gewählten Einheit überein. Bitte prüfen Sie ob Sie die richtige PDF ausgewählt haben.`
             )
             return
+          }
+          // Check Top number if found in PDF
+          if (analyseData.unit_top) {
+            const topRegex = new RegExp(`\\bTop\\s+${analyseData.unit_top}\\b`, 'i')
+            if (!topRegex.test(unit.address || '') && !topRegex.test(unit.name || '')) {
+              setUploadMismatch(
+                `Der Vertrag enthält Top ${analyseData.unit_top}, die gewählte Einheit ist aber "${unit.name}". Bitte prüfen Sie ob Sie die richtige Einheit ausgewählt haben.`
+              )
+              return
+            }
           }
         }
       }
