@@ -141,7 +141,7 @@ export default function DokumentePage() {
           }
           // Check Top number if found in PDF
           if (analyseData.unit_top) {
-            const topRegex = new RegExp(`\\bTop\\s+${analyseData.unit_top}\\b`, 'i')
+            const topRegex = new RegExp(`\\bTop\\s*${analyseData.unit_top}\\b`, 'i')
             if (!topRegex.test(unit.address || '') && !topRegex.test(unit.name || '')) {
               setUploadMismatch(
                 `Der Vertrag enthält Top ${analyseData.unit_top}, die gewählte Einheit ist aber "${unit.name}". Bitte prüfen Sie ob Sie die richtige Einheit ausgewählt haben.`
