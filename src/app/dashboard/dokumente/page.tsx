@@ -215,17 +215,35 @@ export default function DokumentePage() {
         let matchedUnitId: string | null = null
         if (analyseData.liegenschaft) {
           const lg = analyseData.liegenschaft.toLowerCase().trim()
-          const match = einheiten.find(e =>
+          // Alle Einheiten finden, deren Adresse mit dieser Liegenschaft beginnt
+          const candidates = einheiten.filter(e =>
             e.address?.toLowerCase().startsWith(lg) ||
             e.address?.toLowerCase().includes(lg)
           )
-          if (match) matchedUnitId = match.id
+          if (candidates.length === 1) {
+            // Nur eine Einheit an dieser Adresse — eindeutige Zuordnung
+            matchedUnitId = candidates[0].id
+          } else if (candidates.length > 1 && analyseData.unit_top) {
+            // Mehrere Einheiten (Top 1-10) — Top-Nummer aus PDF nutzen
+            const topStr = String(analyseData.unit_top)
+            const exact = candidates.find(e =>
+              e.address?.toLowerCase().includes(`top ${topStr},`) ||
+              e.address?.toLowerCase().includes(`top ${topStr} `) ||
+              e.address?.toLowerCase().endsWith(`top ${topStr}`) ||
+              e.name?.toLowerCase().includes(`top ${topStr}`)
+            )
+            matchedUnitId = exact?.id ?? null
+          }
+          // Mehrere Kandidaten ohne Top-Nummer -> null, User wählt manuell
         }
+        // Name immer aus der gematchten Einheit - nicht aus dem Versicherungstyp-Analyser
+        const matchedUnit = matchedUnitId ? einheiten.find(e => e.id === matchedUnitId) : null
+        const suggestedName = matchedUnit ? `Mietvertrag – ${matchedUnit.name}` : null
         updated[i] = {
           ...updated[i],
           status: matchedUnitId ? 'done' : 'not_found',
           suggestedUnitId: matchedUnitId,
-          suggestedName: analyseData.suggested_name || null,
+          suggestedName,
         }
       } catch {
         updated[i] = { ...updated[i], status: 'not_found', suggestedUnitId: null, suggestedName: null }

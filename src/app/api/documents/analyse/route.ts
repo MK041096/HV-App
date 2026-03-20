@@ -212,9 +212,14 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // Extract Top/unit number from PDF text (for Mietvertrag matching)
+    const topMatch = pdfText.match(/(?:wohnung[:\s]+top\s*|top\s+nr\.?\s*|top\s*[-/]?\s*)(\d+)/i)
+    const unit_top = topMatch ? topMatch[1] : null
+
     return NextResponse.json({
       liegenschaft: bestMatch,
       suggested_name,
+      unit_top,
       confidence: bestMatch ? 'hoch' : 'nicht_erkannt',
     })
   } catch (err) {
