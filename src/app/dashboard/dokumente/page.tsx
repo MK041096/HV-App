@@ -76,6 +76,8 @@ export default function DokumentePage() {
   const [deleteOpen, setDeleteOpen] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
+  const [uploadMismatch, setUploadMismatch] = useState<string | null>(null)
+
   const [showBulk, setShowBulk] = useState(false)
   const [bulkItems, setBulkItems] = useState<BulkItem[]>([])
   const [bulkProcessing, setBulkProcessing] = useState(false)
@@ -110,16 +112,38 @@ export default function DokumentePage() {
   async function handleUpload() {
     if (!selectedFile || !selectedUnitId) return
     setUploading(true)
+    setUploadMismatch(null)
     try {
+      // 1. Upload file
       const formData = new FormData()
       formData.append('file', selectedFile)
       const uploadRes = await fetch('/api/documents/upload', { method: 'POST', body: formData })
       const uploadData = await uploadRes.json()
       if (!uploadRes.ok) { alert(uploadData.error || 'Upload fehlgeschlagen'); return }
 
+      // 2. Analyse PDF — check if address matches selected unit
+      const analyseRes = await fetch('/api/documents/analyse', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ file_path: uploadData.file_path }),
+      })
+      if (analyseRes.ok) {
+        const analyseData = await analyseRes.json()
+        if (analyseData.liegenschaft) {
+          const unit = einheiten.find(e => e.id === selectedUnitId)
+          const lgFromPdf = analyseData.liegenschaft.toLowerCase().split(',')[0].trim()
+          if (unit?.address && !unit.address.toLowerCase().includes(lgFromPdf)) {
+            setUploadMismatch(
+              `Die Adresse im Vertrag (${analyseData.liegenschaft}) stimmt nicht mit der gewählten Einheit überein. Bitte prüfen Sie ob Sie die richtige PDF ausgewählt haben.`
+            )
+            return
+          }
+        }
+      }
+
+      // 3. Save metadata
       const unit = einheiten.find(e => e.id === selectedUnitId)
       const name = `Mietvertrag – ${unit?.name || 'Einheit'}`
-
       const metaRes = await fetch('/api/documents', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -138,6 +162,7 @@ export default function DokumentePage() {
       setSelectedFile(null)
       setSelectedUnitId('')
       setShowForm(false)
+      setUploadMismatch(null)
       if (fileInputRef.current) fileInputRef.current.value = ''
       await loadData()
     } finally {
@@ -510,11 +535,17 @@ export default function DokumentePage() {
                 {selectedFile && <span className="text-sm text-muted-foreground truncate">{selectedFile.name}</span>}
               </div>
             </div>
+            {uploadMismatch && (
+              <div className="flex items-start gap-2 rounded-md border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-700">
+                <XCircle className="h-4 w-4 shrink-0 mt-0.5" />
+                <span>{uploadMismatch}</span>
+              </div>
+            )}
             <div className="flex gap-2">
               <Button onClick={handleUpload} disabled={uploading || !selectedFile || !selectedUnitId}>
-                {uploading ? 'Wird hochgeladen...' : 'Hochladen'}
+                {uploading ? 'Wird geprüft & hochgeladen...' : 'Hochladen'}
               </Button>
-              <Button variant="outline" onClick={() => setShowForm(false)}>Abbrechen</Button>
+              <Button variant="outline" onClick={() => { setShowForm(false); setUploadMismatch(null) }}>Abbrechen</Button>
             </div>
           </CardContent>
         </Card>
