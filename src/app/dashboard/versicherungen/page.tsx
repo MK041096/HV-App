@@ -172,7 +172,7 @@ export default function VersicherungenPage() {
   // Einheit tab state
   const [searchEinheit, setSearchEinheit] = useState<string>('')
   const [expandedUnits, setExpandedUnits] = useState<Set<string>>(new Set())
-  const [unitUploadOpen, setUnitUploadOpen] = useState(false)
+  const [showUnitForm, setShowUnitForm] = useState(false)
   const [unitUploadUnitId, setUnitUploadUnitId] = useState<string>('')
   const [unitUploadFile, setUnitUploadFile] = useState<File | null>(null)
   const [unitUploading, setUnitUploading] = useState(false)
@@ -305,7 +305,7 @@ export default function VersicherungenPage() {
 
       setUnitUploadFile(null)
       setUnitUploadUnitId('')
-      setUnitUploadOpen(false)
+      setShowUnitForm(false)
       if (unitFileRef.current) unitFileRef.current.value = ''
       await loadData()
     } finally {
@@ -746,6 +746,86 @@ export default function VersicherungenPage() {
         </Card>
       )}
 
+      {/* ── Unit Upload Form ─────────────────────────────────────────────────── */}
+      {showUnitForm && (
+        <Card className="border-primary/30">
+          <CardHeader>
+            <CardTitle className="text-base flex items-center gap-2">
+              <Upload className="h-4 w-4" />
+              Police für Einheit hochladen
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Einheit</label>
+              <Popover open={einheitComboOpen} onOpenChange={setEinheitComboOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    role="combobox"
+                    aria-expanded={einheitComboOpen}
+                    className="w-full justify-between font-normal"
+                  >
+                    {unitUploadUnitId
+                      ? (() => { const e = einheiten.find(e => e.id === unitUploadUnitId); return e ? `${e.name} — ${e.address}` : 'Einheit auswählen…' })()
+                      : <span className="text-muted-foreground">Einheit auswählen…</span>}
+                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
+                  <Command>
+                    <CommandInput placeholder="Einheit suchen…" />
+                    <CommandList>
+                      <CommandEmpty>Keine Einheit gefunden.</CommandEmpty>
+                      <CommandGroup>
+                        {einheiten.map(e => (
+                          <CommandItem
+                            key={e.id}
+                            value={`${e.name} ${e.address}`}
+                            onSelect={() => { setUnitUploadUnitId(e.id); setEinheitComboOpen(false) }}
+                          >
+                            <Check className={`mr-2 h-4 w-4 ${unitUploadUnitId === e.id ? 'opacity-100' : 'opacity-0'}`} />
+                            <span className="font-medium">{e.name}</span>
+                            <span className="ml-2 text-xs text-muted-foreground truncate">{e.address}</span>
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">PDF-Datei</label>
+              <input
+                ref={unitFileRef}
+                type="file"
+                accept=".pdf"
+                onChange={e => setUnitUploadFile(e.target.files?.[0] || null)}
+                className="hidden"
+              />
+              <div className="flex items-center gap-3">
+                <Button type="button" variant="outline" onClick={() => unitFileRef.current?.click()}>
+                  PDF-Datei auswählen
+                </Button>
+                {unitUploadFile && (
+                  <span className="text-sm text-muted-foreground truncate">{unitUploadFile.name}</span>
+                )}
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <Button
+                onClick={handleUnitUpload}
+                disabled={unitUploading || !unitUploadFile || !unitUploadUnitId}
+              >
+                {unitUploading ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Wird hochgeladen…</> : 'Hochladen'}
+              </Button>
+              <Button variant="outline" onClick={() => { setShowUnitForm(false); setUnitUploadUnitId(''); setUnitUploadFile(null) }}>Abbrechen</Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       <Tabs defaultValue="liegenschaft">
         <TabsList>
           <TabsTrigger value="liegenschaft">
@@ -911,48 +991,43 @@ export default function VersicherungenPage() {
         </TabsContent>
 
         <TabsContent value="einheit" className="space-y-4 mt-4">
-          <Card className="border-amber-200 bg-amber-50">
-            <CardContent className="pt-4 pb-4">
-              <p className="text-sm text-amber-800">
-                Hier hinterlegen Sie Versicherungspolicen die sich auf eine einzelne Einheit beziehen — z.B. eine Maschinenversicherung für einen eingebauten Geschirrspüler. Gebäudeversicherungen gehören zum Tab &quot;Nach Liegenschaft&quot;.
-              </p>
-            </CardContent>
-          </Card>
-
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Einheit suchen…"
-              value={searchEinheit}
-              onChange={e => setSearchEinheit(e.target.value)}
-              className="pl-9"
-            />
+          <div className="flex items-center gap-2">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Einheit suchen…"
+                value={searchEinheit}
+                onChange={e => setSearchEinheit(e.target.value)}
+                className="pl-9"
+              />
+            </div>
+            <Button size="sm" onClick={() => { setUnitUploadUnitId(''); setShowUnitForm(true); setShowForm(false); setShowBulk(false); window.scrollTo({ top: 0, behavior: 'smooth' }) }}>
+              <Plus className="h-4 w-4 mr-1" /> Police für Einheit
+            </Button>
           </div>
 
-          {einheitenMitPolice.length === 0 ? (
+          {einheiten.length === 0 ? (
             <Card>
               <CardContent className="flex flex-col items-center justify-center py-16 text-center">
                 <Home className="h-12 w-12 text-muted-foreground/40 mb-4" />
-                <p className="text-muted-foreground font-medium">Keine einheitsbezogenen Policen vorhanden</p>
+                <p className="text-muted-foreground font-medium">Keine Einheiten gefunden</p>
                 <p className="text-sm text-muted-foreground mt-1 max-w-sm">
-                  Klicken Sie auf &quot;Police für Einheit&quot; um eine Police einer bestimmten Einheit zuzuordnen.
+                  Legen Sie zuerst Einheiten an — sie erscheinen dann automatisch hier.
                 </p>
-                <Button className="mt-4" onClick={() => setUnitUploadOpen(true)}>
-                  <Plus className="h-4 w-4 mr-2" /> Police für Einheit hinzufügen
-                </Button>
               </CardContent>
             </Card>
           ) : (
             <div className="space-y-3">
-              {einheitenMitPolice
+              {einheiten
                 .filter(e =>
                   e.name.toLowerCase().includes(searchEinheit.toLowerCase()) ||
-                  e.address.toLowerCase().includes(searchEinheit.toLowerCase())
+                  (e.address || '').toLowerCase().includes(searchEinheit.toLowerCase())
                 )
                 .map(einheit => {
                   const isExpanded = expandedUnits.has(einheit.id)
+                  const isInsured = einheit.docs.length > 0
                   return (
-                    <Card key={einheit.id} className="border-green-200">
+                    <Card key={einheit.id} className={isInsured ? 'border-green-200' : 'border-orange-200'}>
                       <CardHeader
                         className="pb-3 cursor-pointer select-none"
                         onClick={() => toggleUnit(einheit.id)}
@@ -960,68 +1035,104 @@ export default function VersicherungenPage() {
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2 flex-1 min-w-0">
                             <Home className="h-4 w-4 text-muted-foreground shrink-0" />
-                            <div className="min-w-0">
-                              <span className="font-semibold text-base">{einheit.name}</span>
-                              <p className="text-xs text-muted-foreground truncate">{einheit.address}</p>
-                            </div>
+                            <span className="font-semibold text-base truncate">{einheit.name}</span>
                           </div>
                           <div className="flex items-center gap-2 ml-3 shrink-0">
-                            <Badge className="bg-green-100 text-green-800 border-0">
-                              <ShieldCheck className="h-3 w-3 mr-1" />
-                              {einheit.docs.length} {einheit.docs.length === 1 ? 'Police' : 'Policen'}
-                            </Badge>
+                            {isInsured ? (
+                              <Badge className="bg-green-100 text-green-800 border-0">
+                                <ShieldCheck className="h-3 w-3 mr-1" />
+                                Police vorhanden
+                              </Badge>
+                            ) : (
+                              <Badge variant="outline" className="border-orange-300 text-orange-700">
+                                <ShieldAlert className="h-3 w-3 mr-1" />
+                                Keine Police
+                              </Badge>
+                            )}
                             {isExpanded
                               ? <ChevronUp className="h-4 w-4 text-muted-foreground" />
                               : <ChevronDown className="h-4 w-4 text-muted-foreground" />
                             }
                           </div>
                         </div>
+                        <CardDescription className="mt-1">
+                          {einheit.address}
+                          {isInsured && !isExpanded && (
+                            <span className="ml-2 text-green-700">· {einheit.docs.length} {einheit.docs.length === 1 ? 'Police' : 'Policen'}</span>
+                          )}
+                        </CardDescription>
                       </CardHeader>
+
                       {isExpanded && (
                         <CardContent className="pt-0">
-                          <div className="space-y-2">
-                            {einheit.docs.map(doc => (
-                              <div
-                                key={doc.id}
-                                className="flex items-center justify-between py-2 px-3 rounded-md bg-muted/40"
+                          {einheit.docs.length === 0 ? (
+                            <div className="flex items-center gap-2">
+                              <p className="text-sm text-muted-foreground flex-1">
+                                Noch keine Versicherungspolice für diese Einheit hinterlegt
+                              </p>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  setUnitUploadUnitId(einheit.id)
+                                  setShowUnitForm(true)
+                                  setShowForm(false)
+                                  setShowBulk(false)
+                                  window.scrollTo({ top: 0, behavior: 'smooth' })
+                                }}
                               >
-                                <div className="flex items-center gap-2 flex-1 min-w-0">
-                                  <File className="h-4 w-4 text-green-700 shrink-0" />
-                                  <div className="min-w-0">
-                                    <p className="text-sm font-medium truncate">{doc.name}</p>
-                                    <p className="text-xs text-muted-foreground">
-                                      {new Date(doc.created_at).toLocaleDateString('de-AT')}
-                                    </p>
+                                <Plus className="h-3 w-3 mr-1" /> Police hinzufügen
+                              </Button>
+                            </div>
+                          ) : (
+                            <div className="space-y-2">
+                              {einheit.docs.map(doc => (
+                                <div
+                                  key={doc.id}
+                                  className="flex items-center justify-between py-2 px-3 rounded-md bg-muted/40"
+                                >
+                                  <div className="flex items-center gap-2 flex-1 min-w-0">
+                                    <File className="h-4 w-4 text-green-700 shrink-0" />
+                                    <div className="min-w-0">
+                                      <p className="text-sm font-medium truncate">{doc.name}</p>
+                                      <p className="text-xs text-muted-foreground">
+                                        {new Date(doc.created_at).toLocaleDateString('de-AT')}
+                                      </p>
+                                    </div>
+                                  </div>
+                                  <div className="flex items-center gap-1 ml-3">
+                                    <Button variant="ghost" size="sm" onClick={() => handleDownload(doc.id)}>
+                                      <Download className="h-4 w-4" />
+                                    </Button>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => confirmDelete(doc)}
+                                      className="text-red-500 hover:text-red-700"
+                                    >
+                                      <Trash2 className="h-4 w-4" />
+                                    </Button>
                                   </div>
                                 </div>
-                                <div className="flex items-center gap-1 ml-3">
-                                  <Button variant="ghost" size="sm" onClick={() => handleDownload(doc.id)}>
-                                    <Download className="h-4 w-4" />
-                                  </Button>
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => confirmDelete(doc)}
-                                    className="text-red-500 hover:text-red-700"
-                                  >
-                                    <Trash2 className="h-4 w-4" />
-                                  </Button>
-                                </div>
-                              </div>
-                            ))}
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              className="text-muted-foreground"
-                              onClick={(e) => {
-                                e.stopPropagation()
-                                setUnitUploadUnitId(einheit.id)
-                                setUnitUploadOpen(true)
-                              }}
-                            >
-                              <Plus className="h-3 w-3 mr-1" /> Weitere Police hinzufügen
-                            </Button>
-                          </div>
+                              ))}
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="text-muted-foreground"
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  setUnitUploadUnitId(einheit.id)
+                                  setShowUnitForm(true)
+                                  setShowForm(false)
+                                  setShowBulk(false)
+                                  window.scrollTo({ top: 0, behavior: 'smooth' })
+                                }}
+                              >
+                                <Plus className="h-3 w-3 mr-1" /> Weitere Police hinzufügen
+                              </Button>
+                            </div>
+                          )}
                         </CardContent>
                       )}
                     </Card>
@@ -1031,100 +1142,6 @@ export default function VersicherungenPage() {
           )}
         </TabsContent>
       </Tabs>
-
-      {/* Unit Upload Dialog */}
-      <Dialog open={unitUploadOpen} onOpenChange={(open) => {
-        if (!open) { setUnitUploadFile(null); setUnitUploadUnitId('') }
-        setUnitUploadOpen(open)
-      }}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Police für Einheit hochladen</DialogTitle>
-            <DialogDescription>
-              Wählen Sie die Einheit aus und laden Sie die zugehörige Versicherungspolice hoch (z.B. Maschinenversicherung für einen eingebauten Geschirrspüler).
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4 py-2">
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Einheit</label>
-              <Popover open={einheitComboOpen} onOpenChange={setEinheitComboOpen}>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    role="combobox"
-                    aria-expanded={einheitComboOpen}
-                    className="w-full justify-between font-normal"
-                  >
-                    {unitUploadUnitId
-                      ? (() => { const e = einheiten.find(e => e.id === unitUploadUnitId); return e ? `${e.name} — ${e.address}` : 'Einheit auswählen…' })()
-                      : 'Einheit auswählen…'}
-                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
-                  <Command>
-                    <CommandInput placeholder="Einheit suchen…" />
-                    <CommandList>
-                      <CommandEmpty>Keine Einheit gefunden.</CommandEmpty>
-                      <CommandGroup>
-                        {einheiten.map(e => (
-                          <CommandItem
-                            key={e.id}
-                            value={`${e.name} ${e.address}`}
-                            onSelect={() => {
-                              setUnitUploadUnitId(e.id)
-                              setEinheitComboOpen(false)
-                            }}
-                          >
-                            <Check className={`mr-2 h-4 w-4 ${unitUploadUnitId === e.id ? 'opacity-100' : 'opacity-0'}`} />
-                            <span className="font-medium">{e.name}</span>
-                            <span className="ml-2 text-xs text-muted-foreground truncate">{e.address}</span>
-                          </CommandItem>
-                        ))}
-                      </CommandGroup>
-                    </CommandList>
-                  </Command>
-                </PopoverContent>
-              </Popover>
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium">PDF-Datei</label>
-              <input
-                ref={unitFileRef}
-                type="file"
-                accept=".pdf"
-                onChange={e => setUnitUploadFile(e.target.files?.[0] || null)}
-                className="hidden"
-              />
-              <div className="flex items-center gap-3">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => unitFileRef.current?.click()}
-                >
-                  PDF auswählen
-                </Button>
-                {unitUploadFile && (
-                  <span className="text-sm text-muted-foreground truncate">{unitUploadFile.name}</span>
-                )}
-              </div>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setUnitUploadOpen(false)}>Abbrechen</Button>
-            <Button
-              onClick={handleUnitUpload}
-              disabled={unitUploading || !unitUploadFile || !unitUploadUnitId}
-            >
-              {unitUploading ? (
-                <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Wird hochgeladen…</>
-              ) : (
-                <><Upload className="h-4 w-4 mr-2" /> Hochladen</>
-              )}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
 
       {/* Delete Dialog */}
       <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
