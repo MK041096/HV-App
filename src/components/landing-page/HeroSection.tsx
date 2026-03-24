@@ -8,61 +8,65 @@ export default function HeroSection() {
 
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
-      {/* Vienna Michaelerplatz / Altstadt photo */}
+      {/* Frankfurt night cityscape */}
       <div
         className="absolute inset-0 bg-cover bg-center bg-no-repeat"
         style={{ backgroundImage: "url('/hero-bg.jpg')" }}
       />
-      {/* Portal-style overlay — very light, buildings clearly visible */}
-      <div className="absolute inset-0" style={{ background: 'linear-gradient(160deg, rgba(8,6,18,0.52), rgba(5,10,20,0.42))' }} />
-      {/* Bottom fade to dark for section transition */}
-      <div className="absolute inset-0" style={{ background: 'linear-gradient(to bottom, transparent 55%, rgba(9,9,15,0.95) 92%, rgba(9,9,15,1) 100%)' }} />
-      {/* Subtle gold radial */}
-      <div className="absolute inset-0" style={{ background: 'radial-gradient(ellipse at 50% 55%, rgba(201,164,76,0.08) 0%, transparent 65%)' }} />
-      <div className="absolute top-0 left-0 right-0 lp-shimmer-line" />
+      {/* Dark cinematic overlay — Capacity style */}
+      <div className="absolute inset-0" style={{ background: 'linear-gradient(180deg, rgba(4,4,10,0.62) 0%, rgba(4,4,10,0.48) 50%, rgba(4,4,10,0.72) 100%)' }} />
+      {/* Bottom fade to page background */}
+      <div className="absolute inset-0" style={{ background: 'linear-gradient(to bottom, transparent 60%, rgba(9,9,15,0.97) 95%, #09090f 100%)' }} />
 
-      <div className="relative z-10 max-w-5xl mx-auto px-6 text-center pt-28 pb-24">
-        <div className={`lp-label mb-10 ${ready ? 'lp-anim-fade' : 'opacity-0'}`} style={{ animationDelay: '100ms' }}>
-          Hausverwaltung &nbsp;·&nbsp; Automatisierung
+      {/* Content */}
+      <div className="relative z-10 max-w-4xl mx-auto px-6 text-center pt-32 pb-28">
+
+        {/* Badge */}
+        <div className={`inline-flex items-center gap-2 mb-8 ${ready ? 'lp-anim-fade' : 'opacity-0'}`} style={{ animationDelay: '100ms' }}>
+          <span className="lp-label">
+            Digitale Hausverwaltung &nbsp;·&nbsp; DACH
+          </span>
         </div>
 
-        <h1 className="font-playfair font-bold leading-[1.06]" style={{ textShadow: '0 2px 32px rgba(8,6,18,0.7)' }}>
-          <span className={`block text-5xl md:text-7xl lg:text-[5.5rem] text-white ${ready ? 'lp-anim-up' : 'opacity-0'}`} style={{ animationDelay: '200ms' }}>
-            Schadensmeldungen.
+        {/* Headline — Capacity style: large serif, white */}
+        <h1 className={`font-playfair font-bold text-white leading-[1.08] tracking-tight ${ready ? 'lp-anim-up' : 'opacity-0'}`} style={{ animationDelay: '200ms', textShadow: '0 2px 40px rgba(0,0,0,0.8)' }}>
+          <span className="block text-5xl md:text-6xl lg:text-[4.75rem]">
+            Schadensmeldungen,
           </span>
-          <span className={`block text-5xl md:text-7xl lg:text-[5.5rem] lp-gold-text ${ready ? 'lp-anim-up' : 'opacity-0'}`} style={{ animationDelay: '420ms' }}>
-            Automatisiert.
-          </span>
-          <span className={`block text-5xl md:text-7xl lg:text-[5.5rem] text-white ${ready ? 'lp-anim-up' : 'opacity-0'}`} style={{ animationDelay: '640ms' }}>
-            Kontrolliert.
+          <span className="block text-5xl md:text-6xl lg:text-[4.75rem] lp-gold-text mt-1">
+            die sich selbst verwalten.
           </span>
         </h1>
 
-        <p className={`mt-8 text-lg md:text-xl text-[#d0d0e0] max-w-2xl mx-auto leading-relaxed ${ready ? 'lp-anim-up' : 'opacity-0'}`} style={{ animationDelay: '860ms', textShadow: '0 1px 12px rgba(8,6,18,0.8)' }}>
-          Die Plattform, die Ihre Hausverwaltung neu definiert — damit Ihr Team sich auf das konzentriert, was wirklich zählt.
+        {/* Subtext */}
+        <p className={`mt-7 text-lg md:text-xl text-white/70 max-w-2xl mx-auto leading-relaxed ${ready ? 'lp-anim-up' : 'opacity-0'}`} style={{ animationDelay: '380ms', textShadow: '0 1px 16px rgba(0,0,0,0.9)' }}>
+          Ihr Team bekommt jeden Schaden sofort strukturiert — mit automatischer Analyse, Handwerkerzuweisung und Statusverfolgung. Kein E-Mail-Chaos mehr.
         </p>
 
-        <div className={`mt-10 flex flex-col sm:flex-row gap-4 justify-center ${ready ? 'lp-anim-up' : 'opacity-0'}`} style={{ animationDelay: '1020ms' }}>
+        {/* CTAs */}
+        <div className={`mt-10 flex flex-col sm:flex-row gap-4 justify-center ${ready ? 'lp-anim-up' : 'opacity-0'}`} style={{ animationDelay: '520ms' }}>
           <a href="#april-angebot" className="lp-btn-gold">April-Angebot sichern →</a>
           <a href="#wie-es-funktioniert" className="lp-btn-ghost">Wie es funktioniert</a>
         </div>
 
-        <div className={`mt-14 flex flex-col sm:flex-row gap-6 sm:gap-10 justify-center items-center ${ready ? 'lp-anim-fade' : 'opacity-0'}`} style={{ animationDelay: '1200ms' }}>
+        {/* Trust stats — glass cards */}
+        <div className={`mt-16 grid grid-cols-3 gap-4 max-w-lg mx-auto ${ready ? 'lp-anim-fade' : 'opacity-0'}`} style={{ animationDelay: '700ms' }}>
           {[
-            { icon: '⚡', text: '1-Klick-Entscheidung' },
-            { icon: '🔍', text: 'Automatische Schadensanalyse' },
-            { icon: '📈', text: 'Skalieren ohne Neueinstellungen' },
+            { value: '3 min', label: 'pro Meldung' },
+            { value: '100%', label: 'Nachverfolgung' },
+            { value: '0 €', label: 'Rückbuchungsrisiko' },
           ].map(item => (
-            <div key={item.text} className="flex items-center gap-2.5 text-sm text-[#b0b0c8]" style={{ textShadow: '0 1px 8px rgba(8,6,18,0.9)' }}>
-              <span className="text-base">{item.icon}</span>
-              <span>{item.text}</span>
+            <div key={item.label} className="lp-glass py-4 px-3 text-center">
+              <div className="text-xl font-bold text-white font-playfair">{item.value}</div>
+              <div className="text-xs text-white/50 mt-0.5">{item.label}</div>
             </div>
           ))}
         </div>
       </div>
 
+      {/* Scroll indicator */}
       <div
-        className="absolute bottom-8 left-1/2 flex flex-col items-center gap-1.5 text-[#8a8a9a] text-[10px] tracking-[0.2em] uppercase"
+        className="absolute bottom-8 left-1/2 flex flex-col items-center gap-1.5 text-white/40 text-[10px] tracking-[0.2em] uppercase"
         style={{ transform: 'translateX(-50%)', animation: 'lp-scroll-bounce 2.2s ease-in-out infinite' }}
       >
         <span>Scroll</span>
