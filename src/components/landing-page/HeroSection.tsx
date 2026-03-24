@@ -13,10 +13,10 @@ export default function HeroSection() {
         className="absolute inset-0 bg-cover bg-center bg-no-repeat"
         style={{ backgroundImage: "url('/hero-bg.jpg')" }}
       />
-      {/* Dark cinematic overlay — Capacity style */}
-      <div className="absolute inset-0" style={{ background: 'linear-gradient(180deg, rgba(4,4,10,0.62) 0%, rgba(4,4,10,0.48) 50%, rgba(4,4,10,0.72) 100%)' }} />
-      {/* Bottom fade to page background */}
-      <div className="absolute inset-0" style={{ background: 'linear-gradient(to bottom, transparent 60%, rgba(9,9,15,0.97) 95%, #09090f 100%)' }} />
+      {/* Warm cinematic overlay — Capacity style */}
+      <div className="absolute inset-0" style={{ background: 'linear-gradient(180deg, rgba(8,5,2,0.65) 0%, rgba(10,6,2,0.50) 50%, rgba(8,5,2,0.75) 100%)' }} />
+      {/* Bottom fade to warm dark page background */}
+      <div className="absolute inset-0" style={{ background: 'linear-gradient(to bottom, transparent 60%, rgba(12,10,8,0.97) 95%, #0c0a08 100%)' }} />
 
       {/* Content */}
       <div className="relative z-10 max-w-4xl mx-auto px-6 text-center pt-32 pb-28">
