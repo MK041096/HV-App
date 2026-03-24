@@ -165,17 +165,17 @@
 
 /* Glass card */
 .lp-glass {
-  background: rgba(255, 255, 255, 0.07);
-  border: 1px solid rgba(255, 255, 255, 0.13);
-  backdrop-filter: blur(20px) saturate(1.4);
-  -webkit-backdrop-filter: blur(20px) saturate(1.4);
-  border-radius: 1rem;
-  box-shadow: 0 4px 32px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.08);
+  background: rgba(255, 255, 255, 0.09);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  backdrop-filter: blur(22px) saturate(1.5);
+  -webkit-backdrop-filter: blur(22px) saturate(1.5);
+  border-radius: 18px;
+  box-shadow: 0 4px 32px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.10);
   transition: border-color 0.3s, box-shadow 0.3s;
 }
 .lp-glass:hover {
-  border-color: rgba(201, 164, 76, 0.35);
-  box-shadow: 0 4px 40px rgba(0,0,0,0.4), 0 0 40px rgba(201, 164, 76, 0.12), inset 0 1px 0 rgba(255,255,255,0.10);
+  border-color: rgba(201, 164, 76, 0.4);
+  box-shadow: 0 4px 40px rgba(0,0,0,0.4), 0 0 40px rgba(201, 164, 76, 0.15), inset 0 1px 0 rgba(255,255,255,0.12);
 }
 
 /* Gold button */

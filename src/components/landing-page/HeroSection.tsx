@@ -7,23 +7,26 @@ export default function HeroSection() {
   useEffect(() => { const t = setTimeout(() => setReady(true), 80); return () => clearTimeout(t) }, [])
 
   return (
-    <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-[#09090f]">
-      {/* Vienna Altstadt photo — visible through lighter overlay */}
+    <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
+      {/* Vienna Michaelerplatz / Altstadt photo */}
       <div
         className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-        style={{ backgroundImage: "url('https://images.unsplash.com/photo-1558618666-fcd25c85cd64?auto=format&fit=crop&w=1920&q=80')" }}
+        style={{ backgroundImage: "url('https://images.unsplash.com/photo-1549890762-0a3a83b4e39c?auto=format&fit=crop&w=1920&q=85')" }}
       />
-      {/* Lighter overlay so buildings show through */}
-      <div className="absolute inset-0" style={{ background: 'linear-gradient(to bottom, rgba(9,9,15,0.48) 0%, rgba(9,9,15,0.38) 40%, rgba(9,9,15,0.82) 85%, rgba(9,9,15,1) 100%)' }} />
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_50%_60%,rgba(201,164,76,0.10)_0%,transparent_60%)]" />
+      {/* Portal-style overlay — very light, buildings clearly visible */}
+      <div className="absolute inset-0" style={{ background: 'linear-gradient(160deg, rgba(8,6,18,0.52), rgba(5,10,20,0.42))' }} />
+      {/* Bottom fade to dark for section transition */}
+      <div className="absolute inset-0" style={{ background: 'linear-gradient(to bottom, transparent 55%, rgba(9,9,15,0.95) 92%, rgba(9,9,15,1) 100%)' }} />
+      {/* Subtle gold radial */}
+      <div className="absolute inset-0" style={{ background: 'radial-gradient(ellipse at 50% 55%, rgba(201,164,76,0.08) 0%, transparent 65%)' }} />
       <div className="absolute top-0 left-0 right-0 lp-shimmer-line" />
 
       <div className="relative z-10 max-w-5xl mx-auto px-6 text-center pt-28 pb-24">
         <div className={`lp-label mb-10 ${ready ? 'lp-anim-fade' : 'opacity-0'}`} style={{ animationDelay: '100ms' }}>
-          Österreich &nbsp;·&nbsp; Hausverwaltung &nbsp;·&nbsp; Automatisierung
+          Hausverwaltung &nbsp;·&nbsp; Automatisierung
         </div>
 
-        <h1 className="font-playfair font-bold leading-[1.06]" style={{ textShadow: '0 2px 24px rgba(9,9,15,0.85)' }}>
+        <h1 className="font-playfair font-bold leading-[1.06]" style={{ textShadow: '0 2px 32px rgba(8,6,18,0.7)' }}>
           <span className={`block text-5xl md:text-7xl lg:text-[5.5rem] text-white ${ready ? 'lp-anim-up' : 'opacity-0'}`} style={{ animationDelay: '200ms' }}>
             Schadensmeldungen.
           </span>
@@ -35,7 +38,7 @@ export default function HeroSection() {
           </span>
         </h1>
 
-        <p className={`mt-8 text-lg md:text-xl text-[#c8c8d8] max-w-2xl mx-auto leading-relaxed ${ready ? 'lp-anim-up' : 'opacity-0'}`} style={{ animationDelay: '860ms', textShadow: '0 1px 10px rgba(9,9,15,0.95)' }}>
+        <p className={`mt-8 text-lg md:text-xl text-[#d0d0e0] max-w-2xl mx-auto leading-relaxed ${ready ? 'lp-anim-up' : 'opacity-0'}`} style={{ animationDelay: '860ms', textShadow: '0 1px 12px rgba(8,6,18,0.8)' }}>
           Die Plattform, die Ihre Hausverwaltung neu definiert — damit Ihr Team sich auf das konzentriert, was wirklich zählt.
         </p>
 
@@ -50,7 +53,7 @@ export default function HeroSection() {
             { icon: '🔍', text: 'Automatische Schadensanalyse' },
             { icon: '📈', text: 'Skalieren ohne Neueinstellungen' },
           ].map(item => (
-            <div key={item.text} className="flex items-center gap-2.5 text-sm text-[#a8a8b8]" style={{ textShadow: '0 1px 6px rgba(9,9,15,0.9)' }}>
+            <div key={item.text} className="flex items-center gap-2.5 text-sm text-[#b0b0c8]" style={{ textShadow: '0 1px 8px rgba(8,6,18,0.9)' }}>
               <span className="text-base">{item.icon}</span>
               <span>{item.text}</span>
             </div>
