@@ -194,6 +194,39 @@ export async function POST(
       }
     }
 
+    // Load unit-level insurance (e.g. Maschinenversicherung for built-in appliances)
+    let unitInsuranceContent: string | null = null
+    let unitInsuranceFound = false
+
+    if (unit?.id) {
+      const { data: unitInsuranceDocs } = await supabase
+        .from('documents')
+        .select('id, name, file_path, mime_type')
+        .eq('organization_id', profile.organization_id)
+        .eq('unit_id', unit.id)
+        .eq('document_type', 'versicherung')
+        .eq('is_deleted', false)
+        .order('created_at', { ascending: false })
+        .limit(1)
+
+      if (unitInsuranceDocs && unitInsuranceDocs.length > 0) {
+        const doc = unitInsuranceDocs[0]
+        const { data: fileData, error: dlErr } = await supabase.storage
+          .from('documents')
+          .download(doc.file_path)
+
+        if (!dlErr && fileData) {
+          unitInsuranceFound = true
+          if (doc.mime_type === 'application/pdf') {
+            const arrayBuffer = await fileData.arrayBuffer()
+            unitInsuranceContent = Buffer.from(arrayBuffer).toString('base64')
+          } else {
+            unitInsuranceContent = await fileData.text()
+          }
+        }
+      }
+    }
+
     // Build damage info text
     const categoryLabels: Record<string, string> = {
       wasserschaden: 'Wasserschaden', heizung: 'Heizung/Warmwasser', elektrik: 'Elektrik',
@@ -246,14 +279,23 @@ export async function POST(
       userContentBlocks.push({
         type: 'document',
         source: { type: 'base64', media_type: 'application/pdf', data: insuranceContent },
-        title: 'Versicherungspolice',
+        title: 'Liegenschafts-Versicherungspolice',
+      } as Anthropic.DocumentBlockParam)
+    }
+
+    if (unitInsuranceFound && unitInsuranceContent) {
+      userContentBlocks.push({
+        type: 'document',
+        source: { type: 'base64', media_type: 'application/pdf', data: unitInsuranceContent },
+        title: 'Einheits-Versicherungspolice',
       } as Anthropic.DocumentBlockParam)
     }
 
     const contextInfo = [
       leaseFound ? 'Mietvertrag: vorhanden und analysiert' : 'Mietvertrag: NICHT hinterlegt (Analyse nur nach Gesetz)',
-      insuranceFound ? 'Versicherungspolice: vorhanden und analysiert' : 'Versicherungspolice: NICHT hinterlegt',
-    ].join('\n')
+      insuranceFound ? 'Liegenschafts-Versicherungspolice: vorhanden und analysiert' : 'Liegenschafts-Versicherungspolice: NICHT hinterlegt',
+      unitInsuranceFound ? 'Einheits-Versicherungspolice: vorhanden und analysiert' : null,
+    ].filter(Boolean).join('\n')
 
     userContentBlocks.push({
       type: 'text',
@@ -282,6 +324,7 @@ export async function POST(
       result: analysisText,
       lease_found: leaseFound,
       insurance_found: insuranceFound,
+      unit_insurance_found: unitInsuranceFound,
       unit_name: unit?.name || null,
       country,
     })

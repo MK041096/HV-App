@@ -1160,6 +1160,16 @@ export default function CaseDetailPage({
                           Versicherungsblatt öffnen
                         </Button>
                       )}
+                      {caseData?.is_insurance_damage && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => window.open(`/api/hv/cases/${caseData.id}/versicherungsformular`, "_blank")}
+                        >
+                          <ExternalLink className="h-3.5 w-3.5 mr-1.5" />
+                          Schadensanzeige
+                        </Button>
+                      )}
                     </div>
                   </CardContent>
                 </Card>

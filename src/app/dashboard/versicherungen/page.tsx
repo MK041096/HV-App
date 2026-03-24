@@ -20,6 +20,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import {
   ShieldCheck,
   ShieldAlert,
@@ -29,6 +30,7 @@ import {
   Plus,
   File,
   Building2,
+  Home,
   CheckCircle2,
   XCircle,
   Loader2,
@@ -51,6 +53,20 @@ interface Liegenschaft {
   docs: LiegenschaftDoc[]
 }
 
+
+
+interface EinheitDoc {
+  id: string
+  name: string
+  created_at: string
+}
+
+interface Einheit {
+  id: string
+  name: string
+  address: string
+  docs: EinheitDoc[]
+}
 interface BulkItem {
   file: File
   status: 'pending' | 'uploading' | 'analysing' | 'done' | 'error' | 'not_found'
@@ -66,6 +82,7 @@ interface BulkItem {
 
 export default function VersicherungenPage() {
   const [liegenschaften, setLiegenschaften] = useState<Liegenschaft[]>([])
+  const [einheiten, setEinheiten] = useState<Einheit[]>([])
   const [loading, setLoading] = useState(true)
   const [uploading, setUploading] = useState(false)
   const [showForm, setShowForm] = useState(false)
@@ -86,6 +103,15 @@ export default function VersicherungenPage() {
   const [search, setSearch] = useState<string>('')
   const [expandedCards, setExpandedCards] = useState<Set<string>>(new Set())
 
+  // Einheit tab state
+  const [searchEinheit, setSearchEinheit] = useState<string>('')
+  const [expandedUnits, setExpandedUnits] = useState<Set<string>>(new Set())
+  const [unitUploadOpen, setUnitUploadOpen] = useState(false)
+  const [unitUploadUnitId, setUnitUploadUnitId] = useState<string>('')
+  const [unitUploadFile, setUnitUploadFile] = useState<File | null>(null)
+  const [unitUploading, setUnitUploading] = useState(false)
+  const unitFileRef = useRef<HTMLInputElement>(null)
+
   function toggleCard(address: string) {
     setExpandedCards(prev => {
       const next = new Set(prev)
@@ -95,14 +121,30 @@ export default function VersicherungenPage() {
     })
   }
 
+
+
+  function toggleUnit(id: string) {
+    setExpandedUnits(prev => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
+
   useEffect(() => { loadData() }, [])
 
   async function loadData() {
     setLoading(true)
     try {
-      const res = await fetch('/api/hv/liegenschaften')
-      const data = await res.json()
-      setLiegenschaften(data.liegenschaften || [])
+      const [lgRes, einheitenRes] = await Promise.all([
+        fetch('/api/hv/liegenschaften'),
+        fetch('/api/hv/einheiten-versicherungen'),
+      ])
+      const lgData = await lgRes.json()
+      const einheitenData = await einheitenRes.json()
+      setLiegenschaften(lgData.liegenschaften || [])
+      setEinheiten(einheitenData.einheiten || [])
     } finally {
       setLoading(false)
     }
@@ -155,6 +197,52 @@ export default function VersicherungenPage() {
     }
   }
 
+  async function handleUnitUpload() {
+    if (!unitUploadFile || !unitUploadUnitId) return
+    setUnitUploading(true)
+    try {
+      const formData = new FormData()
+      formData.append('file', unitUploadFile)
+      const uploadRes = await fetch('/api/documents/upload', { method: 'POST', body: formData })
+      const uploadData = await uploadRes.json()
+      if (!uploadRes.ok) { alert(uploadData.error || 'Upload fehlgeschlagen'); return }
+
+      let name = 'Versicherungspolice Einheit ' + new Date().toLocaleDateString('de-AT')
+      try {
+        const analyseRes = await fetch('/api/documents/analyse', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ file_path: uploadData.file_path }),
+        })
+        const analyseData = await analyseRes.json()
+        if (analyseData.suggested_name) name = analyseData.suggested_name
+      } catch { /* ignore */ }
+
+      const metaRes = await fetch('/api/documents', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name,
+          file_path: uploadData.file_path,
+          file_size: uploadData.file_size,
+          mime_type: uploadData.mime_type,
+          document_type: 'versicherung',
+          unit_id: unitUploadUnitId,
+          liegenschaft: null,
+        }),
+      })
+      if (!metaRes.ok) { alert('Fehler beim Speichern'); return }
+
+      setUnitUploadFile(null)
+      setUnitUploadUnitId('')
+      setUnitUploadOpen(false)
+      if (unitFileRef.current) unitFileRef.current.value = ''
+      await loadData()
+    } finally {
+      setUnitUploading(false)
+    }
+  }
+
   async function handleDownload(docId: string) {
     const res = await fetch(`/api/documents/${docId}`)
     const data = await res.json()
@@ -162,7 +250,7 @@ export default function VersicherungenPage() {
     else alert('Download-Link konnte nicht erstellt werden')
   }
 
-  function confirmDelete(doc: LiegenschaftDoc) {
+  function confirmDelete(doc: LiegenschaftDoc | EinheitDoc) {
     setDeleteTarget({ id: doc.id, name: doc.name })
     setDeleteOpen(true)
   }
@@ -304,7 +392,7 @@ export default function VersicherungenPage() {
     )
   }
 
-  const totalPolicies = liegenschaften.reduce((sum, lg) => sum + lg.docs.length, 0)
+  const einheitenMitPolice = einheiten.filter(e => e.docs.length > 0)
 
   return (
     <div className="max-w-4xl mx-auto space-y-6 p-6">
@@ -317,15 +405,20 @@ export default function VersicherungenPage() {
           </h1>
 
         </div>
-        <Button onClick={() => { setShowBulk(!showBulk); setShowForm(false) }}>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={() => setUnitUploadOpen(true)}>
+            <Home className="h-4 w-4 mr-2" /> Police für Einheit
+          </Button>
+          <Button onClick={() => { setShowBulk(!showBulk); setShowForm(false) }}>
           <Sparkles className="h-4 w-4 mr-2" /> Policen importieren
-        </Button>
+          </Button>
+        </div>
       </div>
 
       <Card className="border-blue-200 bg-blue-50">
         <CardContent className="pt-4 pb-4">
           <p className="text-sm text-blue-800">
-            Laden Sie für jede Liegenschaft alle relevanten Policen hoch, das System wählt beim Schaden automatisch die passende aus.
+            Laden Sie für jede Liegenschaft alle relevanten Policen hoch. Bei einzelnen Einheiten (z.B. Maschinenversicherung für eingebaute Geräte) können Sie die Police direkt der Einheit zuordnen.
           </p>
         </CardContent>
       </Card>
@@ -563,7 +656,24 @@ export default function VersicherungenPage() {
         </Card>
       )}
 
-      {/* Search */}
+      <Tabs defaultValue="liegenschaft">
+        <TabsList>
+          <TabsTrigger value="liegenschaft">
+            <Building2 className="h-4 w-4 mr-2" />
+            Nach Liegenschaft
+          </TabsTrigger>
+          <TabsTrigger value="einheit">
+            <Home className="h-4 w-4 mr-2" />
+            Nach Einheit
+            {einheitenMitPolice.length > 0 && (
+              <Badge className="ml-2 bg-green-100 text-green-800 border-0 text-xs">
+                {einheitenMitPolice.length}
+              </Badge>
+            )}
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="liegenschaft" className="space-y-4 mt-4">
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
@@ -573,8 +683,6 @@ export default function VersicherungenPage() {
           className="pl-9"
         />
       </div>
-
-      {/* Liegenschaft cards */}
       {liegenschaften.length === 0 ? (
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-16 text-center">
@@ -704,6 +812,197 @@ export default function VersicherungenPage() {
           })}
         </div>
       )}
+
+        </TabsContent>
+
+        <TabsContent value="einheit" className="space-y-4 mt-4">
+          <Card className="border-amber-200 bg-amber-50">
+            <CardContent className="pt-4 pb-4">
+              <p className="text-sm text-amber-800">
+                Hier hinterlegen Sie Versicherungspolicen die sich auf eine einzelne Einheit beziehen — z.B. eine Maschinenversicherung für einen eingebauten Geschirrspüler. Gebäudeversicherungen gehören zum Tab &quot;Nach Liegenschaft&quot;.
+              </p>
+            </CardContent>
+          </Card>
+
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Einheit suchen…"
+              value={searchEinheit}
+              onChange={e => setSearchEinheit(e.target.value)}
+              className="pl-9"
+            />
+          </div>
+
+          {einheitenMitPolice.length === 0 ? (
+            <Card>
+              <CardContent className="flex flex-col items-center justify-center py-16 text-center">
+                <Home className="h-12 w-12 text-muted-foreground/40 mb-4" />
+                <p className="text-muted-foreground font-medium">Keine einheitsbezogenen Policen vorhanden</p>
+                <p className="text-sm text-muted-foreground mt-1 max-w-sm">
+                  Klicken Sie auf &quot;Police für Einheit&quot; um eine Police einer bestimmten Einheit zuzuordnen.
+                </p>
+                <Button className="mt-4" onClick={() => setUnitUploadOpen(true)}>
+                  <Plus className="h-4 w-4 mr-2" /> Police für Einheit hinzufügen
+                </Button>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="space-y-3">
+              {einheitenMitPolice
+                .filter(e =>
+                  e.name.toLowerCase().includes(searchEinheit.toLowerCase()) ||
+                  e.address.toLowerCase().includes(searchEinheit.toLowerCase())
+                )
+                .map(einheit => {
+                  const isExpanded = expandedUnits.has(einheit.id)
+                  return (
+                    <Card key={einheit.id} className="border-green-200">
+                      <CardHeader
+                        className="pb-3 cursor-pointer select-none"
+                        onClick={() => toggleUnit(einheit.id)}
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2 flex-1 min-w-0">
+                            <Home className="h-4 w-4 text-muted-foreground shrink-0" />
+                            <div className="min-w-0">
+                              <span className="font-semibold text-base">{einheit.name}</span>
+                              <p className="text-xs text-muted-foreground truncate">{einheit.address}</p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2 ml-3 shrink-0">
+                            <Badge className="bg-green-100 text-green-800 border-0">
+                              <ShieldCheck className="h-3 w-3 mr-1" />
+                              {einheit.docs.length} {einheit.docs.length === 1 ? 'Police' : 'Policen'}
+                            </Badge>
+                            {isExpanded
+                              ? <ChevronUp className="h-4 w-4 text-muted-foreground" />
+                              : <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                            }
+                          </div>
+                        </div>
+                      </CardHeader>
+                      {isExpanded && (
+                        <CardContent className="pt-0">
+                          <div className="space-y-2">
+                            {einheit.docs.map(doc => (
+                              <div
+                                key={doc.id}
+                                className="flex items-center justify-between py-2 px-3 rounded-md bg-muted/40"
+                              >
+                                <div className="flex items-center gap-2 flex-1 min-w-0">
+                                  <File className="h-4 w-4 text-green-700 shrink-0" />
+                                  <div className="min-w-0">
+                                    <p className="text-sm font-medium truncate">{doc.name}</p>
+                                    <p className="text-xs text-muted-foreground">
+                                      {new Date(doc.created_at).toLocaleDateString('de-AT')}
+                                    </p>
+                                  </div>
+                                </div>
+                                <div className="flex items-center gap-1 ml-3">
+                                  <Button variant="ghost" size="sm" onClick={() => handleDownload(doc.id)}>
+                                    <Download className="h-4 w-4" />
+                                  </Button>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => confirmDelete(doc)}
+                                    className="text-red-500 hover:text-red-700"
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </div>
+                              </div>
+                            ))}
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="text-muted-foreground"
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                setUnitUploadUnitId(einheit.id)
+                                setUnitUploadOpen(true)
+                              }}
+                            >
+                              <Plus className="h-3 w-3 mr-1" /> Weitere Police hinzufügen
+                            </Button>
+                          </div>
+                        </CardContent>
+                      )}
+                    </Card>
+                  )
+                })}
+            </div>
+          )}
+        </TabsContent>
+      </Tabs>
+
+      {/* Unit Upload Dialog */}
+      <Dialog open={unitUploadOpen} onOpenChange={(open) => {
+        if (!open) { setUnitUploadFile(null); setUnitUploadUnitId('') }
+        setUnitUploadOpen(open)
+      }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Police für Einheit hochladen</DialogTitle>
+            <DialogDescription>
+              Wählen Sie die Einheit aus und laden Sie die zugehörige Versicherungspolice hoch (z.B. Maschinenversicherung für einen eingebauten Geschirrspüler).
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Einheit</label>
+              <Select value={unitUploadUnitId} onValueChange={setUnitUploadUnitId}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Einheit auswählen…" />
+                </SelectTrigger>
+                <SelectContent>
+                  {einheiten.map(e => (
+                    <SelectItem key={e.id} value={e.id}>
+                      {e.name} — {e.address}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">PDF-Datei</label>
+              <input
+                ref={unitFileRef}
+                type="file"
+                accept=".pdf"
+                onChange={e => setUnitUploadFile(e.target.files?.[0] || null)}
+                className="hidden"
+              />
+              <div className="flex items-center gap-3">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => unitFileRef.current?.click()}
+                >
+                  PDF auswählen
+                </Button>
+                {unitUploadFile && (
+                  <span className="text-sm text-muted-foreground truncate">{unitUploadFile.name}</span>
+                )}
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setUnitUploadOpen(false)}>Abbrechen</Button>
+            <Button
+              onClick={handleUnitUpload}
+              disabled={unitUploading || !unitUploadFile || !unitUploadUnitId}
+            >
+              {unitUploading ? (
+                <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Wird hochgeladen…</>
+              ) : (
+                <><Upload className="h-4 w-4 mr-2" /> Hochladen</>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Delete Dialog */}
       <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
