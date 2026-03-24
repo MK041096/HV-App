@@ -23,7 +23,7 @@ interface FileMapping {
   matchedUnit: Unit | null
   unitId: string | null
   matchMethod: 'pdf-content' | 'filename' | 'manual' | null
-  status: 'pending' | 'uploading' | 'done' | 'error'
+  status: 'pending' | 'uploading' | 'done' | 'error' | 'wrong_type'
   error?: string
 }
 
@@ -34,6 +34,28 @@ function normalize(str: string): string {
     .replace(/[^a-z0-9äöüß]/g, ' ')
     .trim()
     .replace(/\s+/g, ' ')
+}
+
+// Indicators that a document is definitely NOT a Mietvertrag (e.g. insurance policy)
+const NON_MIETVERTRAG_INDICATORS = [
+  /versicherungsschein/i,
+  /polizze/i,
+  /versicherungssumme/i,
+  /versicherungsnehmer/i,
+  /prämienbescheid/i,
+  /versicherungsschutz/i,
+  /haftpflichtversicherung/i,
+  /gebäudeversicherung/i,
+  /feuerversicherung/i,
+  /versicherungsgesellschaft/i,
+  /deckungsumfang/i,
+  /versicherungsperiode/i,
+]
+
+function detectDocumentType(text: string): 'ok' | 'wrong_type' | 'unknown' {
+  if (text.length < 50) return 'unknown'
+  if (NON_MIETVERTRAG_INDICATORS.some(p => p.test(text))) return 'wrong_type'
+  return 'ok'
 }
 
 // Extract readable text from a PDF file (works for text-based PDFs)
@@ -160,6 +182,17 @@ export default function BulkImportPage() {
 
       try {
         const pdfText = await extractTextFromPdf(file)
+        const docCheck = detectDocumentType(pdfText)
+        if (docCheck === 'wrong_type') {
+          return {
+            file,
+            filename: file.name,
+            matchedUnit: null,
+            unitId: null,
+            matchMethod: null,
+            status: 'wrong_type' as const,
+          }
+        }
         matchedUnit = findByTenantName(pdfText, units)
         if (matchedUnit) matchMethod = 'pdf-content'
       } catch {
@@ -247,6 +280,7 @@ export default function BulkImportPage() {
     setDone(true)
   }
 
+  const wrongTypeCount = mappings.filter(m => m.status === 'wrong_type').length
   const matchedCount = mappings.filter(m => m.unitId).length
   const pdfMatchCount = mappings.filter(m => m.matchMethod === 'pdf-content').length
   const doneCount = mappings.filter(m => m.status === 'done').length
@@ -301,8 +335,9 @@ export default function BulkImportPage() {
           <CardHeader>
             <CardTitle className="text-base">Schritt 2: Zuordnung prüfen</CardTitle>
             <CardDescription>
-              {matchedCount} von {mappings.length} Dateien automatisch zugeordnet
+              {matchedCount} von {mappings.length - wrongTypeCount} Dateien automatisch zugeordnet
               {pdfMatchCount > 0 && ` (${pdfMatchCount} per PDF-Inhalt erkannt)`}
+              {wrongTypeCount > 0 && ` · ${wrongTypeCount} Datei${wrongTypeCount !== 1 ? 'en' : ''} abgelehnt (kein Mietvertrag)`}
               {' '}— bei Bedarf manuell anpassen
             </CardDescription>
           </CardHeader>
@@ -312,7 +347,7 @@ export default function BulkImportPage() {
                 <div className="shrink-0">
                   {mapping.status === 'done' ? (
                     <CheckCircle2 className="h-5 w-5 text-green-600" />
-                  ) : mapping.status === 'error' ? (
+                  ) : mapping.status === 'error' || mapping.status === 'wrong_type' ? (
                     <XCircle className="h-5 w-5 text-red-600" />
                   ) : mapping.status === 'uploading' ? (
                     <div className="h-5 w-5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
@@ -342,6 +377,9 @@ export default function BulkImportPage() {
                       <span className="text-xs text-red-500">nicht zugeordnet</span>
                     )}
                   </div>
+                  {mapping.status === 'wrong_type' && (
+                    <p className="text-xs text-red-600">Kein Mietvertrag — Versicherungspolice erkannt</p>
+                  )}
                   {mapping.status === 'error' && (
                     <p className="text-xs text-red-600">{mapping.error}</p>
                   )}
@@ -350,7 +388,9 @@ export default function BulkImportPage() {
                   )}
                 </div>
                 <div className="shrink-0 w-56">
-                  {mapping.status === 'pending' || mapping.status === 'error' ? (
+                  {mapping.status === 'wrong_type' ? (
+                    <Badge variant="destructive" className="text-xs">Wird übersprungen</Badge>
+                  ) : mapping.status === 'pending' || mapping.status === 'error' ? (
                     <Select
                       value={mapping.unitId || 'none'}
                       onValueChange={v => updateMapping(index, v)}
