@@ -11,7 +11,7 @@ export default function HeroSection() {
       {/* Vienna Michaelerplatz / Altstadt photo */}
       <div
         className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-        style={{ backgroundImage: "url('https://images.unsplash.com/photo-1549890762-0a3a83b4e39c?auto=format&fit=crop&w=1920&q=85')" }}
+        style={{ backgroundImage: "url('/hero-bg.jpg')" }}
       />
       {/* Portal-style overlay — very light, buildings clearly visible */}
       <div className="absolute inset-0" style={{ background: 'linear-gradient(160deg, rgba(8,6,18,0.52), rgba(5,10,20,0.42))' }} />
