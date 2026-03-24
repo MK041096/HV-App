@@ -180,6 +180,7 @@ export default function VersicherungenPage() {
   // Combobox open state
   const [einheitComboOpen, setEinheitComboOpen] = useState(false)
   const [lgComboOpen, setLgComboOpen] = useState(false)
+  const [lgFormComboOpen, setLgFormComboOpen] = useState(false)
 
   function toggleCard(address: string) {
     setExpandedCards(prev => {
@@ -484,7 +485,7 @@ export default function VersicherungenPage() {
       <Card className="border-blue-200 bg-blue-50">
         <CardContent className="pt-4 pb-4">
           <p className="text-sm text-blue-800">
-            Laden Sie für jede Liegenschaft alle relevanten Policen hoch. Bei einzelnen Einheiten (z.B. Maschinenversicherung für eingebaute Geräte) können Sie die Police direkt der Einheit zuordnen.
+            Hinterlegen Sie für jede Liegenschaft die zugehörigen Versicherungspolicen — das System ordnet sie automatisch zu. Einheitsspezifische Policen, wie etwa eine Maschinenversicherung für eingebaute Geräte, können ebenfalls hochgeladen und direkt der jeweiligen Einheit zugewiesen werden.
           </p>
         </CardContent>
       </Card>
@@ -670,11 +671,48 @@ export default function VersicherungenPage() {
           <CardHeader>
             <CardTitle className="text-base flex items-center gap-2">
               <Upload className="h-4 w-4" />
-              Police hochladen
+              Police für Liegenschaft hochladen
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
+              <label className="text-sm font-medium">Liegenschaft</label>
+              <Popover open={lgFormComboOpen} onOpenChange={setLgFormComboOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    role="combobox"
+                    aria-expanded={lgFormComboOpen}
+                    className="w-full justify-between font-normal"
+                  >
+                    {selectedLiegenschaft || <span className="text-muted-foreground">Liegenschaft auswählen…</span>}
+                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
+                  <Command>
+                    <CommandInput placeholder="Liegenschaft suchen…" />
+                    <CommandList>
+                      <CommandEmpty>Keine Liegenschaft gefunden.</CommandEmpty>
+                      <CommandGroup>
+                        {liegenschaften.map(lg => (
+                          <CommandItem
+                            key={lg.address}
+                            value={lg.address}
+                            onSelect={() => { setSelectedLiegenschaft(lg.address); setLgFormComboOpen(false) }}
+                          >
+                            <Check className={`mr-2 h-4 w-4 ${selectedLiegenschaft === lg.address ? 'opacity-100' : 'opacity-0'}`} />
+                            {lg.address}
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">PDF-Datei</label>
               <input
                 ref={fileInputRef}
                 type="file"
@@ -702,7 +740,7 @@ export default function VersicherungenPage() {
               >
                 {uploading ? 'Wird hochgeladen...' : 'Hochladen'}
               </Button>
-              <Button variant="outline" onClick={() => setShowForm(false)}>Abbrechen</Button>
+              <Button variant="outline" onClick={() => { setShowForm(false); setSelectedLiegenschaft(''); setSelectedFile(null) }}>Abbrechen</Button>
             </div>
           </CardContent>
         </Card>
@@ -726,14 +764,19 @@ export default function VersicherungenPage() {
         </TabsList>
 
         <TabsContent value="liegenschaft" className="space-y-4 mt-4">
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        <Input
-          placeholder="Liegenschaft suchen…"
-          value={search}
-          onChange={e => setSearch(e.target.value)}
-          className="pl-9"
-        />
+      <div className="flex items-center gap-2">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Liegenschaft suchen…"
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            className="pl-9"
+          />
+        </div>
+        <Button size="sm" onClick={() => { setSelectedLiegenschaft(''); setShowForm(true); setShowBulk(false); window.scrollTo({ top: 0, behavior: 'smooth' }) }}>
+          <Plus className="h-4 w-4 mr-1" /> Police für Liegenschaft
+        </Button>
       </div>
       {liegenschaften.length === 0 ? (
         <Card>
@@ -876,19 +919,14 @@ export default function VersicherungenPage() {
             </CardContent>
           </Card>
 
-          <div className="flex items-center gap-2">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Einheit suchen…"
-                value={searchEinheit}
-                onChange={e => setSearchEinheit(e.target.value)}
-                className="pl-9"
-              />
-            </div>
-            <Button size="sm" onClick={() => { setUnitUploadUnitId(''); setUnitUploadOpen(true) }}>
-              <Plus className="h-4 w-4 mr-1" /> Police für Einheit
-            </Button>
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Einheit suchen…"
+              value={searchEinheit}
+              onChange={e => setSearchEinheit(e.target.value)}
+              className="pl-9"
+            />
           </div>
 
           {einheitenMitPolice.length === 0 ? (
