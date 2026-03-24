@@ -165,6 +165,7 @@ export default function VersicherungenPage() {
   const [bulkProcessing, setBulkProcessing] = useState(false)
   const [bulkDone, setBulkDone] = useState(false)
   const [bulkSaving, setBulkSaving] = useState(false)
+  const [bulkShowOnlyProblems, setBulkShowOnlyProblems] = useState(false)
   const bulkInputRef = useRef<HTMLInputElement>(null)
   const [search, setSearch] = useState<string>('')
   const [expandedCards, setExpandedCards] = useState<Set<string>>(new Set())
@@ -544,6 +545,32 @@ export default function VersicherungenPage() {
                   </div>
                 )}
 
+                {/* Filter toggle — only visible after analysis */}
+                {bulkDone && (() => {
+                  const problemCount = bulkItems.filter(i => i.status === 'not_found' || i.status === 'error').length
+                  return problemCount > 0 ? (
+                    <div className="flex items-center gap-3">
+                      <button
+                        type="button"
+                        onClick={() => setBulkShowOnlyProblems(v => !v)}
+                        className={`flex items-center gap-2 text-sm px-3 py-1.5 rounded-md border transition-colors ${
+                          bulkShowOnlyProblems
+                            ? 'bg-orange-50 border-orange-300 text-orange-700 font-medium'
+                            : 'border-muted-foreground/30 text-muted-foreground hover:border-orange-300 hover:text-orange-700'
+                        }`}
+                      >
+                        <AlertCircle className="h-3.5 w-3.5" />
+                        {bulkShowOnlyProblems ? 'Alle anzeigen' : `Nur nicht erkannte anzeigen (${problemCount})`}
+                      </button>
+                      {!bulkShowOnlyProblems && (
+                        <span className="text-xs text-muted-foreground">
+                          {bulkItems.filter(i => i.status === 'done').length} von {bulkItems.length} automatisch erkannt
+                        </span>
+                      )}
+                    </div>
+                  ) : null
+                })()}
+
                 {/* Results table */}
                 <div className="border rounded-lg overflow-hidden">
                   <table className="w-full text-sm">
@@ -556,8 +583,12 @@ export default function VersicherungenPage() {
                       </tr>
                     </thead>
                     <tbody className="divide-y">
-                      {bulkItems.map((item, idx) => (
-                        <tr key={idx} className="hover:bg-muted/20">
+                      {bulkItems.filter(item =>
+                        !bulkShowOnlyProblems || item.status === 'not_found' || item.status === 'error'
+                      ).map((item) => {
+                        const realIdx = bulkItems.indexOf(item)
+                        return (
+                        <tr key={realIdx} className="hover:bg-muted/20">
                           <td className="px-3 py-2 font-medium max-w-[160px] truncate text-xs text-muted-foreground" title={item.file.name}>
                             {item.file.name}
                           </td>
@@ -570,7 +601,7 @@ export default function VersicherungenPage() {
                                 placeholder="Bezeichnung eingeben…"
                                 onChange={(e) => {
                                   const updated = [...bulkItems]
-                                  updated[idx] = { ...updated[idx], overrideName: e.target.value }
+                                  updated[realIdx] = { ...updated[realIdx], overrideName: e.target.value }
                                   setBulkItems(updated)
                                 }}
                               />
@@ -584,7 +615,7 @@ export default function VersicherungenPage() {
                                 value={item.overrideLiegenschaft ?? item.liegenschaft}
                                 onChange={(val) => {
                                   const updated = [...bulkItems]
-                                  updated[idx] = { ...updated[idx], overrideLiegenschaft: val }
+                                  updated[realIdx] = { ...updated[realIdx], overrideLiegenschaft: val }
                                   setBulkItems(updated)
                                 }}
                                 liegenschaften={liegenschaften}
@@ -624,7 +655,8 @@ export default function VersicherungenPage() {
                             )}
                           </td>
                         </tr>
-                      ))}
+                        )
+                      })}
                     </tbody>
                   </table>
                 </div>
@@ -844,19 +876,14 @@ export default function VersicherungenPage() {
         </TabsList>
 
         <TabsContent value="liegenschaft" className="space-y-4 mt-4">
-      <div className="flex items-center gap-2">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Liegenschaft suchen…"
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            className="pl-9"
-          />
-        </div>
-        <Button size="sm" onClick={() => { setSelectedLiegenschaft(''); setShowForm(true); setShowBulk(false); window.scrollTo({ top: 0, behavior: 'smooth' }) }}>
-          <Plus className="h-4 w-4 mr-1" /> Police für Liegenschaft
-        </Button>
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <Input
+          placeholder="Liegenschaft suchen…"
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          className="pl-9"
+        />
       </div>
       {liegenschaften.length === 0 ? (
         <Card>
@@ -991,19 +1018,14 @@ export default function VersicherungenPage() {
         </TabsContent>
 
         <TabsContent value="einheit" className="space-y-4 mt-4">
-          <div className="flex items-center gap-2">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Einheit suchen…"
-                value={searchEinheit}
-                onChange={e => setSearchEinheit(e.target.value)}
-                className="pl-9"
-              />
-            </div>
-            <Button size="sm" onClick={() => { setUnitUploadUnitId(''); setShowUnitForm(true); setShowForm(false); setShowBulk(false); window.scrollTo({ top: 0, behavior: 'smooth' }) }}>
-              <Plus className="h-4 w-4 mr-1" /> Police für Einheit
-            </Button>
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Einheit suchen…"
+              value={searchEinheit}
+              onChange={e => setSearchEinheit(e.target.value)}
+              className="pl-9"
+            />
           </div>
 
           {einheiten.length === 0 ? (
