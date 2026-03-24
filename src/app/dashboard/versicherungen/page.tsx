@@ -22,6 +22,19 @@ import {
 } from '@/components/ui/dialog'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover'
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from '@/components/ui/command'
+import {
   ShieldCheck,
   ShieldAlert,
   Upload,
@@ -39,6 +52,8 @@ import {
   Search,
   ChevronDown,
   ChevronUp,
+  ChevronsUpDown,
+  Check,
 } from 'lucide-react'
 
 interface LiegenschaftDoc {
@@ -80,6 +95,57 @@ interface BulkItem {
   errorMsg?: string
 }
 
+// Searchable combobox for Liegenschaft selection in bulk table rows
+function LgCombobox({
+  value,
+  onChange,
+  liegenschaften,
+}: {
+  value: string | null
+  onChange: (val: string | null) => void
+  liegenschaften: Liegenschaft[]
+}) {
+  const [open, setOpen] = useState(false)
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button
+          variant="outline"
+          role="combobox"
+          className="h-8 w-full justify-between text-sm font-normal px-2"
+        >
+          <span className="truncate">{value ?? <span className="text-muted-foreground">Nicht erkannt — zuordnen</span>}</span>
+          <ChevronsUpDown className="ml-1 h-3 w-3 shrink-0 opacity-50" />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-72 p-0" align="start">
+        <Command>
+          <CommandInput placeholder="Liegenschaft suchen…" />
+          <CommandList>
+            <CommandEmpty>Keine Liegenschaft gefunden.</CommandEmpty>
+            <CommandGroup>
+              <CommandItem value="__none__" onSelect={() => { onChange(null); setOpen(false) }}>
+                <Check className={`mr-2 h-4 w-4 ${!value ? 'opacity-100' : 'opacity-0'}`} />
+                — Keine Zuordnung —
+              </CommandItem>
+              {liegenschaften.map(lg => (
+                <CommandItem
+                  key={lg.address}
+                  value={lg.address}
+                  onSelect={() => { onChange(lg.address); setOpen(false) }}
+                >
+                  <Check className={`mr-2 h-4 w-4 ${value === lg.address ? 'opacity-100' : 'opacity-0'}`} />
+                  {lg.address}
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          </CommandList>
+        </Command>
+      </PopoverContent>
+    </Popover>
+  )
+}
+
 export default function VersicherungenPage() {
   const [liegenschaften, setLiegenschaften] = useState<Liegenschaft[]>([])
   const [einheiten, setEinheiten] = useState<Einheit[]>([])
@@ -111,6 +177,9 @@ export default function VersicherungenPage() {
   const [unitUploadFile, setUnitUploadFile] = useState<File | null>(null)
   const [unitUploading, setUnitUploading] = useState(false)
   const unitFileRef = useRef<HTMLInputElement>(null)
+  // Combobox open state
+  const [einheitComboOpen, setEinheitComboOpen] = useState(false)
+  const [lgComboOpen, setLgComboOpen] = useState(false)
 
   function toggleCard(address: string) {
     setExpandedCards(prev => {
@@ -406,11 +475,8 @@ export default function VersicherungenPage() {
 
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" onClick={() => setUnitUploadOpen(true)}>
-            <Home className="h-4 w-4 mr-2" /> Police für Einheit
-          </Button>
           <Button onClick={() => { setShowBulk(!showBulk); setShowForm(false) }}>
-          <Sparkles className="h-4 w-4 mr-2" /> Policen importieren
+            <Sparkles className="h-4 w-4 mr-2" /> Policen importieren
           </Button>
         </div>
       </div>
@@ -513,29 +579,15 @@ export default function VersicherungenPage() {
                           </td>
                           <td className="px-3 py-2">
                             {item.status === 'done' || item.status === 'not_found' ? (
-                              <Select
-                                value={item.overrideLiegenschaft ?? item.liegenschaft ?? '__none__'}
-                                onValueChange={(val) => {
+                              <LgCombobox
+                                value={item.overrideLiegenschaft ?? item.liegenschaft}
+                                onChange={(val) => {
                                   const updated = [...bulkItems]
-                                  updated[idx] = {
-                                    ...updated[idx],
-                                    overrideLiegenschaft: val === '__none__' ? null : val,
-                                  }
+                                  updated[idx] = { ...updated[idx], overrideLiegenschaft: val }
                                   setBulkItems(updated)
                                 }}
-                              >
-                                <SelectTrigger className="h-8 text-sm">
-                                  <SelectValue placeholder="Nicht erkannt — bitte zuordnen" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="__none__">— Keine Zuordnung —</SelectItem>
-                                  {liegenschaften.map(lg => (
-                                    <SelectItem key={lg.address} value={lg.address}>
-                                      {lg.address}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
+                                liegenschaften={liegenschaften}
+                              />
                             ) : (
                               <span className="text-muted-foreground">—</span>
                             )}
@@ -824,14 +876,19 @@ export default function VersicherungenPage() {
             </CardContent>
           </Card>
 
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Einheit suchen…"
-              value={searchEinheit}
-              onChange={e => setSearchEinheit(e.target.value)}
-              className="pl-9"
-            />
+          <div className="flex items-center gap-2">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Einheit suchen…"
+                value={searchEinheit}
+                onChange={e => setSearchEinheit(e.target.value)}
+                className="pl-9"
+              />
+            </div>
+            <Button size="sm" onClick={() => { setUnitUploadUnitId(''); setUnitUploadOpen(true) }}>
+              <Plus className="h-4 w-4 mr-1" /> Police für Einheit
+            </Button>
           </div>
 
           {einheitenMitPolice.length === 0 ? (
@@ -952,18 +1009,45 @@ export default function VersicherungenPage() {
           <div className="space-y-4 py-2">
             <div className="space-y-2">
               <label className="text-sm font-medium">Einheit</label>
-              <Select value={unitUploadUnitId} onValueChange={setUnitUploadUnitId}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Einheit auswählen…" />
-                </SelectTrigger>
-                <SelectContent>
-                  {einheiten.map(e => (
-                    <SelectItem key={e.id} value={e.id}>
-                      {e.name} — {e.address}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Popover open={einheitComboOpen} onOpenChange={setEinheitComboOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    role="combobox"
+                    aria-expanded={einheitComboOpen}
+                    className="w-full justify-between font-normal"
+                  >
+                    {unitUploadUnitId
+                      ? (() => { const e = einheiten.find(e => e.id === unitUploadUnitId); return e ? `${e.name} — ${e.address}` : 'Einheit auswählen…' })()
+                      : 'Einheit auswählen…'}
+                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
+                  <Command>
+                    <CommandInput placeholder="Einheit suchen…" />
+                    <CommandList>
+                      <CommandEmpty>Keine Einheit gefunden.</CommandEmpty>
+                      <CommandGroup>
+                        {einheiten.map(e => (
+                          <CommandItem
+                            key={e.id}
+                            value={`${e.name} ${e.address}`}
+                            onSelect={() => {
+                              setUnitUploadUnitId(e.id)
+                              setEinheitComboOpen(false)
+                            }}
+                          >
+                            <Check className={`mr-2 h-4 w-4 ${unitUploadUnitId === e.id ? 'opacity-100' : 'opacity-0'}`} />
+                            <span className="font-medium">{e.name}</span>
+                            <span className="ml-2 text-xs text-muted-foreground truncate">{e.address}</span>
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium">PDF-Datei</label>
