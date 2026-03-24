@@ -1,5 +1,16 @@
 import type { Metadata } from "next";
+import { Inter, Playfair_Display } from "next/font/google";
 import "./globals.css";
+
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-inter",
+});
+
+const playfair = Playfair_Display({
+  subsets: ["latin"],
+  variable: "--font-playfair",
+});
 
 export const metadata: Metadata = {
   title: "SchadensMelder - Digitale Schadensmeldung für Hausverwaltungen",
@@ -31,7 +42,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="de">
-      <body className="antialiased">
+      <body className={`${inter.variable} ${playfair.variable} antialiased`}>
         {/* JSON-LD structured data for SEO */}
         <script
           type="application/ld+json"
