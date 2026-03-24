@@ -23,7 +23,7 @@ const INSURERS = [
   'VIG', 'Vienna Insurance Group',
 ]
 
-// Insurance type keywords (most specific first)
+// Insurance type keywords (most specific first — NO catch-all fallbacks)
 const INSURANCE_TYPES: { pattern: RegExp; label: string }[] = [
   { pattern: /gebäudeversicherung|gebaeude.?versicherung/i, label: 'Gebäudeversicherung' },
   { pattern: /haftpflichtversicherung|haftpflicht.?versicherung/i, label: 'Haftpflichtversicherung' },
@@ -35,8 +35,51 @@ const INSURANCE_TYPES: { pattern: RegExp; label: string }[] = [
   { pattern: /glasversicherung|glas.?versicherung/i, label: 'Glasversicherung' },
   { pattern: /einbruchversicherung|einbruch.?versicherung/i, label: 'Einbruchversicherung' },
   { pattern: /haushaltsversicherung|haushalt.?versicherung/i, label: 'Haushaltsversicherung' },
-  { pattern: /gebäude|liegenschaft|immobilien/i, label: 'Gebäudeversicherung' },
+  { pattern: /maschinenversicherung|maschinen.?versicherung/i, label: 'Maschinenversicherung' },
+  { pattern: /betriebsunterbrechungsversicherung|betriebs.?unterbrechung/i, label: 'Betriebsunterbrechungsversicherung' },
 ]
+
+// Indicators that a document IS an insurance policy (at least one must match)
+const INSURANCE_INDICATORS: RegExp[] = [
+  /versicherungsschein/i,
+  /polizzennummer/i,
+  /polizze/i,
+  /versicherungspr[äa]mie/i,
+  /pr[äa]mie/i,
+  /jahrespr[äa]mie/i,
+  /versicherungssumme/i,
+  /versicherungsnehmer/i,
+  /deckungsumfang/i,
+  /versicherungsschutz/i,
+  /selbstbehalt/i,
+  /versicherungsnummer/i,
+  /versicherungsperiode/i,
+  /deckungsbeitrag/i,
+]
+
+// Keywords that clearly identify NON-insurance documents
+const NON_INSURANCE_INDICATORS: RegExp[] = [
+  /mietvertrag/i,
+  /untermietvertrag/i,
+  /mietzins/i,
+  /hauptmieter/i,
+  /unterverm[ie]ter/i,
+  /mietgegenstand/i,
+  /mietdauer/i,
+  /wohnungsübergabe/i,
+  /wohnungsuebergabe/i,
+  /kaufvertrag/i,
+  /grundbuchauszug/i,
+  /betriebskostenabrechnung/i,
+]
+
+function detectDocumentType(text: string): 'insurance' | 'wrong_type' {
+  // Immediate reject: known non-insurance document types
+  if (NON_INSURANCE_INDICATORS.some(p => p.test(text))) return 'wrong_type'
+  // Require at least one insurance-specific indicator
+  if (INSURANCE_INDICATORS.some(p => p.test(text))) return 'insurance'
+  return 'wrong_type'
+}
 
 // Extracts a human-readable policy name from raw PDF text
 function extractPolicyName(text: string): string | null {
@@ -116,6 +159,12 @@ export async function POST(request: NextRequest) {
       pdfText = parsed.text || ''
     } catch {
       return NextResponse.json({ liegenschaft: null, suggested_name: null, confidence: 'nicht_erkannt' })
+    }
+
+    // Check if this is actually an insurance document
+    const docType = detectDocumentType(pdfText)
+    if (docType === 'wrong_type') {
+      return NextResponse.json({ liegenschaft: null, suggested_name: null, is_insurance: false, confidence: 'kein_versicherungsdokument' })
     }
 
     // Extract policy name from PDF text
@@ -226,6 +275,7 @@ export async function POST(request: NextRequest) {
       liegenschaft: bestMatch,
       suggested_name,
       unit_top,
+      is_insurance: true,
       confidence: bestMatch ? 'hoch' : 'nicht_erkannt',
     })
   } catch (err) {

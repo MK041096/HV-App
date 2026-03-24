@@ -84,7 +84,7 @@ interface Einheit {
 }
 interface BulkItem {
   file: File
-  status: 'pending' | 'uploading' | 'analysing' | 'done' | 'error' | 'not_found'
+  status: 'pending' | 'uploading' | 'analysing' | 'done' | 'error' | 'not_found' | 'wrong_type'
   liegenschaft: string | null
   overrideLiegenschaft: string | null
   suggestedName: string | null
@@ -393,7 +393,9 @@ export default function VersicherungenPage() {
         })
         const analyseData = await analyseRes.json()
 
-        if (analyseData.liegenschaft) {
+        if (analyseData.is_insurance === false) {
+          updated[i] = { ...updated[i], status: 'wrong_type', liegenschaft: null, suggestedName: null }
+        } else if (analyseData.liegenschaft) {
           updated[i] = { ...updated[i], status: 'done', liegenschaft: analyseData.liegenschaft, suggestedName: analyseData.suggested_name || null }
         } else {
           updated[i] = { ...updated[i], status: 'not_found', liegenschaft: null, suggestedName: analyseData.suggested_name || null }
@@ -547,7 +549,7 @@ export default function VersicherungenPage() {
 
                 {/* Filter toggle — only visible after analysis */}
                 {bulkDone && (() => {
-                  const problemCount = bulkItems.filter(i => i.status === 'not_found' || i.status === 'error').length
+                  const problemCount = bulkItems.filter(i => i.status === 'not_found' || i.status === 'error' || i.status === 'wrong_type').length
                   return problemCount > 0 ? (
                     <div className="flex items-center gap-3">
                       <button
@@ -584,7 +586,7 @@ export default function VersicherungenPage() {
                     </thead>
                     <tbody className="divide-y">
                       {bulkItems.filter(item =>
-                        !bulkShowOnlyProblems || item.status === 'not_found' || item.status === 'error'
+                        !bulkShowOnlyProblems || item.status === 'not_found' || item.status === 'error' || item.status === 'wrong_type'
                       ).map((item) => {
                         const realIdx = bulkItems.indexOf(item)
                         return (
@@ -593,7 +595,7 @@ export default function VersicherungenPage() {
                             {item.file.name}
                           </td>
                           <td className="px-3 py-2">
-                            {item.status === 'done' || item.status === 'not_found' ? (
+                            {(item.status === 'done' || item.status === 'not_found') ? (
                               <input
                                 type="text"
                                 className="w-full text-sm border rounded px-2 py-1 bg-background"
@@ -610,7 +612,7 @@ export default function VersicherungenPage() {
                             )}
                           </td>
                           <td className="px-3 py-2">
-                            {item.status === 'done' || item.status === 'not_found' ? (
+                            {(item.status === 'done' || item.status === 'not_found') ? (
                               <LgCombobox
                                 value={item.overrideLiegenschaft ?? item.liegenschaft}
                                 onChange={(val) => {
@@ -651,6 +653,11 @@ export default function VersicherungenPage() {
                             {item.status === 'error' && (
                               <span className="flex items-center gap-1 text-red-600 text-xs" title={item.errorMsg}>
                                 <XCircle className="h-3 w-3" /> Fehler
+                              </span>
+                            )}
+                            {item.status === 'wrong_type' && (
+                              <span className="flex items-center gap-1 text-red-700 text-xs">
+                                <XCircle className="h-3 w-3" /> Kein Versicherungsdokument
                               </span>
                             )}
                           </td>
