@@ -1,40 +1,40 @@
 'use client'
-import React, { useState } from 'react'
+import { useState } from 'react'
 
 const steps = [
   {
     id: 1,
     number: '01',
-    title: 'Schaden entdeckt',
-    description: 'Der Mieter fotografiert den Schaden direkt mit dem Handy. Kein Anruf, kein E-Mail — einfach Foto hochladen und Beschreibung eingeben. In unter 3 Minuten erledigt.',
+    title: 'Schaden melden',
+    description: 'Schadenmeldeblatt ausfüllen, Schaden beschreiben, Foto hochladen, Wunschtermin vermerken — fertig. Der Mieter erledigt alles per Handy in unter 3 Minuten. Kein Anruf, keine E-Mail.',
     imageUrl: '/accordion-1.jpg',
   },
   {
     id: 2,
     number: '02',
-    title: 'Meldung eingereicht',
-    description: 'Die Meldung landet sofort strukturiert im HV-Dashboard. Datum, Foto, Beschreibung, Wohnung — alles auf einen Blick. Kein Suchen in E-Mails mehr.',
+    title: 'Automatische Analyse',
+    description: 'SchadensMelder erkennt sofort Schadensart, Dringlichkeit und Zuständigkeit. Die Meldung landet strukturiert im HV-Dashboard — vollständig und sofort einsatzbereit.',
     imageUrl: '/accordion-2.jpg',
   },
   {
     id: 3,
     number: '03',
-    title: 'Analyse & Zuweisung',
-    description: 'SchadensMelder erkennt automatisch die Schadensart und schlägt den richtigen Handwerker vor. Die HV bestätigt mit einem Klick — fertig.',
+    title: 'HV prüft & entscheidet',
+    description: 'Der HV-Mitarbeiter sieht alle Details auf einen Blick und bestätigt oder lehnt die Meldung mit einem einzigen Klick ab. Keine langen Telefonate, keine Rückfragen.',
     imageUrl: '/accordion-3.jpg',
   },
   {
     id: 4,
     number: '04',
-    title: 'Handwerker informiert',
-    description: 'Der Handwerker bekommt automatisch eine E-Mail mit allen Details: Adresse, Foto, Beschreibung und Kontaktdaten des Mieters. Kein manuelles Weiterleiten.',
+    title: 'Werkstatt & Termin',
+    description: 'Nach Bestätigung wird die zuständige Werkstatt automatisch benachrichtigt. Termin wird vereinbart, der Mieter erhält eine Statusmeldung — alles ohne manuelle Arbeit.',
     imageUrl: '/accordion-4.jpg',
   },
   {
     id: 5,
     number: '05',
-    title: 'Abschluss & Dokumentation',
-    description: 'Nach der Reparatur wird der Status auf erledigt gesetzt. Alle Unterlagen werden automatisch archiviert — bereit für Versicherung oder Jahresabrechnung.',
+    title: 'Erledigt & dokumentiert',
+    description: 'Schaden behoben, alle happy. Das Versicherungsformular wird automatisch ausgefüllt und archiviert. Jahresabrechnung, Versicherung, Revisionen — alles auf Knopfdruck.',
     imageUrl: '/accordion-5.jpg',
   },
 ]

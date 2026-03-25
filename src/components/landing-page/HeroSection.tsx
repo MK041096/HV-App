@@ -1,23 +1,36 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useShaderBackground } from '@/components/ui/animated-shader-hero'
 
 export default function HeroSection() {
   const [ready, setReady] = useState(false)
-  useEffect(() => { const t = setTimeout(() => setReady(true), 80); return () => clearTimeout(t) }, [])
+  const shaderRef = useShaderBackground()
+
+  useEffect(() => {
+    const t = setTimeout(() => setReady(true), 80)
+    return () => clearTimeout(t)
+  }, [])
 
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
 
-      {/* Frankfurt Nacht-Foto — lokal gespeichert, immer sichtbar */}
+      {/* Wien Innenstadt — Ringstraße, typische Wiener Fassaden */}
       <div
         className="absolute inset-0 bg-cover bg-center bg-no-repeat"
         style={{ backgroundImage: "url('/hero-bg.jpg')" }}
       />
 
-      {/* Overlay — warm & cinematic wie Capacity, Foto klar sichtbar */}
+      {/* Shader-Animation — animiertes Licht-Overlay über dem Wien-Foto */}
+      <canvas
+        ref={shaderRef}
+        className="absolute inset-0 w-full h-full touch-none pointer-events-none"
+        style={{ mixBlendMode: 'screen', opacity: 0.18 }}
+      />
+
+      {/* Cinematic Overlay — warm & dunkel wie Capacity */}
       <div className="absolute inset-0" style={{
-        background: 'linear-gradient(180deg, rgba(6,4,1,0.55) 0%, rgba(8,5,1,0.38) 45%, rgba(6,4,1,0.62) 100%)'
+        background: 'linear-gradient(180deg, rgba(6,4,1,0.52) 0%, rgba(8,5,1,0.32) 45%, rgba(6,4,1,0.60) 100%)'
       }} />
 
       {/* Warmer Gold-Schimmer von unten */}
@@ -44,7 +57,7 @@ export default function HeroSection() {
           <span className="lp-label">HAUSVERWALTUNG &nbsp;·&nbsp; AUTOMATISIERUNG</span>
         </div>
 
-        {/* Headline — 3 Zeilen, Capacity-Style */}
+        {/* Headline */}
         <h1
           className={`font-playfair font-bold leading-[1.06] tracking-tight ${ready ? 'lp-anim-up' : 'opacity-0'}`}
           style={{ animationDelay: '180ms', textShadow: '0 2px 48px rgba(0,0,0,0.85)' }}
