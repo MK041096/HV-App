@@ -1,134 +1,193 @@
 'use client'
 import React, { useState } from 'react'
 
-const features = [
+const steps = [
   {
     id: 1,
-    title: 'Meldung in 3 Minuten',
-    description: 'Mieter fotografieren den Schaden direkt am Handy — kein Anruf, kein E-Mail.',
+    number: '01',
+    title: 'Schaden entdeckt',
+    description: 'Der Mieter fotografiert den Schaden direkt mit dem Handy. Kein Anruf, kein E-Mail — einfach Foto hochladen und Beschreibung eingeben. In unter 3 Minuten erledigt.',
     imageUrl: '/accordion-1.jpg',
   },
   {
     id: 2,
-    title: 'Automatische Analyse',
-    description: 'Schadensart, Dringlichkeit und Verantwortlichkeit werden sofort erkannt.',
+    number: '02',
+    title: 'Meldung eingereicht',
+    description: 'Die Meldung landet sofort strukturiert im HV-Dashboard. Datum, Foto, Beschreibung, Wohnung — alles auf einen Blick. Kein Suchen in E-Mails mehr.',
     imageUrl: '/accordion-2.jpg',
   },
   {
     id: 3,
-    title: 'Handwerker-Zuweisung',
-    description: 'Der richtige Handwerker bekommt automatisch den Auftrag — per E-Mail.',
+    number: '03',
+    title: 'Analyse & Zuweisung',
+    description: 'SchadensMelder erkennt automatisch die Schadensart und schlägt den richtigen Handwerker vor. Die HV bestätigt mit einem Klick — fertig.',
     imageUrl: '/accordion-3.jpg',
   },
   {
     id: 4,
-    title: 'Status-Tracking',
-    description: 'Mieter und HV sehen jederzeit den aktuellen Stand der Meldung.',
+    number: '04',
+    title: 'Handwerker informiert',
+    description: 'Der Handwerker bekommt automatisch eine E-Mail mit allen Details: Adresse, Foto, Beschreibung und Kontaktdaten des Mieters. Kein manuelles Weiterleiten.',
     imageUrl: '/accordion-4.jpg',
   },
   {
     id: 5,
-    title: 'Versicherungsdokumentation',
-    description: 'Alle Unterlagen werden automatisch befüllt und archiviert.',
+    number: '05',
+    title: 'Abschluss & Dokumentation',
+    description: 'Nach der Reparatur wird der Status auf erledigt gesetzt. Alle Unterlagen werden automatisch archiviert — bereit für Versicherung oder Jahresabrechnung.',
     imageUrl: '/accordion-5.jpg',
   },
 ]
+
+interface AccordionPanelProps {
+  step: typeof steps[0]
+  isActive: boolean
+  onMouseEnter: () => void
+  onClick: () => void
+}
+
+function AccordionPanel({ step, isActive, onMouseEnter, onClick }: AccordionPanelProps) {
+  return (
+    <div
+      className="relative rounded-2xl overflow-hidden cursor-pointer flex-shrink-0"
+      style={{
+        height: '480px',
+        width: isActive ? '420px' : '72px',
+        transition: 'width 600ms cubic-bezier(0.4, 0, 0.2, 1)',
+        minWidth: isActive ? '420px' : '72px',
+      }}
+      onMouseEnter={onMouseEnter}
+      onClick={onClick}
+    >
+      {/* Photo */}
+      <img
+        src={step.imageUrl}
+        alt={step.title}
+        className="absolute inset-0 w-full h-full object-cover"
+      />
+
+      {/* Dark overlay */}
+      <div
+        className="absolute inset-0"
+        style={{
+          background: isActive
+            ? 'linear-gradient(to top, rgba(6,4,1,0.92) 0%, rgba(6,4,1,0.45) 55%, rgba(6,4,1,0.2) 100%)'
+            : 'rgba(6,4,1,0.6)',
+          transition: 'background 400ms ease',
+        }}
+      />
+
+      {/* Gold border on active */}
+      <div
+        className="absolute inset-0 rounded-2xl pointer-events-none"
+        style={{
+          border: isActive ? '1px solid rgba(217,119,6,0.5)' : '1px solid rgba(255,255,255,0.08)',
+          transition: 'border-color 400ms ease',
+        }}
+      />
+
+      {/* Collapsed: vertical number + title */}
+      <div
+        className="absolute inset-0 flex flex-col items-center justify-end pb-8"
+        style={{
+          opacity: isActive ? 0 : 1,
+          transition: 'opacity 250ms ease',
+          pointerEvents: isActive ? 'none' : 'auto',
+        }}
+      >
+        <span
+          className="font-playfair font-bold text-white whitespace-nowrap"
+          style={{
+            fontSize: '0.8rem',
+            letterSpacing: '0.12em',
+            writingMode: 'vertical-rl',
+            transform: 'rotate(180deg)',
+            color: 'rgba(255,255,255,0.9)',
+          }}
+        >
+          {step.number} · {step.title}
+        </span>
+      </div>
+
+      {/* Expanded: content */}
+      <div
+        className="absolute bottom-0 left-0 right-0 p-7"
+        style={{
+          opacity: isActive ? 1 : 0,
+          transform: isActive ? 'translateY(0)' : 'translateY(12px)',
+          transition: 'opacity 350ms ease 150ms, transform 350ms ease 150ms',
+          pointerEvents: isActive ? 'auto' : 'none',
+        }}
+      >
+        <div
+          className="text-xs font-bold mb-2 font-playfair"
+          style={{ color: '#f59e0b', letterSpacing: '0.18em' }}
+        >
+          SCHRITT {step.number}
+        </div>
+        <h3 className="font-playfair font-bold text-white text-2xl mb-3 leading-tight">
+          {step.title}
+        </h3>
+        <p className="text-sm leading-relaxed" style={{ color: 'rgba(255,220,160,0.72)' }}>
+          {step.description}
+        </p>
+      </div>
+    </div>
+  )
+}
 
 export default function FeaturesAccordion() {
   const [activeIndex, setActiveIndex] = useState(0)
 
   return (
-    <section className="py-24 px-6" style={{ background: '#0c0a08' }}>
-      <div className="max-w-6xl mx-auto">
+    <section
+      id="wie-es-funktioniert"
+      className="py-24 px-6 overflow-hidden"
+      style={{ background: '#0c0a08' }}
+    >
+      <div className="max-w-7xl mx-auto">
 
         {/* Header */}
-        <div className="text-center mb-16">
-          <span className="lp-label mb-4 inline-flex">SO FUNKTIONIERT ES</span>
+        <div className="text-center mb-14">
+          <span className="lp-label mb-5 inline-flex">WIE ES FUNKTIONIERT</span>
           <h2 className="font-playfair text-4xl md:text-5xl font-bold text-white mt-4 leading-tight">
-            Von der Meldung zur<br />
-            <span className="lp-gold-text">Lösung — automatisch.</span>
+            5 Schritte. Vollständig automatisiert.
           </h2>
+          <p className="mt-4 text-lg max-w-xl mx-auto" style={{ color: 'rgba(255,220,160,0.6)' }}>
+            Von der ersten Meldung bis zur archivierten Dokumentation — ohne manuelle Arbeit.
+          </p>
         </div>
 
-        {/* Accordion */}
-        <div className="flex flex-col lg:flex-row gap-8 items-start">
+        {/* Horizontal Accordion */}
+        <div
+          className="flex gap-3 items-stretch justify-center"
+          style={{ overflowX: 'auto', paddingBottom: '4px' }}
+        >
+          {steps.map((step, index) => (
+            <AccordionPanel
+              key={step.id}
+              step={step}
+              isActive={index === activeIndex}
+              onMouseEnter={() => setActiveIndex(index)}
+              onClick={() => setActiveIndex(index)}
+            />
+          ))}
+        </div>
 
-          {/* Left: feature list */}
-          <div className="w-full lg:w-2/5 space-y-2">
-            {features.map((feature, index) => (
-              <button
-                key={feature.id}
-                className="w-full text-left transition-all duration-300"
-                onClick={() => setActiveIndex(index)}
-              >
-                <div
-                  className="p-5 rounded-2xl border transition-all duration-300"
-                  style={{
-                    background: activeIndex === index
-                      ? 'rgba(217, 119, 6, 0.12)'
-                      : 'rgba(255,255,255,0.03)',
-                    borderColor: activeIndex === index
-                      ? 'rgba(217, 119, 6, 0.4)'
-                      : 'rgba(255,255,255,0.07)',
-                  }}
-                >
-                  <div className="flex items-center gap-3">
-                    <span
-                      className="text-sm font-bold font-playfair"
-                      style={{ color: activeIndex === index ? '#f59e0b' : 'rgba(255,255,255,0.3)' }}
-                    >
-                      0{index + 1}
-                    </span>
-                    <span
-                      className="font-semibold text-base"
-                      style={{ color: activeIndex === index ? '#ffffff' : 'rgba(255,255,255,0.55)' }}
-                    >
-                      {feature.title}
-                    </span>
-                  </div>
-                  {activeIndex === index && (
-                    <p className="mt-2 text-sm leading-relaxed pl-8" style={{ color: 'rgba(255,220,160,0.65)' }}>
-                      {feature.description}
-                    </p>
-                  )}
-                </div>
-              </button>
-            ))}
-          </div>
-
-          {/* Right: photo */}
-          <div className="w-full lg:w-3/5 sticky top-8">
-            <div className="relative rounded-2xl overflow-hidden" style={{ height: '460px' }}>
-              {features.map((feature, index) => (
-                <div
-                  key={feature.id}
-                  className="absolute inset-0 transition-opacity duration-500"
-                  style={{ opacity: activeIndex === index ? 1 : 0 }}
-                >
-                  <img
-                    src={feature.imageUrl}
-                    alt={feature.title}
-                    className="w-full h-full object-cover"
-                  />
-                  {/* Overlay */}
-                  <div
-                    className="absolute inset-0"
-                    style={{ background: 'linear-gradient(to top, rgba(12,10,8,0.85) 0%, rgba(12,10,8,0.2) 60%, transparent 100%)' }}
-                  />
-                  {/* Caption */}
-                  <div className="absolute bottom-6 left-6 right-6">
-                    <p className="font-playfair text-2xl font-bold text-white">{feature.title}</p>
-                    <p className="text-sm mt-1" style={{ color: 'rgba(255,220,160,0.7)' }}>{feature.description}</p>
-                  </div>
-                </div>
-              ))}
-              {/* Gold border */}
-              <div
-                className="absolute inset-0 rounded-2xl pointer-events-none"
-                style={{ border: '1px solid rgba(217,119,6,0.25)' }}
-              />
-            </div>
-          </div>
+        {/* Step dots navigation */}
+        <div className="flex justify-center gap-2 mt-8">
+          {steps.map((_, index) => (
+            <button
+              key={index}
+              onClick={() => setActiveIndex(index)}
+              className="rounded-full transition-all duration-300"
+              style={{
+                width: activeIndex === index ? '28px' : '8px',
+                height: '8px',
+                background: activeIndex === index ? '#d97706' : 'rgba(255,255,255,0.2)',
+              }}
+            />
+          ))}
         </div>
       </div>
     </section>
