@@ -1,3 +1,5 @@
+'use client'
+
 import { Reveal } from './Reveal'
 
 const capabilities = [
