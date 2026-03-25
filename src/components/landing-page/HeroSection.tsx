@@ -169,7 +169,7 @@ export default function HeroSection() {
 
       <section style={{ position: 'relative', minHeight: '100vh', overflow: 'hidden' }}>
         {/* Hintergrundfoto */}
-        <div style={{ position: 'absolute', inset: 0, backgroundImage: "url('/hero_wien_strasse.jpg')", backgroundSize: 'cover', backgroundPosition: 'center', zIndex: 0 }} />
+        <div style={{ position: 'absolute', inset: 0, backgroundImage: "url('/wien_blutgasse_a.jpg')", backgroundSize: 'cover', backgroundPosition: 'center', zIndex: 0 }} />
         {/* Overlay */}
         <div style={{ position: 'absolute', inset: 0, background: 'rgba(7,7,7,0.74)', zIndex: 1 }} />
 
