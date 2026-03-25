@@ -1,12 +1,14 @@
 import { redirect } from "next/navigation"
 import { createServerSupabaseClient } from "@/lib/supabase-server"
-import Header from "@/components/landing-page/Header"
 import HeroSection from "@/components/landing-page/HeroSection"
-import ProblemStatement from "@/components/landing-page/ProblemStatement"
+import ProblemSection from "@/components/landing-page/ProblemSection"
+import SolutionSection from "@/components/landing-page/SolutionSection"
 import FeaturesSection from "@/components/landing-page/FeaturesSection"
-import FeaturesAccordion from "@/components/landing-page/FeaturesAccordion"
+import ProcessSection from "@/components/landing-page/ProcessSection"
+import BenefitsSection from "@/components/landing-page/BenefitsSection"
+import TrustSection from "@/components/landing-page/TrustSection"
 import PricingSection from "@/components/landing-page/PricingSection"
-import CTASection from "@/components/landing-page/CTASection"
+import FinalCTASection from "@/components/landing-page/FinalCTASection"
 import Footer from "@/components/landing-page/Footer"
 
 export default async function RootPage() {
@@ -17,8 +19,6 @@ export default async function RootPage() {
 
   const user = session?.user
 
-  // Only redirect users who are actually authenticated and have a profile.
-  // Anonymous visitors should see the landing page.
   if (user) {
     const { data: profile } = await supabase
       .from("profiles")
@@ -34,20 +34,20 @@ export default async function RootPage() {
         redirect("/mein-bereich")
       }
     }
-    // if we have a session but no valid profile, fall through and show landing page
-    // (user will need to log in again via header link)
   }
 
   return (
     <>
-      <Header />
-      <main className="flex flex-col">
+      <main>
         <HeroSection />
-        <ProblemStatement />
+        <ProblemSection />
+        <SolutionSection />
         <FeaturesSection />
-        <FeaturesAccordion />
+        <ProcessSection />
+        <BenefitsSection />
+        <TrustSection />
         <PricingSection />
-        <CTASection />
+        <FinalCTASection />
       </main>
       <Footer />
     </>

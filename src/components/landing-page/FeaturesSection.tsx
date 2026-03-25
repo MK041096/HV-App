@@ -1,119 +1,76 @@
 'use client'
 
-import { Reveal } from './Reveal'
-
 const features = [
   {
-    tag: 'SCHADEN MELDEN',
-    title: 'Accurate, Grounded\nReporting Across Your Portfolio',
-    titleDE: 'Vollständig dokumentiert\nim ersten Schritt.',
-    body: 'Der Mieter öffnet die App, macht ein Foto, beschreibt den Schaden kurz und vermerkt einen Wunschtermin. In unter 3 Minuten — ohne Anruf, ohne E-Mail, ohne Warteschleife. Die Meldung landet strukturiert und vollständig im System.',
-    image: '/feature-1.jpg',
-    items: ['Schadenmeldeblatt', 'Foto-Upload', 'Wunschtermin', 'Sofort im System'],
-    imageLeft: false,
+    icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18" strokeLinecap="round"/></svg>,
+    title: 'Digitale Schadensmeldung',
+    text: 'Mieter melden Schäden strukturiert über ein einfaches Formular – mit Foto, Beschreibung und Ortsangabe.',
   },
   {
-    tag: 'ANALYSE & BESTÄTIGUNG',
-    titleDE: 'Ein Klick.\nDer Rest läuft von selbst.',
-    body: 'Das System analysiert automatisch: Wer haftet? Welcher Handwerker passt? Das Versicherungsblatt wird vorausgefüllt. Der HV-Mitarbeiter sieht die fertige Analyse auf einen Blick und bestätigt — oder lehnt ab — mit einem einzigen Klick.',
-    image: '/feature-2.jpg',
-    items: ['Automatische Analyse', 'Handwerker-Vorschlag', '1-Klick Bestätigung', 'Versicherungsblatt fertig'],
-    imageLeft: true,
+    icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6"><path d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/><line x1="9" y1="12" x2="15" y2="12" strokeLinecap="round"/><line x1="9" y1="16" x2="13" y2="16" strokeLinecap="round"/></svg>,
+    title: 'Vollständige Fallerfassung',
+    text: 'Jede Meldung wird vollständig und einheitlich erfasst. Keine Information geht verloren.',
   },
   {
-    tag: 'VOLLSTÄNDIG AUTOMATISIERT',
-    titleDE: 'Schaden behoben.\nAlles dokumentiert.',
-    body: 'Nach Abschluss wird das Versicherungsformular automatisch archiviert. Mieter, HV-Mitarbeiter und Handwerker — alle wissen jederzeit Bescheid. Keine Nachfragen, kein Suchen in E-Mails, keine manuelle Ablage.',
-    image: '/feature-3.jpg',
-    items: ['Status in Echtzeit', 'Auto-Archivierung', 'Versicherungsformular', 'Alle informiert'],
-    imageLeft: false,
+    icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>,
+    title: 'Vorbereitete Einschätzung',
+    text: 'Das System bereitet eine strukturierte Ersteinschätzung vor – als Entscheidungsgrundlage, nicht als Entscheidung.',
+  },
+  {
+    icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z" strokeLinecap="round" strokeLinejoin="round"/></svg>,
+    title: 'Handwerker-Vorschlag',
+    text: 'Basierend auf Schadensart schlägt das System passende Handwerker vor. Die HV entscheidet, wen sie beauftragt.',
+  },
+  {
+    icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6"><path d="M22 11.08V12a10 10 0 11-5.93-9.14" strokeLinecap="round" strokeLinejoin="round"/><polyline points="22 4 12 14.01 9 11.01" strokeLinecap="round" strokeLinejoin="round"/></svg>,
+    title: 'Freigabe durch die Hausverwaltung',
+    text: 'Nichts läuft ohne Ihre Bestätigung. Jeder Schritt erfordert eine bewusste Freigabe Ihres Teams.',
+  },
+  {
+    icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" strokeLinecap="round" strokeLinejoin="round"/><polyline points="14 2 14 8 20 8" strokeLinecap="round" strokeLinejoin="round"/><line x1="16" y1="13" x2="8" y2="13" strokeLinecap="round"/><line x1="16" y1="17" x2="8" y2="17" strokeLinecap="round"/><polyline points="10 9 9 9 8 9" strokeLinecap="round" strokeLinejoin="round"/></svg>,
+    title: 'Versicherungsblatt vorbereiten',
+    text: 'Relevante Angaben werden automatisch zusammengeführt. Ihr Team prüft und versendet.',
+  },
+  {
+    icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12" strokeLinecap="round" strokeLinejoin="round"/></svg>,
+    title: 'Status & Nachverfolgung',
+    text: 'Alle Beteiligten sehen den aktuellen Stand eines Falls – ohne Rückfragen, ohne manuellen Statusabgleich.',
+  },
+  {
+    icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6"><polyline points="21 8 21 21 3 21 3 8" strokeLinecap="round" strokeLinejoin="round"/><rect x="1" y="3" width="22" height="5" rx="1"/><line x1="10" y1="12" x2="14" y2="12" strokeLinecap="round"/></svg>,
+    title: 'Dokumentation & Archivierung',
+    text: 'Jeder abgeschlossene Fall wird vollständig dokumentiert – revisionssicher, durchsuchbar, langfristig verfügbar.',
   },
 ]
 
 export default function FeaturesSection() {
   return (
-    <section className="bg-[#080604]" id="wie-es-funktioniert">
-      {features.map((f, i) => (
-        <div
-          key={f.tag}
-          className={`max-w-7xl mx-auto px-6 lg:px-12 py-20 flex flex-col ${
-            f.imageLeft ? 'lg:flex-row-reverse' : 'lg:flex-row'
-          } gap-12 lg:gap-20 items-center`}
-        >
-          {/* Image in dark card frame — like Rogo */}
-          <Reveal
-            direction={f.imageLeft ? 'right' : 'left'}
-            className="w-full lg:w-[52%] flex-shrink-0"
-          >
-            <div
-              className="relative rounded-xl overflow-hidden"
-              style={{
-                background: '#0e0b08',
-                border: '1px solid rgba(255,255,255,0.08)',
-                boxShadow: '0 32px 80px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.04)',
-                padding: '12px',
-              }}
-            >
-              {/* Top bar like Rogo's browser chrome */}
-              <div className="flex items-center gap-1.5 mb-3 px-1">
-                <div className="w-2.5 h-2.5 rounded-full bg-white/10" />
-                <div className="w-2.5 h-2.5 rounded-full bg-white/10" />
-                <div className="w-2.5 h-2.5 rounded-full bg-white/10" />
-              </div>
+    <section id="funktionen" style={{ background: 'var(--bg-card)', padding: '120px 24px', borderTop: '1px solid var(--border)' }}>
+      <div style={{ maxWidth: 1100, margin: '0 auto' }}>
 
-              <div className="relative rounded-lg overflow-hidden" style={{ aspectRatio: '16/10' }}>
-                <img
-                  src={f.image}
-                  alt={f.titleDE}
-                  className="w-full h-full object-cover"
-                  style={{ filter: 'brightness(0.85) saturate(0.9)' }}
-                />
-                {/* Dark overlay on image */}
-                <div className="absolute inset-0" style={{
-                  background: 'linear-gradient(135deg, rgba(8,6,4,0.35) 0%, rgba(8,6,4,0.1) 100%)'
-                }} />
+        <p className="sw-label" style={{ marginBottom: 20 }}>Funktionen</p>
 
-                {/* Tag overlay bottom-left */}
-                <div className="absolute bottom-4 left-4">
-                  <span className="inline-flex items-center px-3 py-1 rounded text-[10px] font-bold tracking-[0.18em] text-white/60 border border-white/10 bg-black/40 backdrop-blur-sm">
-                    {f.tag}
-                  </span>
-                </div>
+        <h2 style={{ fontFamily: 'var(--font-dm-serif, Georgia, serif)', fontSize: 'clamp(1.75rem, 3vw, 2.5rem)', lineHeight: 1.15, color: 'var(--text-primary)', margin: '0 0 56px', fontWeight: 400 }}>
+          Was das System für Sie leistet.
+        </h2>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16 }} className="features-grid">
+          {features.map((f) => (
+            <div key={f.title} className="sw-card" style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+              <div style={{ color: 'var(--accent-light)' }}>{f.icon}</div>
+              <div>
+                <p style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 15, fontWeight: 500, color: 'var(--text-primary)', margin: '0 0 8px' }}>{f.title}</p>
+                <p style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 14, lineHeight: 1.65, color: 'var(--text-secondary)', margin: 0 }}>{f.text}</p>
               </div>
             </div>
-          </Reveal>
-
-          {/* Text */}
-          <Reveal
-            direction={f.imageLeft ? 'left' : 'right'}
-            className="flex-1 min-w-0"
-          >
-            <p className="text-[11px] font-bold tracking-[0.22em] text-[#b85c0a] mb-5 uppercase">
-              {f.tag}
-            </p>
-
-            <h2 className="font-playfair text-3xl md:text-4xl lg:text-[2.4rem] font-bold text-white leading-[1.12] mb-6">
-              {f.titleDE.split('\n').map((line, idx) => (
-                <span key={idx} className="block">{line}</span>
-              ))}
-            </h2>
-
-            <p className="text-[#8a8070] leading-relaxed text-base mb-8">
-              {f.body}
-            </p>
-
-            {/* Feature bullets */}
-            <div className="space-y-3">
-              {f.items.map(item => (
-                <div key={item} className="flex items-center gap-3">
-                  <div className="w-1 h-1 rounded-full flex-shrink-0" style={{ background: '#b85c0a' }} />
-                  <span className="text-sm text-[#a09080]">{item}</span>
-                </div>
-              ))}
-            </div>
-          </Reveal>
+          ))}
         </div>
-      ))}
+      </div>
+
+      <style jsx global>{`
+        @media (max-width: 640px) { .features-grid { grid-template-columns: 1fr !important; } }
+        @media (min-width: 641px) and (max-width: 1024px) { .features-grid { grid-template-columns: repeat(2, 1fr) !important; } }
+      `}</style>
     </section>
   )
 }

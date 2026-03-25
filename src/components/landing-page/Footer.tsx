@@ -1,37 +1,82 @@
+'use client'
+
 import Link from 'next/link'
 
 export default function Footer() {
   return (
-    <footer className="bg-[#09090f] border-t border-white/[0.05] py-12 px-6">
-      <div className="max-w-6xl mx-auto">
-        <div className="flex flex-col md:flex-row justify-between items-start gap-8">
+    <footer style={{ background: 'var(--bg-card)', borderTop: '1px solid var(--border)', padding: '64px 24px 40px' }}>
+      <div style={{ maxWidth: 1100, margin: '0 auto' }}>
+
+        {/* 3-Spalten */}
+        <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: 48, marginBottom: 56 }} className="footer-grid">
+
+          {/* Spalte 1: Wordmark + Beschreibung */}
           <div>
-            <span className="font-playfair text-lg font-bold text-white">
-              zerodamage<span className="text-[#c9a44c]">.</span>de
-            </span>
-            <p className="mt-2 text-[#5a5a70] text-sm max-w-xs leading-relaxed">
-              Automatisierte Schadensmeldung für Hausverwaltungen. Österreich.
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--accent-light)" strokeWidth="1.6">
+                <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" strokeLinecap="round" strokeLinejoin="round"/>
+                <polyline points="9 22 9 12 15 12 15 22" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+              <span style={{ fontFamily: 'var(--font-dm-serif, Georgia, serif)', fontSize: 18, color: 'var(--text-primary)', fontWeight: 400 }}>[SOFTWARE]</span>
+            </div>
+            <p style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 14, lineHeight: 1.7, color: 'var(--text-secondary)', margin: '0 0 16px', maxWidth: 320 }}>
+              Digitales Schadensmeldungs-Management für professionelle Hausverwaltungen.
+              Strukturiert, nachvollziehbar, DSGVO-konform.
+            </p>
+            <p style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 13, color: 'var(--text-muted)', margin: 0 }}>
+              Mathias Kracher · Wildgansgasse 8/2, 7400 Oberwart
             </p>
           </div>
-          <div className="flex flex-col sm:flex-row gap-8 text-sm">
-            <div className="space-y-2">
-              <p className="text-[#c9a44c] text-xs tracking-widest uppercase mb-3">Portal</p>
-              <Link href="/login" className="block text-[#6a6a7a] hover:text-white transition-colors">Login</Link>
-              <Link href="/hv-registrierung" className="block text-[#6a6a7a] hover:text-white transition-colors">Registrierung</Link>
-            </div>
-            <div className="space-y-2">
-              <p className="text-[#c9a44c] text-xs tracking-widest uppercase mb-3">Rechtliches</p>
-              <Link href="/impressum" className="block text-[#6a6a7a] hover:text-white transition-colors">Impressum</Link>
-              <Link href="/datenschutz" className="block text-[#6a6a7a] hover:text-white transition-colors">Datenschutz</Link>
-              <Link href="/kontakt" className="block text-[#6a6a7a] hover:text-white transition-colors">Kontakt</Link>
-            </div>
+
+          {/* Spalte 2: Produkt */}
+          <div>
+            <p style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 12, fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--text-muted)', margin: '0 0 20px' }}>Produkt</p>
+            <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 12 }}>
+              {[
+                { label: 'Funktionen', href: '#funktionen' },
+                { label: 'Ablauf', href: '#ablauf' },
+                { label: 'Vorteile', href: '#vorteile' },
+                { label: 'Preise', href: '#preise' },
+              ].map((link) => (
+                <li key={link.label}>
+                  <a href={link.href} style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 14, color: 'var(--text-secondary)', textDecoration: 'none' }}>{link.label}</a>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Spalte 3: Rechtliches */}
+          <div>
+            <p style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 12, fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--text-muted)', margin: '0 0 20px' }}>Rechtliches</p>
+            <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 12 }}>
+              {[
+                { label: 'Impressum', href: '/impressum' },
+                { label: 'Datenschutz', href: '/datenschutz' },
+                { label: 'Kontakt', href: '/kontakt' },
+              ].map((link) => (
+                <li key={link.label}>
+                  <Link href={link.href} style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 14, color: 'var(--text-secondary)', textDecoration: 'none' }}>{link.label}</Link>
+                </li>
+              ))}
+            </ul>
           </div>
         </div>
-        <div className="mt-10 pt-6 border-t border-white/[0.05] flex flex-col sm:flex-row justify-between items-center gap-3">
-          <p className="text-[#4a4a5a] text-xs">© 2026 zerodamage.de · Mathias Kracher · Oberwart, Österreich</p>
-          <p className="text-[#3a3a4a] text-xs">DSGVO-konform · EU-Server (Stockholm)</p>
+
+        {/* Bottom */}
+        <div style={{ borderTop: '1px solid var(--border)', paddingTop: 28, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
+          <p style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 13, color: 'var(--text-muted)', margin: 0 }}>
+            © {new Date().getFullYear()} Mathias Kracher. Alle Rechte vorbehalten.
+          </p>
+          <p style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 13, color: 'var(--text-muted)', margin: 0 }}>
+            Hosting in der EU · DSGVO-konform
+          </p>
         </div>
       </div>
+
+      <style jsx global>{`
+        @media (max-width: 640px) { .footer-grid { grid-template-columns: 1fr !important; gap: 40px !important; } }
+        @media (min-width: 641px) and (max-width: 1024px) { .footer-grid { grid-template-columns: 1fr 1fr !important; } }
+      `}</style>
     </footer>
   )
 }
