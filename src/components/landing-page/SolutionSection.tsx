@@ -23,7 +23,7 @@ export default function SolutionSection() {
   return (
     <section style={{ position: 'relative', overflow: 'hidden', padding: '120px 24px' }}>
       {/* Hintergrundfoto mit Overlay */}
-      <div style={{ position: 'absolute', inset: 0, backgroundImage: "url('/Quwer .jpg')", backgroundSize: 'cover', backgroundPosition: 'center top', zIndex: 0 }} />
+      <div style={{ position: 'absolute', inset: 0, backgroundImage: "url('/hero_wien_architektur.jpg')", backgroundSize: 'cover', backgroundPosition: 'center top', zIndex: 0 }} />
       <div style={{ position: 'absolute', inset: 0, background: 'rgba(7,7,7,0.80)', zIndex: 1 }} />
 
       {/* Inhalt */}
