@@ -84,13 +84,15 @@
   }
 }
 
-/* ── Landing Page Design System — Capacity style (warm amber/brown) ── */
+/* ── Landing Page Design System — Rogo/Vienna style ── */
 :root {
   --gold: #d97706;
   --gold-light: #f59e0b;
   --gold-dim: rgba(217, 119, 6, 0.15);
-  --lp-bg: #0c0a08;
-  --lp-bg-2: #141008;
+  --lp-bg: #080604;
+  --lp-bg-2: #0e0b08;
+  --lp-cream: #f5f0e8;
+  --lp-rust: #b85c0a;
   --font-playfair: var(--font-playfair, Georgia, serif);
 }
 

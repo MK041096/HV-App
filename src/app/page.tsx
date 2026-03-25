@@ -2,10 +2,10 @@ import { redirect } from "next/navigation"
 import { createServerSupabaseClient } from "@/lib/supabase-server"
 import Header from "@/components/landing-page/Header"
 import HeroSection from "@/components/landing-page/HeroSection"
+import ProblemStatement from "@/components/landing-page/ProblemStatement"
 import FeaturesSection from "@/components/landing-page/FeaturesSection"
 import FeaturesAccordion from "@/components/landing-page/FeaturesAccordion"
 import PricingSection from "@/components/landing-page/PricingSection"
-import AboutSection from "@/components/landing-page/AboutSection"
 import CTASection from "@/components/landing-page/CTASection"
 import Footer from "@/components/landing-page/Footer"
 
@@ -43,10 +43,10 @@ export default async function RootPage() {
       <Header />
       <main className="flex flex-col">
         <HeroSection />
-        <FeaturesAccordion />
+        <ProblemStatement />
         <FeaturesSection />
+        <FeaturesAccordion />
         <PricingSection />
-        <AboutSection />
         <CTASection />
       </main>
       <Footer />

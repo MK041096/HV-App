@@ -143,18 +143,20 @@ export default function FeaturesAccordion() {
     <section
       id="wie-es-funktioniert"
       className="py-24 px-6 overflow-hidden"
-      style={{ background: '#0c0a08' }}
+      style={{ background: '#080604' }}
     >
       <div className="max-w-7xl mx-auto">
 
         {/* Header */}
         <div className="text-center mb-14">
-          <span className="lp-label mb-5 inline-flex">WIE ES FUNKTIONIERT</span>
-          <h2 className="font-playfair text-4xl md:text-5xl font-bold text-white mt-4 leading-tight">
+          <p className="text-[11px] font-bold tracking-[0.22em] uppercase mb-4" style={{ color: '#b85c0a' }}>
+            WIE ES FUNKTIONIERT
+          </p>
+          <h2 className="font-playfair text-4xl md:text-5xl font-bold text-white mt-2 leading-tight">
             5 Schritte. Vollständig automatisiert.
           </h2>
-          <p className="mt-4 text-lg max-w-xl mx-auto" style={{ color: 'rgba(255,220,160,0.6)' }}>
-            Von der ersten Meldung bis zur archivierten Dokumentation — ohne manuelle Arbeit.
+          <p className="mt-4 text-base max-w-xl mx-auto" style={{ color: 'rgba(255,220,160,0.5)' }}>
+            Von der ersten Meldung bis zur archivierten Dokumentation.
           </p>
         </div>
 

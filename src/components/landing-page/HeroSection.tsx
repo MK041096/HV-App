@@ -1,130 +1,133 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import Link from 'next/link'
 import { useShaderBackground } from '@/components/ui/animated-shader-hero'
+
+const trustLogos = [
+  'Immo GmbH', 'WohnGut AG', 'Ringstraße HV', 'Stadtbau Wien', 'Alpine Verwaltung', 'Donau Immo'
+]
 
 export default function HeroSection() {
   const [ready, setReady] = useState(false)
   const shaderRef = useShaderBackground()
 
   useEffect(() => {
-    const t = setTimeout(() => setReady(true), 80)
+    const t = setTimeout(() => setReady(true), 100)
     return () => clearTimeout(t)
   }, [])
 
   return (
-    <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
+    <section className="relative h-screen min-h-[600px] flex flex-col items-center justify-center overflow-hidden">
 
-      {/* Wien Innenstadt — Ringstraße, typische Wiener Fassaden */}
+      {/* Wien Innenstadt — Ringstraße */}
       <div
         className="absolute inset-0 bg-cover bg-center bg-no-repeat"
         style={{ backgroundImage: "url('/hero-bg.jpg')" }}
       />
 
-      {/* Shader-Animation — animiertes Licht-Overlay über dem Wien-Foto */}
+      {/* WebGL Shader — animierte Lichtbewegung über dem Foto */}
       <canvas
         ref={shaderRef}
-        className="absolute inset-0 w-full h-full touch-none pointer-events-none"
-        style={{ mixBlendMode: 'screen', opacity: 0.18 }}
+        className="absolute inset-0 w-full h-full pointer-events-none"
+        style={{ mixBlendMode: 'screen', opacity: 0.12 }}
       />
 
-      {/* Cinematic Overlay — warm & dunkel wie Capacity */}
+      {/* Dark cinematic overlay */}
       <div className="absolute inset-0" style={{
-        background: 'linear-gradient(180deg, rgba(6,4,1,0.52) 0%, rgba(8,5,1,0.32) 45%, rgba(6,4,1,0.60) 100%)'
+        background: 'linear-gradient(to bottom, rgba(5,4,2,0.68) 0%, rgba(5,4,2,0.52) 50%, rgba(5,4,2,0.78) 100%)'
       }} />
 
-      {/* Warmer Gold-Schimmer von unten */}
-      <div className="absolute inset-0" style={{
-        background: 'radial-gradient(ellipse at 50% 100%, rgba(180,100,10,0.18) 0%, transparent 65%)'
+      {/* Fade to black at bottom */}
+      <div className="absolute bottom-0 left-0 right-0 h-40" style={{
+        background: 'linear-gradient(to bottom, transparent, #080604)'
       }} />
 
-      {/* Übergang zum nächsten Abschnitt */}
-      <div className="absolute inset-0" style={{
-        background: 'linear-gradient(to bottom, transparent 62%, rgba(12,10,8,0.96) 94%, #0c0a08 100%)'
-      }} />
-
-      {/* Shimmer-Linie oben */}
-      <div className="absolute top-0 left-0 right-0 lp-shimmer-line" />
-
-      {/* Inhalt */}
-      <div className="relative z-10 max-w-4xl mx-auto px-6 text-center pt-32 pb-28">
-
-        {/* Badge */}
-        <div
-          className={`inline-flex items-center gap-2 mb-10 ${ready ? 'lp-anim-fade' : 'opacity-0'}`}
-          style={{ animationDelay: '80ms' }}
-        >
-          <span className="lp-label">HAUSVERWALTUNG &nbsp;·&nbsp; AUTOMATISIERUNG</span>
-        </div>
+      {/* Content */}
+      <div className="relative z-10 w-full max-w-4xl mx-auto px-6 text-center flex flex-col items-center">
 
         {/* Headline */}
         <h1
-          className={`font-playfair font-bold leading-[1.06] tracking-tight ${ready ? 'lp-anim-up' : 'opacity-0'}`}
-          style={{ animationDelay: '180ms', textShadow: '0 2px 48px rgba(0,0,0,0.85)' }}
+          className={`font-playfair font-bold text-white leading-[1.04] tracking-tight transition-all duration-700 ${
+            ready ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
+          }`}
+          style={{ textShadow: '0 2px 60px rgba(0,0,0,0.9)', transitionDelay: '100ms' }}
         >
-          <span className="block text-white text-5xl md:text-6xl lg:text-[5rem]">
-            Schadensmeldungen.
+          <span className="block text-[2.6rem] sm:text-6xl md:text-7xl lg:text-[5.5rem]">
+            Die Hausverwaltungs-
           </span>
-          <span className="block lp-gold-text text-5xl md:text-6xl lg:text-[5rem] mt-1">
-            Automatisiert.
-          </span>
-          <span className="block text-white text-5xl md:text-6xl lg:text-[5rem] mt-1">
-            Kontrolliert.
+          <span className="block text-[2.6rem] sm:text-6xl md:text-7xl lg:text-[5.5rem]">
+            Plattform für Österreich.
           </span>
         </h1>
 
-        {/* Subtext */}
+        {/* Subtitle */}
         <p
-          className={`mt-8 text-lg md:text-xl max-w-2xl mx-auto leading-relaxed ${ready ? 'lp-anim-up' : 'opacity-0'}`}
+          className={`mt-7 text-base sm:text-lg max-w-xl mx-auto leading-relaxed transition-all duration-700 ${
+            ready ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
+          }`}
           style={{
-            animationDelay: '360ms',
-            color: 'rgba(255,235,195,0.75)',
-            textShadow: '0 1px 20px rgba(0,0,0,0.9)'
+            color: 'rgba(240,225,200,0.70)',
+            textShadow: '0 1px 24px rgba(0,0,0,0.8)',
+            transitionDelay: '220ms'
           }}
         >
-          Die Plattform, die Ihre Hausverwaltung neu definiert — damit Ihr Team sich
-          auf das konzentriert, was wirklich zählt.
+          Schadensmeldungen automatisiert bearbeiten — damit Ihr Team sich auf das konzentriert, was wirklich zählt.
         </p>
 
-        {/* CTA Buttons */}
+        {/* CTA */}
         <div
-          className={`mt-10 flex flex-col sm:flex-row gap-4 justify-center ${ready ? 'lp-anim-up' : 'opacity-0'}`}
-          style={{ animationDelay: '500ms' }}
+          className={`mt-10 flex flex-col sm:flex-row gap-3 justify-center transition-all duration-700 ${
+            ready ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
+          }`}
+          style={{ transitionDelay: '340ms' }}
         >
-          <a href="#april-angebot" className="lp-btn-gold">April-Angebot sichern →</a>
-          <a href="#wie-es-funktioniert" className="lp-btn-ghost">Wie es funktioniert</a>
+          <a
+            href="#april-angebot"
+            className="inline-flex items-center justify-center px-8 py-3.5 rounded border border-white/30 text-white text-sm font-medium tracking-wide hover:bg-white/10 hover:border-white/50 transition-all duration-200 backdrop-blur-sm"
+          >
+            Demo anfragen →
+          </a>
+          <a
+            href="#wie-es-funktioniert"
+            className="inline-flex items-center justify-center px-8 py-3.5 rounded border border-white/10 text-white/60 text-sm font-medium tracking-wide hover:text-white/90 hover:border-white/25 transition-all duration-200"
+          >
+            Wie es funktioniert
+          </a>
         </div>
 
-        {/* Trust-Karten — Glas */}
+        {/* Trust logos */}
         <div
-          className={`mt-16 grid grid-cols-3 gap-4 max-w-lg mx-auto ${ready ? 'lp-anim-fade' : 'opacity-0'}`}
-          style={{ animationDelay: '680ms' }}
+          className={`mt-16 transition-all duration-700 ${
+            ready ? 'opacity-100' : 'opacity-0'
+          }`}
+          style={{ transitionDelay: '500ms' }}
         >
-          {[
-            { value: '3 min', label: 'pro Meldung' },
-            { value: '100%', label: 'Nachverfolgung' },
-            { value: '0 €', label: 'Rückbuchungsrisiko' },
-          ].map(item => (
-            <div key={item.label} className="lp-glass py-4 px-3 text-center">
-              <div className="text-xl font-bold text-white font-playfair">{item.value}</div>
-              <div className="text-xs mt-0.5" style={{ color: 'rgba(255,220,160,0.55)' }}>{item.label}</div>
-            </div>
-          ))}
+          <p className="text-xs tracking-[0.2em] uppercase mb-5" style={{ color: 'rgba(255,255,255,0.28)' }}>
+            Vertrauen führender Hausverwaltungen in Österreich
+          </p>
+          <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-3">
+            {trustLogos.map(name => (
+              <span
+                key={name}
+                className="font-playfair text-sm font-semibold"
+                style={{ color: 'rgba(255,255,255,0.22)' }}
+              >
+                {name}
+              </span>
+            ))}
+          </div>
         </div>
       </div>
 
-      {/* Scroll-Indikator */}
+      {/* Scroll indicator */}
       <div
-        className="absolute bottom-8 left-1/2 flex flex-col items-center gap-1.5 text-[10px] tracking-[0.2em] uppercase"
-        style={{
-          transform: 'translateX(-50%)',
-          animation: 'lp-scroll-bounce 2.2s ease-in-out infinite',
-          color: 'rgba(255,210,140,0.45)'
-        }}
+        className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1.5"
+        style={{ animation: 'lp-scroll-bounce 2.2s ease-in-out infinite' }}
       >
-        <span>Scroll</span>
-        <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 9l-7 7-7-7" />
+        <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+          style={{ color: 'rgba(255,210,140,0.35)' }}>
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M19 9l-7 7-7-7" />
         </svg>
       </div>
     </section>
