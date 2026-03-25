@@ -84,19 +84,83 @@
   }
 }
 
-/* ── Landing Page Design System — Rogo/Vienna style ── */
+/* ══════════════════════════════════════════════════
+   [SOFTWARE] Design System — Premium Dark / Rogo-Style
+   ══════════════════════════════════════════════════ */
 :root {
+  /* ── Farben ── */
+  --bg-primary:    #0D0D0D;
+  --bg-card:       #181818;
+  --bg-elevated:   #1E1E1E;
+  --border:        #242424;
+  --text-primary:  #F4F3EF;
+  --text-secondary:#A09D99;
+  --text-muted:    #8A8680;
+  --accent:        #2E5540;
+  --accent-light:  #3D7056;
+  --accent-subtle: #1A3329;
+
+  /* ── Legacy (für bestehende App-Bereiche) ── */
   --gold: #d97706;
   --gold-light: #f59e0b;
-  --gold-dim: rgba(217, 119, 6, 0.15);
-  --lp-bg: #080604;
-  --lp-bg-2: #0e0b08;
-  --lp-cream: #f5f0e8;
-  --lp-rust: #b85c0a;
+  --lp-bg: #0D0D0D;
   --font-playfair: var(--font-playfair, Georgia, serif);
+  --font-dm-serif: var(--font-dm-serif, Georgia, serif);
+  --font-dm-sans:  var(--font-dm-sans, system-ui, sans-serif);
 }
 
+/* ── Typografie-Utilities ── */
+.font-dm-serif {
+  font-family: var(--font-dm-serif), 'DM Serif Display', Georgia, serif;
+  font-weight: 400;
+}
+.font-dm-sans {
+  font-family: var(--font-dm-sans), 'DM Sans', system-ui, sans-serif;
+}
 .font-playfair { font-family: var(--font-playfair), 'Playfair Display', Georgia, serif; }
+
+/* ── [SOFTWARE] Buttons ── */
+.sw-btn-primary {
+  display: inline-flex; align-items: center; justify-content: center;
+  height: 48px; padding: 0 1.75rem;
+  background: var(--accent); color: var(--text-primary);
+  font-family: var(--font-dm-sans), sans-serif;
+  font-size: 0.9375rem; font-weight: 500;
+  border: 1px solid var(--accent); border-radius: 6px;
+  cursor: pointer; transition: background 0.2s, border-color 0.2s;
+  text-decoration: none;
+}
+.sw-btn-primary:hover { background: var(--accent-light); border-color: var(--accent-light); }
+
+.sw-btn-outline {
+  display: inline-flex; align-items: center; justify-content: center;
+  height: 48px; padding: 0 1.75rem;
+  background: transparent; color: var(--text-primary);
+  font-family: var(--font-dm-sans), sans-serif;
+  font-size: 0.9375rem; font-weight: 500;
+  border: 1px solid var(--border); border-radius: 6px;
+  cursor: pointer; transition: border-color 0.2s, background 0.2s;
+  text-decoration: none;
+}
+.sw-btn-outline:hover { border-color: var(--accent); background: var(--accent-subtle); }
+
+/* ── [SOFTWARE] Section Label ── */
+.sw-label {
+  font-family: var(--font-dm-sans), sans-serif;
+  font-size: 12px; font-weight: 500;
+  letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--accent-light);
+}
+
+/* ── [SOFTWARE] Card ── */
+.sw-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 28px;
+  transition: border-color 0.2s, background 0.2s;
+}
+.sw-card:hover { border-color: #333; background: var(--bg-elevated); }
 
 /* Keyframes */
 @keyframes lp-fade-up {

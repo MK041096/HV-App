@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter, Playfair_Display } from "next/font/google";
+import { Inter, Playfair_Display, DM_Serif_Display, DM_Sans } from "next/font/google";
 import "./globals.css";
 
 const inter = Inter({
@@ -12,9 +12,23 @@ const playfair = Playfair_Display({
   variable: "--font-playfair",
 });
 
+const dmSerifDisplay = DM_Serif_Display({
+  weight: "400",
+  subsets: ["latin"],
+  variable: "--font-dm-serif",
+  display: "swap",
+});
+
+const dmSans = DM_Sans({
+  subsets: ["latin"],
+  weight: ["300", "400", "500", "600"],
+  variable: "--font-dm-sans",
+  display: "swap",
+});
+
 export const metadata: Metadata = {
-  title: "SchadensMelder - Digitale Schadensmeldung für Hausverwaltungen",
-  description: "Effiziente, mandantenfähige Plattform zur automatisierten Schadensabwicklung für Vermieter und Hausverwaltungen.",
+  title: "[SOFTWARE] – Schadensmeldungen für Hausverwaltungen",
+  description: "[SOFTWARE] digitalisiert Schadensmeldungen für Hausverwaltungen. Von der strukturierten Erfassung bis zur vollständigen Dokumentation.",
   openGraph: {
     type: "website",
     locale: "de_DE",
@@ -42,7 +56,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="de">
-      <body className={`${inter.variable} ${playfair.variable} antialiased`}>
+      <body className={`${inter.variable} ${playfair.variable} ${dmSerifDisplay.variable} ${dmSans.variable} antialiased`}>
         {/* JSON-LD structured data for SEO */}
         <script
           type="application/ld+json"
