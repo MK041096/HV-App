@@ -44,7 +44,7 @@ export default function PricingSection() {
               {[
                 'Vollständiges Onboarding',
                 'Alle Funktionen freigeschaltet',
-                'Persönliche Einführung Ihres Teams',
+                'Persönliche Einführung',
                 'Monatliches Abo individuell je Einheit abgestimmt',
                 'Kein langfristiger Vertrag',
               ].map((item) => (
@@ -75,7 +75,7 @@ export default function PricingSection() {
               {[
                 'Vollständiges Onboarding',
                 'Alle Funktionen freigeschaltet',
-                'Persönliche Einführung Ihres Teams',
+                'Persönliche Einführung',
                 'Nutzungsmodell individuell abgestimmt',
                 'Support & Weiterentwicklung inklusive',
               ].map((item) => (
