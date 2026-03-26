@@ -61,16 +61,15 @@ export default function HeroLoginCard() {
           align-items: center;
           gap: 10px;
           background: transparent;
-          border: 1px solid rgba(255,255,255,0.14);
-          border-radius: 999px;
-          padding: 0 16px;
-          height: 50px;
-          transition: border-color 0.25s, background 0.25s, box-shadow 0.25s;
+          border: none;
+          border-bottom: 1px solid rgba(255,255,255,0.2);
+          border-radius: 0;
+          padding: 0 4px;
+          height: 46px;
+          transition: border-color 0.25s;
         }
         .hlc-input-wrap:focus-within {
-          background: rgba(255,255,255,0.04);
-          border-color: rgba(181,131,74,0.6);
-          box-shadow: 0 0 0 3px rgba(154,107,60,0.18);
+          border-bottom-color: rgba(181,131,74,0.8);
         }
         .hlc-input {
           flex: 1;
@@ -81,14 +80,15 @@ export default function HeroLoginCard() {
           font-size: 15px;
           font-family: var(--font-dm-sans, sans-serif);
         }
-        .hlc-input::placeholder { color: rgba(160,157,153,0.6); }
         .hlc-input:-webkit-autofill,
         .hlc-input:-webkit-autofill:focus,
         .hlc-input:-webkit-autofill:hover,
         .hlc-input:-webkit-autofill:active {
-          -webkit-box-shadow: 0 0 0 1000px rgb(18,18,18) inset !important;
+          -webkit-box-shadow: 0 0 0 1000px transparent inset !important;
+          background: transparent !important;
           -webkit-text-fill-color: #F4F3EF !important;
           caret-color: #F4F3EF;
+          transition: background-color 9999s ease-in-out 0s;
         }
         .hlc-icon { color: rgba(160,157,153,0.7); flex-shrink: 0; }
         .hlc-eye {
@@ -172,7 +172,7 @@ export default function HeroLoginCard() {
           <div className="hlc-divider" />
 
           {/* Form */}
-          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+          <form onSubmit={handleSubmit} autoComplete="off" style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
 
             {/* E-Mail */}
             <div className="hlc-input-wrap">
@@ -183,7 +183,7 @@ export default function HeroLoginCard() {
                 placeholder=""
                 value={email}
                 onChange={e => setEmail(e.target.value)}
-                autoComplete="email"
+                autoComplete="off"
                 disabled={loading}
               />
             </div>
@@ -197,7 +197,7 @@ export default function HeroLoginCard() {
                 placeholder=""
                 value={password}
                 onChange={e => setPassword(e.target.value)}
-                autoComplete="current-password"
+                autoComplete="off"
                 disabled={loading}
               />
               <button type="button" className="hlc-eye" onClick={() => setShowPw(p => !p)} tabIndex={-1} aria-label="Passwort anzeigen">
