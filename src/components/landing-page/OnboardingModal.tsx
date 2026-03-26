@@ -265,10 +265,10 @@ export default function OnboardingModal({ onClose }: { onClose: () => void }) {
                     lineHeight: 1.2,
                   }}
                 >
-                  Kostenlos testen
+                  April-Aktion sichern
                 </h2>
                 <p style={{ color: '#A09488', fontSize: '14px', margin: 0 }}>
-                  30 Tage Pilot – kein Risiko, keine langfristige Bindung.
+                  Nur 3 Plätze im April · 349 € statt 699 € · Erstes Monat kostenlos
                 </p>
               </div>
 

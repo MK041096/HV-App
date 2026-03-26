@@ -22,19 +22,22 @@ export default function PricingSection() {
 
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24, maxWidth: 800, margin: '0 auto' }} className="pricing-grid">
 
-          {/* April-Pilot */}
+          {/* April-Aktion */}
           <div style={{ background: 'var(--bg-primary)', border: '1px solid var(--accent)', borderRadius: 10, padding: '40px 36px', position: 'relative', display: 'flex', flexDirection: 'column' }}>
             {/* Badge */}
             <div style={{ position: 'absolute', top: -13, left: 32, background: 'var(--accent)', borderRadius: 4, padding: '4px 12px' }}>
-              <span style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 11, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--text-primary)' }}>Empfohlen</span>
+              <span style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 11, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--text-primary)' }}>Nur 3 Plätze</span>
             </div>
 
-            <p style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 13, fontWeight: 500, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--accent-light)', margin: '0 0 20px' }}>April-Pilot</p>
+            <p style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 13, fontWeight: 500, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--accent-light)', margin: '0 0 20px' }}>April-Aktion</p>
 
             <div style={{ marginBottom: 24 }}>
               <span style={{ fontFamily: 'var(--font-dm-serif, Georgia, serif)', fontSize: 14, color: 'var(--text-muted)', textDecoration: 'line-through', display: 'block', marginBottom: 4 }}>699 €</span>
-              <span style={{ fontFamily: 'var(--font-dm-serif, Georgia, serif)', fontSize: 44, color: 'var(--text-primary)', lineHeight: 1 }}>Kostenfrei</span>
-              <span style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 14, color: 'var(--text-secondary)', display: 'block', marginTop: 8 }}>Einmaliges Onboarding · 30 Tage Pilot</span>
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
+                <span style={{ fontFamily: 'var(--font-dm-serif, Georgia, serif)', fontSize: 44, color: 'var(--text-primary)', lineHeight: 1 }}>349 €</span>
+                <span style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 13, color: 'var(--accent-light)' }}>einmalig</span>
+              </div>
+              <span style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 14, color: 'var(--text-secondary)', display: 'block', marginTop: 8 }}>Onboarding · Erstes Monat kostenlos</span>
             </div>
 
             <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 36px', display: 'flex', flexDirection: 'column', gap: 12, flex: 1 }}>
@@ -42,8 +45,8 @@ export default function PricingSection() {
                 'Vollständiges Onboarding inklusive',
                 'Alle Funktionen freigeschaltet',
                 'Persönliche Einführung Ihres Teams',
-                'Keine langfristige Bindung',
-                'Feedback fließt direkt in die Entwicklung ein',
+                'Erstes Monat kostenlos — danach individuell je Einheit',
+                'Kein langfristiger Vertrag',
               ].map((item) => (
                 <li key={item} style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
                   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--accent-light)" strokeWidth="2.2" style={{ flexShrink: 0, marginTop: 2 }}>

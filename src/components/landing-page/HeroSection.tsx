@@ -216,7 +216,7 @@ export default function HeroSection() {
           {/* Trust-Leiste */}
           <div style={{ borderTop: '1px solid rgba(36,36,36,0.7)', paddingTop: 22, paddingBottom: 32, textAlign: 'center', opacity: ready ? 1 : 0, transition: 'opacity 0.8s ease 0.35s' }}>
             <p style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 13, color: 'var(--text-muted)', margin: 0, letterSpacing: '0.03em' }}>
-              DSGVO-konform&nbsp;&nbsp;·&nbsp;&nbsp;Hosting in der EU&nbsp;&nbsp;·&nbsp;&nbsp;Für Hausverwaltungen ab 100 Einheiten
+              DSGVO-konform&nbsp;&nbsp;·&nbsp;&nbsp;Hosting in der EU&nbsp;&nbsp;·&nbsp;&nbsp;April-Aktion: 349 € statt 699 € · Nur 3 Plätze
             </p>
           </div>
         </div>

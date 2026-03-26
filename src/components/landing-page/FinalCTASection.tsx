@@ -39,7 +39,7 @@ export default function FinalCTASection() {
         </div>
 
         <p style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 13, color: 'var(--text-muted)', lineHeight: 1.6 }}>
-          DSGVO-konform · Hosting in der EU · 30-Tage-Pilot ohne langfristige Bindung
+          DSGVO-konform · Hosting in der EU · Kein langfristiger Vertrag
         </p>
 
       </div>
