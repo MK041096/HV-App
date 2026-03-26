@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import HeroLoginCard from './HeroLoginCard'
 
 /* ─────────────────────────────────────────────
    Dashboard Mockup – reines HTML/CSS, kein Bild
@@ -201,9 +202,9 @@ export default function HeroSection() {
               </div>
             </div>
 
-            {/* Mockup */}
-            <div className="hero-mockup" style={{ opacity: ready ? 1 : 0, transform: ready ? 'none' : 'translateY(28px)', transition: 'opacity 0.75s ease 0.15s, transform 0.75s ease 0.15s', display: 'flex', justifyContent: 'center' }}>
-              <DashboardMockup />
+            {/* Login Card */}
+            <div className="hero-mockup" style={{ display: 'flex', justifyContent: 'center' }}>
+              <HeroLoginCard />
             </div>
           </div>
 
