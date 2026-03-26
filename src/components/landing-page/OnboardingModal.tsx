@@ -572,7 +572,7 @@ export default function OnboardingModal({ onClose }: { onClose: () => void }) {
                       Wird verarbeitet...
                     </>
                   ) : (
-                    'Kostenlos registrieren →'
+                    'Anfrage absenden →'
                   )}
                 </button>
               </div>

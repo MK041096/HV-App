@@ -42,7 +42,7 @@ export default function PricingSection() {
 
             <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 36px', display: 'flex', flexDirection: 'column', gap: 12, flex: 1 }}>
               {[
-                'Vollständiges Onboarding inklusive',
+                'Vollständiges Onboarding',
                 'Alle Funktionen freigeschaltet',
                 'Persönliche Einführung Ihres Teams',
                 'Monatliches Abo individuell je Einheit abgestimmt',
