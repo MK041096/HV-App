@@ -205,33 +205,24 @@ export default function HeroSection() {
         {/* Inhalt */}
         <div style={{ position: 'relative', zIndex: 2, maxWidth: 1200, margin: '0 auto', padding: '0 24px', minHeight: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
 
-          {/* Zweispaltig */}
-          <div className="hero-grid" style={{ display: 'grid', gridTemplateColumns: '55fr 45fr', gap: 64, alignItems: 'center', paddingTop: 100, paddingBottom: 60 }}>
-
-            {/* Text */}
-            <div style={{ opacity: ready ? 1 : 0, transform: ready ? 'none' : 'translateY(20px)', transition: 'opacity 0.65s ease, transform 0.65s ease' }}>
-              <h1 style={{ fontFamily: 'var(--font-dm-serif, Georgia, serif)', fontSize: 'clamp(2.1rem, 4vw, 3.5rem)', lineHeight: 1.1, color: 'var(--text-primary)', margin: '0 0 24px', fontWeight: 400 }}>
-                Schadensmeldungen, die sich mit nur<br />
-                einem Klick von selbst erledigen.
-              </h1>
-              <p style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 17, lineHeight: 1.7, color: 'var(--text-secondary)', margin: '0 0 36px', maxWidth: 480 }}>
-                Mieter meldet digital. Das System analysiert vollständig: Wer ist zuständig?
-                Greift die Versicherung? Welcher Handwerker passt? Was sind die nächsten Schritte?
-                Alles vorbereitet — Ihr Mitarbeiter prüft und klickt einmal.
-              </p>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'center' }}>
-                <button onClick={() => setShowModal(true)} className="sw-btn-primary">Anfragen</button>
-                <a href="#ablauf" style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 15, color: 'var(--text-secondary)', textDecoration: 'none', transition: 'color 0.2s' }}
-                  onMouseEnter={e => (e.currentTarget.style.color = 'var(--text-primary)')}
-                  onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-secondary)')}>
-                  Ablauf ansehen →
-                </a>
-              </div>
-            </div>
-
-            {/* Dashboard Mockup */}
-            <div className="hero-mockup" style={{ display: 'flex', justifyContent: 'center' }}>
-              <DashboardMockup />
+          {/* Text – volle Breite */}
+          <div style={{ maxWidth: 720, paddingTop: 100, paddingBottom: 60, opacity: ready ? 1 : 0, transform: ready ? 'none' : 'translateY(20px)', transition: 'opacity 0.65s ease, transform 0.65s ease' }}>
+            <h1 style={{ fontFamily: 'var(--font-dm-serif, Georgia, serif)', fontSize: 'clamp(2.4rem, 5vw, 4rem)', lineHeight: 1.08, color: 'var(--text-primary)', margin: '0 0 28px', fontWeight: 400 }}>
+              Schadensmeldungen, die sich mit nur<br />
+              einem Klick von selbst erledigen.
+            </h1>
+            <p style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 18, lineHeight: 1.75, color: 'var(--text-secondary)', margin: '0 0 40px', maxWidth: 560 }}>
+              Mieter meldet digital. Das System analysiert vollständig: Wer ist zuständig?
+              Greift die Versicherung? Welcher Handwerker passt?
+              Alles vorbereitet — Ihr Mitarbeiter prüft und klickt einmal.
+            </p>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'center' }}>
+              <button onClick={() => setShowModal(true)} className="sw-btn-primary">Anfragen</button>
+              <a href="#ablauf" style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 15, color: 'var(--text-secondary)', textDecoration: 'none', transition: 'color 0.2s' }}
+                onMouseEnter={e => (e.currentTarget.style.color = 'var(--text-primary)')}
+                onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-secondary)')}>
+                Ablauf ansehen →
+              </a>
             </div>
           </div>
 
