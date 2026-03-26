@@ -17,7 +17,7 @@ const steps = [
   {
     num: '4',
     title: 'Freigabe mit einem Klick',
-    text: 'Der Mitarbeiter prüft, entscheidet und gibt frei. Das System übernimmt den weiteren Ablauf – Beauftragung, Benachrichtigung, Dokumentation.',
+    text: 'Ein kurzer Blick, ein Klick — die finale Entscheidung liegt bei Ihnen. Alles Weitere läuft automatisch: Beauftragung, Benachrichtigung, Dokumentation.',
   },
   {
     num: '5',

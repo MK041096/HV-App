@@ -39,8 +39,7 @@ export default function FeaturesSection() {
             Das System macht die Arbeit.<br />Ihr Team behält die Kontrolle.
           </h2>
           <p style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 17, lineHeight: 1.7, color: 'var(--text-secondary)', margin: 0, maxWidth: 560 }}>
-            Kein Automatismus ohne Freigabe — jede Entscheidung liegt bei Ihren Mitarbeitern.
-            Das System erledigt alles davor.
+            Das System erledigt die Arbeit. Die finale Entscheidung liegt immer noch bei Ihnen.
           </p>
         </div>
 
