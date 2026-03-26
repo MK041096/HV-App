@@ -83,9 +83,12 @@ export default function HeroLoginCard() {
         }
         .hlc-input::placeholder { color: rgba(160,157,153,0.6); }
         .hlc-input:-webkit-autofill,
-        .hlc-input:-webkit-autofill:focus {
-          -webkit-box-shadow: 0 0 0 50px rgba(10,10,10,0) inset !important;
+        .hlc-input:-webkit-autofill:focus,
+        .hlc-input:-webkit-autofill:hover,
+        .hlc-input:-webkit-autofill:active {
+          -webkit-box-shadow: 0 0 0 1000px rgb(18,18,18) inset !important;
           -webkit-text-fill-color: #F4F3EF !important;
+          caret-color: #F4F3EF;
         }
         .hlc-icon { color: rgba(160,157,153,0.7); flex-shrink: 0; }
         .hlc-eye {
