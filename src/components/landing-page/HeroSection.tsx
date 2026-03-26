@@ -39,7 +39,7 @@ function DashboardMockup() {
       <div style={{ background: '#F7F6F4' }}>
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '13px 18px', borderBottom: '1px solid #e8e6e2', background: '#fff' }}>
-          <span style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 13, fontWeight: 600, color: '#1a1a1a' }}>[SOFTWARE] · HV-Dashboard</span>
+          <span style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 13, fontWeight: 600, color: '#1a1a1a' }}>Instaclaim · HV-Dashboard</span>
           <span style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 11, color: '#6b7280', background: '#f3f4f6', padding: '3px 8px', borderRadius: 4, border: '1px solid #e5e7eb' }}>Alle Fälle (6)</span>
         </div>
 
@@ -109,7 +109,7 @@ function Navbar() {
             <path d="M9 22v-7h6v7" stroke="#B5834A" strokeWidth="1.6" strokeLinejoin="round"/>
             <path d="M12 7v4" stroke="#9A6B3C" strokeWidth="1.5" strokeLinecap="round"/>
           </svg>
-          <span style={{ fontFamily: 'var(--font-dm-serif, Georgia, serif)', fontSize: 18, color: 'var(--text-primary)', letterSpacing: '0.01em' }}>[SOFTWARE]</span>
+          <span style={{ fontFamily: 'var(--font-dm-serif, Georgia, serif)', fontSize: 18, color: 'var(--text-primary)', letterSpacing: '0.01em' }}>Instaclaim</span>
         </Link>
 
         {/* Desktop nav */}
