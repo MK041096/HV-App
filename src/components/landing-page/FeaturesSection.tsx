@@ -11,7 +11,7 @@ const features = [
     icon: <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M22 11.08V12a10 10 0 11-5.93-9.14" strokeLinecap="round" strokeLinejoin="round"/><polyline points="22 4 12 14.01 9 11.01" strokeLinecap="round" strokeLinejoin="round"/></svg>,
     title: 'Analyse und 1-Klick-Freigabe',
     text: 'Das System bereitet Einschätzung, Schadenstyp und passenden Handwerkervorschlag automatisch vor. Ihr Mitarbeiter prüft auf einen Blick — und gibt mit einem Klick frei.',
-    tag: '20 Minuten → unter 3 Minuten',
+    tag: 'Ein Klick — alles läuft',
   },
   {
     icon: <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" strokeLinecap="round" strokeLinejoin="round"/><polyline points="14 2 14 8 20 8" strokeLinecap="round" strokeLinejoin="round"/><path d="M9 15l2 2 4-4" strokeLinecap="round" strokeLinejoin="round"/></svg>,
