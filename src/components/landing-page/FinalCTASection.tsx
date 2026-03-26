@@ -1,4 +1,11 @@
+'use client'
+
+import { useState } from 'react'
+import OnboardingModal from './OnboardingModal'
+
 export default function FinalCTASection() {
+  const [showModal, setShowModal] = useState(false)
+
   return (
     <section id="kontakt" style={{ background: 'var(--bg-primary)', padding: '120px 24px', borderTop: '1px solid var(--border)' }}>
       <div style={{ maxWidth: 720, margin: '0 auto', textAlign: 'center' }}>
@@ -15,13 +22,13 @@ export default function FinalCTASection() {
         </p>
 
         <div style={{ display: 'flex', gap: 16, justifyContent: 'center', flexWrap: 'wrap', marginBottom: 40 }}>
-          <a
-            href="mailto:Kracherdigital@gmail.com"
+          <button
+            onClick={() => setShowModal(true)}
             className="sw-btn-primary"
-            style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 15, fontWeight: 500, textDecoration: 'none', padding: '0 32px', gap: 8 }}
+            style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 15, fontWeight: 500, padding: '0 32px', gap: 8 }}
           >
             Demo anfragen
-          </a>
+          </button>
           <a
             href="tel:+436644682910"
             className="sw-btn-outline"
@@ -36,6 +43,8 @@ export default function FinalCTASection() {
         </p>
 
       </div>
+
+      {showModal && <OnboardingModal onClose={() => setShowModal(false)} />}
     </section>
   )
 }

@@ -1,6 +1,11 @@
 'use client'
 
+import { useState } from 'react'
+import OnboardingModal from './OnboardingModal'
+
 export default function PricingSection() {
+  const [showModal, setShowModal] = useState(false)
+
   return (
     <section id="preise" style={{ background: 'var(--bg-card)', padding: '120px 24px', borderTop: '1px solid var(--border)' }}>
       <div style={{ maxWidth: 1100, margin: '0 auto' }}>
@@ -49,9 +54,9 @@ export default function PricingSection() {
               ))}
             </ul>
 
-            <a href="#kontakt" className="sw-btn-primary" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 15, fontWeight: 500, textDecoration: 'none', gap: 8 }}>
+            <button onClick={() => setShowModal(true)} className="sw-btn-primary" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 15, fontWeight: 500, gap: 8 }}>
               Pilotgespräch anfragen
-            </a>
+            </button>
           </div>
 
           {/* Standard */}
@@ -80,9 +85,9 @@ export default function PricingSection() {
               ))}
             </ul>
 
-            <a href="#kontakt" className="sw-btn-outline" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 15, fontWeight: 500, textDecoration: 'none', color: 'var(--text-primary)' }}>
+            <button onClick={() => setShowModal(true)} className="sw-btn-outline" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 15, fontWeight: 500, color: 'var(--text-primary)' }}>
               Angebot anfragen
-            </a>
+            </button>
           </div>
 
         </div>
@@ -91,6 +96,8 @@ export default function PricingSection() {
       <style jsx global>{`
         @media (max-width: 640px) { .pricing-grid { grid-template-columns: 1fr !important; } }
       `}</style>
+
+      {showModal && <OnboardingModal onClose={() => setShowModal(false)} />}
     </section>
   )
 }

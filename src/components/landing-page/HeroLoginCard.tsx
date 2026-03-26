@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Mail, Lock, Eye, EyeOff, ArrowRight, Loader2, AlertCircle } from 'lucide-react'
+import OnboardingModal from './OnboardingModal'
 
 export default function HeroLoginCard() {
   const [email, setEmail]               = useState('')
@@ -10,6 +11,7 @@ export default function HeroLoginCard() {
   const [showPw, setShowPw]             = useState(false)
   const [loading, setLoading]           = useState(false)
   const [error, setError]               = useState<string | null>(null)
+  const [showModal, setShowModal]       = useState(false)
 
   const isEmailValid    = /\S+@\S+\.\S+/.test(email)
   const isPasswordValid = password.length >= 6
@@ -236,11 +238,11 @@ export default function HeroLoginCard() {
           <div style={{ marginTop: 22, textAlign: 'center' }}>
             <p style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 13, color: 'rgba(160,157,153,0.6)', margin: 0 }}>
               Noch kein Zugang?{' '}
-              <a href="#kontakt" style={{ color: 'rgba(181,131,74,0.9)', textDecoration: 'none', fontWeight: 500, transition: 'color 0.2s' }}
+              <button onClick={() => setShowModal(true)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(181,131,74,0.9)', fontWeight: 500, fontSize: 13, fontFamily: 'var(--font-dm-sans, sans-serif)', padding: 0, transition: 'color 0.2s' }}
                 onMouseEnter={e => (e.currentTarget.style.color = '#B5834A')}
                 onMouseLeave={e => (e.currentTarget.style.color = 'rgba(181,131,74,0.9)')}>
                 Demo anfragen
-              </a>
+              </button>
             </p>
           </div>
 
@@ -250,6 +252,8 @@ export default function HeroLoginCard() {
       <style>{`
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
       `}</style>
+
+      {showModal && <OnboardingModal onClose={() => setShowModal(false)} />}
     </>
   )
 }

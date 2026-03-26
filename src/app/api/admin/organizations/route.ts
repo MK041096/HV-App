@@ -28,7 +28,7 @@ export async function GET() {
     // Fetch all organizations
     const { data: orgs, error: orgsError } = await admin
       .from('organizations')
-      .select('id, name, created_at, avv_accepted_at')
+      .select('id, name, created_at, avv_accepted_at, status')
       .order('created_at', { ascending: false })
 
     if (orgsError) {
@@ -137,7 +137,8 @@ export async function GET() {
       name: org.name,
       created_at: org.created_at,
       avv_accepted_at: org.avv_accepted_at ?? null,
-      is_suspended: false, // Column does not exist yet — always false for now
+      status: (org as { status?: string }).status ?? 'active',
+      is_suspended: false,
       admin_email: hvAdminByOrg[org.id]?.email ?? '',
       admin_name: hvAdminByOrg[org.id]?.name ?? '',
       unit_count: unitCountByOrg[org.id] ?? 0,

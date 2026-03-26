@@ -31,6 +31,8 @@ const registerHvSchema = z.object({
     error: 'AVV muss akzeptiert werden',
   }),
   country: z.enum(["AT", "DE", "CH"]).default("AT"),
+  units_estimate: z.string().optional(),
+  phone: z.string().optional(),
 })
 
 function slugify(str: string): string {
@@ -58,7 +60,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const { org_name, first_name, last_name, email, password, country } = parsed.data
+    const { org_name, first_name, last_name, email, password, country, units_estimate, phone } = parsed.data
 
     const clientIp =
       request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
@@ -84,13 +86,16 @@ export async function POST(request: NextRequest) {
       slug = `${baseSlug}-${attempt}`
     }
 
-    // Create organization
+    // Create organization with status 'pending'
     const { data: org, error: orgError } = await admin
       .from("organizations")
       .insert({
         name: org_name,
         slug,
         country,
+        status: 'pending',
+        units_estimate: units_estimate || null,
+        phone: phone || null,
         is_deleted: false,
         avv_accepted_at: new Date().toISOString(),
         avv_accepted_ip: clientIp,
@@ -167,7 +172,7 @@ export async function POST(request: NextRequest) {
       action: "hv_registered",
       entity_type: "organization",
       entity_id: org.id,
-      details: { org_name, slug, email },
+      details: { org_name, slug, email, units_estimate, phone },
     })
 
     // Generate confirmation link and send via Resend
@@ -200,6 +205,41 @@ export async function POST(request: NextRequest) {
       }
     } catch (emailErr) {
       console.error("Confirmation email exception:", emailErr)
+    }
+
+    // Send notification email to owner
+    try {
+      const resend = new Resend(process.env.RESEND_API_KEY)
+      const { error: notifyError } = await resend.emails.send({
+        from: "SchadensMelder <no-reply@zerodamage.de>",
+        to: "Kracherdigital@gmail.com",
+        subject: `Neue HV-Anfrage: ${org_name}`,
+        html: `<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:24px">
+  <div style="background:#9A6B3C;padding:16px 24px;border-radius:8px 8px 0 0">
+    <h1 style="color:#ffffff;margin:0;font-size:18px">Neue HV-Registrierungsanfrage</h1>
+  </div>
+  <div style="background:#ffffff;border:1px solid #e5e7eb;border-top:none;padding:32px;border-radius:0 0 8px 8px">
+    <h2 style="color:#111827;margin:0 0 20px;font-size:20px">Eine neue Hausverwaltung hat sich registriert</h2>
+    <table style="width:100%;border-collapse:collapse">
+      <tr><td style="padding:8px 0;color:#6b7280;font-size:14px;width:140px">Firmenname</td><td style="padding:8px 0;color:#111827;font-size:14px;font-weight:600">${org_name}</td></tr>
+      <tr><td style="padding:8px 0;color:#6b7280;font-size:14px">Name</td><td style="padding:8px 0;color:#111827;font-size:14px">${first_name} ${last_name}</td></tr>
+      <tr><td style="padding:8px 0;color:#6b7280;font-size:14px">E-Mail</td><td style="padding:8px 0;color:#111827;font-size:14px"><a href="mailto:${email}" style="color:#2563eb">${email}</a></td></tr>
+      <tr><td style="padding:8px 0;color:#6b7280;font-size:14px">Telefon</td><td style="padding:8px 0;color:#111827;font-size:14px">${phone || '—'}</td></tr>
+      <tr><td style="padding:8px 0;color:#6b7280;font-size:14px">Einheiten ca.</td><td style="padding:8px 0;color:#111827;font-size:14px">${units_estimate || '—'}</td></tr>
+    </table>
+    <div style="margin-top:24px;padding:16px;background:#fef3c7;border:1px solid #fbbf24;border-radius:6px">
+      <p style="margin:0;color:#92400e;font-size:14px;font-weight:600">Aktion erforderlich</p>
+      <p style="margin:8px 0 0;color:#92400e;font-size:14px">Bitte prüfen Sie die Anfrage und schalten Sie den Zugang im Admin-Dashboard frei.</p>
+    </div>
+    <a href="https://zerodamage.de/admin/organizations" style="display:inline-block;margin-top:20px;background:#9A6B3C;color:#ffffff;padding:12px 24px;border-radius:6px;text-decoration:none;font-weight:600;font-size:14px">Admin-Dashboard öffnen</a>
+  </div>
+</div>`,
+      })
+      if (notifyError) {
+        console.error("Owner notification email error:", notifyError)
+      }
+    } catch (notifyErr) {
+      console.error("Owner notification email exception:", notifyErr)
     }
 
     return NextResponse.json(

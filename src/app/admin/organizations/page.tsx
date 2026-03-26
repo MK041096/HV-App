@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, useCallback } from "react"
 import Link from "next/link"
 import { Building2, CheckCircle2, XCircle, Loader2, AlertTriangle } from "lucide-react"
 
@@ -22,6 +22,7 @@ interface OrgRow {
   created_at: string
   avv_accepted_at: string | null
   is_suspended: boolean
+  status: string
   admin_email: string
   admin_name: string
   unit_count: number
@@ -39,30 +40,74 @@ function formatDate(dateStr: string) {
   })
 }
 
+function StatusBadge({ status }: { status: string }) {
+  if (status === "pending") {
+    return (
+      <Badge className="text-xs bg-yellow-100 text-yellow-800 border-yellow-300 hover:bg-yellow-100">
+        Ausstehend
+      </Badge>
+    )
+  }
+  if (status === "suspended") {
+    return (
+      <Badge variant="destructive" className="text-xs">
+        Gesperrt
+      </Badge>
+    )
+  }
+  return (
+    <Badge className="text-xs bg-green-100 text-green-800 border-green-300 hover:bg-green-100">
+      Aktiv
+    </Badge>
+  )
+}
+
 export default function AdminOrganizationsPage() {
   const [orgs, setOrgs] = useState<OrgRow[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [activatingId, setActivatingId] = useState<string | null>(null)
+
+  const loadOrgs = useCallback(async () => {
+    try {
+      setError(null)
+      const res = await fetch("/api/admin/organizations")
+      if (!res.ok) {
+        const data = await res.json()
+        throw new Error(data.error || "Fehler beim Laden")
+      }
+      const json = await res.json()
+      setOrgs(json.data || [])
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Unbekannter Fehler")
+    } finally {
+      setIsLoading(false)
+    }
+  }, [])
 
   useEffect(() => {
-    async function loadOrgs() {
-      try {
-        const res = await fetch("/api/admin/organizations")
-        if (!res.ok) {
-          const data = await res.json()
-          throw new Error(data.error || "Fehler beim Laden")
-        }
-        const json = await res.json()
-        setOrgs(json.data || [])
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "Unbekannter Fehler")
-      } finally {
-        setIsLoading(false)
-      }
-    }
-
     loadOrgs()
-  }, [])
+  }, [loadOrgs])
+
+  async function handleActivate(orgId: string) {
+    setActivatingId(orgId)
+    try {
+      const res = await fetch(`/api/admin/organizations/${orgId}/activate`, {
+        method: "POST",
+      })
+      if (!res.ok) {
+        const data = await res.json()
+        alert(data.error || "Fehler beim Aktivieren")
+        return
+      }
+      // Refresh list
+      await loadOrgs()
+    } catch {
+      alert("Netzwerkfehler beim Aktivieren")
+    } finally {
+      setActivatingId(null)
+    }
+  }
 
   if (isLoading) {
     return (
@@ -83,6 +128,8 @@ export default function AdminOrganizationsPage() {
     )
   }
 
+  const pendingCount = orgs.filter((o) => o.status === "pending").length
+
   return (
     <div className="p-4 sm:p-6 lg:p-8 space-y-6">
       {/* Page Header */}
@@ -90,6 +137,11 @@ export default function AdminOrganizationsPage() {
         <h1 className="text-2xl font-bold tracking-tight">Kunden</h1>
         <p className="text-muted-foreground mt-1">
           Alle registrierten Hausverwaltungen ({orgs.length})
+          {pendingCount > 0 && (
+            <span className="ml-2 inline-flex items-center gap-1 text-yellow-700 font-medium">
+              · {pendingCount} ausstehend
+            </span>
+          )}
         </p>
       </div>
 
@@ -111,6 +163,7 @@ export default function AdminOrganizationsPage() {
                   <TableRow>
                     <TableHead>Name</TableHead>
                     <TableHead>HV-Admin</TableHead>
+                    <TableHead className="text-center">Status</TableHead>
                     <TableHead className="text-right">Einheiten</TableHead>
                     <TableHead className="text-right">Mieter</TableHead>
                     <TableHead className="text-right">Fälle ges. / offen</TableHead>
@@ -124,11 +177,6 @@ export default function AdminOrganizationsPage() {
                     <TableRow key={org.id}>
                       <TableCell>
                         <div className="font-medium">{org.name}</div>
-                        {org.is_suspended && (
-                          <Badge variant="destructive" className="text-xs mt-1">
-                            Gesperrt
-                          </Badge>
-                        )}
                       </TableCell>
                       <TableCell>
                         <div className="text-sm">
@@ -139,6 +187,9 @@ export default function AdminOrganizationsPage() {
                             {org.admin_email}
                           </div>
                         )}
+                      </TableCell>
+                      <TableCell className="text-center">
+                        <StatusBadge status={org.status ?? (org.is_suspended ? "suspended" : "active")} />
                       </TableCell>
                       <TableCell className="text-right tabular-nums">
                         {org.unit_count}
@@ -174,9 +225,28 @@ export default function AdminOrganizationsPage() {
                         {formatDate(org.created_at)}
                       </TableCell>
                       <TableCell className="text-right">
-                        <Button asChild variant="outline" size="sm">
-                          <Link href={`/admin/organizations/${org.id}`}>Details</Link>
-                        </Button>
+                        <div className="flex items-center justify-end gap-2">
+                          {org.status === "pending" && (
+                            <Button
+                              size="sm"
+                              className="bg-green-600 hover:bg-green-700 text-white"
+                              onClick={() => handleActivate(org.id)}
+                              disabled={activatingId === org.id}
+                            >
+                              {activatingId === org.id ? (
+                                <>
+                                  <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                                  Aktiviert...
+                                </>
+                              ) : (
+                                "Aktivieren"
+                              )}
+                            </Button>
+                          )}
+                          <Button asChild variant="outline" size="sm">
+                            <Link href={`/admin/organizations/${org.id}`}>Details</Link>
+                          </Button>
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))}

@@ -24,6 +24,7 @@ import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { Sheet, SheetContent, SheetTitle, SheetDescription } from "@/components/ui/sheet"
 import { cn } from "@/lib/utils"
+import PendingApprovalScreen from "@/components/dashboard/PendingApprovalScreen"
 
 interface UserProfile {
   first_name: string | null
@@ -34,6 +35,7 @@ interface UserProfile {
 
 interface Organization {
   name: string
+  status: string
 }
 
 const NAV_ITEMS = [
@@ -216,15 +218,15 @@ export default function DashboardLayout({
 
         setProfile(profileData)
 
-        // Fetch organization name
+        // Fetch organization name and status
         const { data: orgData } = await supabase
           .from("organizations")
-          .select("name")
+          .select("name, status")
           .eq("id", profileData.organization_id)
           .single()
 
         if (orgData) {
-          setOrganization(orgData)
+          setOrganization(orgData as Organization)
         }
       } catch {
         window.location.href = "/login"
@@ -261,6 +263,11 @@ export default function DashboardLayout({
         </div>
       </div>
     )
+  }
+
+  // Show pending screen if organization is not yet activated
+  if (organization?.status === "pending") {
+    return <PendingApprovalScreen />
   }
 
   return (

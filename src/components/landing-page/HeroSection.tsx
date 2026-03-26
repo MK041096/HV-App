@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import HeroLoginCard from './HeroLoginCard'
+import OnboardingModal from './OnboardingModal'
 
 /* ─────────────────────────────────────────────
    Dashboard Mockup – reines HTML/CSS, kein Bild
@@ -75,6 +76,7 @@ function DashboardMockup() {
 function Navbar() {
   const [scrolled, setScrolled] = useState(false)
   const [open, setOpen] = useState(false)
+  const [showModal, setShowModal] = useState(false)
 
   useEffect(() => {
     const fn = () => setScrolled(window.scrollY > 24)
@@ -103,9 +105,9 @@ function Navbar() {
         {/* Wordmark */}
         <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: 8, textDecoration: 'none' }}>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-            <path d="M3 10.5L12 3l9 7.5V21a1 1 0 01-1 1H4a1 1 0 01-1-1v-10.5z" stroke="#2E5540" strokeWidth="1.6" fill="none" strokeLinejoin="round"/>
-            <path d="M9 22v-7h6v7" stroke="#2E5540" strokeWidth="1.6" strokeLinejoin="round"/>
-            <path d="M12 7v4" stroke="#3D7056" strokeWidth="1.5" strokeLinecap="round"/>
+            <path d="M3 10.5L12 3l9 7.5V21a1 1 0 01-1 1H4a1 1 0 01-1-1v-10.5z" stroke="#B5834A" strokeWidth="1.6" fill="none" strokeLinejoin="round"/>
+            <path d="M9 22v-7h6v7" stroke="#B5834A" strokeWidth="1.6" strokeLinejoin="round"/>
+            <path d="M12 7v4" stroke="#9A6B3C" strokeWidth="1.5" strokeLinecap="round"/>
           </svg>
           <span style={{ fontFamily: 'var(--font-dm-serif, Georgia, serif)', fontSize: 18, color: 'var(--text-primary)', letterSpacing: '0.01em' }}>[SOFTWARE]</span>
         </Link>
@@ -128,9 +130,9 @@ function Navbar() {
             onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-muted)')}>
             Anmelden
           </Link>
-          <a href="#preise" className="hidden md:inline-flex sw-btn-outline" style={{ height: 38, fontSize: 13.5, padding: '0 18px' }}>
+          <button onClick={() => setShowModal(true)} className="hidden md:inline-flex sw-btn-outline" style={{ height: 38, fontSize: 13.5, padding: '0 18px' }}>
             Demo anfragen
-          </a>
+          </button>
           <button onClick={() => setOpen(!open)} className="md:hidden" style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-secondary)', padding: 4 }}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
               {open ? <path d="M6 18L18 6M6 6l12 12" strokeLinecap="round"/> : <path d="M4 6h16M4 12h16M4 18h16" strokeLinecap="round"/>}
@@ -149,10 +151,12 @@ function Navbar() {
           ))}
           <div style={{ marginTop: 16, display: 'flex', flexDirection: 'column', gap: 10 }}>
             <Link href="/login" onClick={() => setOpen(false)} style={{ textAlign: 'center', padding: 10, fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 14, color: 'var(--text-muted)', textDecoration: 'none' }}>Anmelden</Link>
-            <a href="#preise" onClick={() => setOpen(false)} className="sw-btn-primary" style={{ justifyContent: 'center' }}>Demo anfragen</a>
+            <button onClick={() => { setOpen(false); setShowModal(true) }} className="sw-btn-primary" style={{ justifyContent: 'center', width: '100%' }}>Demo anfragen</button>
           </div>
         </div>
       )}
+
+      {showModal && <OnboardingModal onClose={() => setShowModal(false)} />}
     </header>
   )
 }
@@ -162,6 +166,7 @@ function Navbar() {
    ───────────────────────────────────────────── */
 export default function HeroSection() {
   const [ready, setReady] = useState(false)
+  const [showModal, setShowModal] = useState(false)
   useEffect(() => { const t = setTimeout(() => setReady(true), 80); return () => clearTimeout(t) }, [])
 
   return (
@@ -193,7 +198,7 @@ export default function HeroSection() {
                 Das System verarbeitet in Sekunden. Ihr Team entscheidet mit einem Klick.
               </p>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'center' }}>
-                <a href="#preise" className="sw-btn-primary">Demo anfragen</a>
+                <button onClick={() => setShowModal(true)} className="sw-btn-primary">Demo anfragen</button>
                 <a href="#ablauf" style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 15, color: 'var(--text-secondary)', textDecoration: 'none', transition: 'color 0.2s' }}
                   onMouseEnter={e => (e.currentTarget.style.color = 'var(--text-primary)')}
                   onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-secondary)')}>
@@ -224,6 +229,8 @@ export default function HeroSection() {
         }
         html { scroll-behavior: smooth; }
       `}</style>
+
+      {showModal && <OnboardingModal onClose={() => setShowModal(false)} />}
     </>
   )
 }
