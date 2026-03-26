@@ -60,15 +60,15 @@ export default function HeroLoginCard() {
           display: flex;
           align-items: center;
           gap: 10px;
-          background: rgba(255,255,255,0.04);
-          border: 1px solid rgba(255,255,255,0.09);
+          background: transparent;
+          border: 1px solid rgba(255,255,255,0.14);
           border-radius: 999px;
           padding: 0 16px;
           height: 50px;
           transition: border-color 0.25s, background 0.25s, box-shadow 0.25s;
         }
         .hlc-input-wrap:focus-within {
-          background: rgba(255,255,255,0.07);
+          background: rgba(255,255,255,0.04);
           border-color: rgba(181,131,74,0.6);
           box-shadow: 0 0 0 3px rgba(154,107,60,0.18);
         }

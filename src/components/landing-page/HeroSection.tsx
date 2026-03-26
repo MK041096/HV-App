@@ -188,8 +188,8 @@ export default function HeroSection() {
             {/* Text */}
             <div style={{ opacity: ready ? 1 : 0, transform: ready ? 'none' : 'translateY(20px)', transition: 'opacity 0.65s ease, transform 0.65s ease' }}>
               <h1 style={{ fontFamily: 'var(--font-dm-serif, Georgia, serif)', fontSize: 'clamp(2.1rem, 4vw, 3.5rem)', lineHeight: 1.1, color: 'var(--text-primary)', margin: '0 0 24px', fontWeight: 400 }}>
-                Schadensmeldungen, die Ihr Team<br />
-                mit einem Klick abhandelt.
+                Schadensmeldungen, die sich mit nur<br />
+                einem Klick von selbst erledigen.
               </h1>
               <p style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 17, lineHeight: 1.7, color: 'var(--text-secondary)', margin: '0 0 36px', maxWidth: 480 }}>
                 Mieter meldet digital. Das System analysiert vollständig: Wer ist zuständig?
