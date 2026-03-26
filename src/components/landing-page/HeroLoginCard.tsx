@@ -45,10 +45,10 @@ export default function HeroLoginCard() {
       {/* ── Glass-Input CSS ── */}
       <style>{`
         .hlc-wrap {
-          background: rgba(10,10,10,0.65);
-          backdrop-filter: blur(22px);
-          -webkit-backdrop-filter: blur(22px);
-          border: 1px solid rgba(255,255,255,0.07);
+          background: rgba(10,10,10,0.35);
+          backdrop-filter: blur(16px);
+          -webkit-backdrop-filter: blur(16px);
+          border: 1px solid rgba(255,255,255,0.1);
           border-radius: 20px;
           box-shadow: 0 32px 72px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.05);
           width: 100%;
