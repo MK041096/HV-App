@@ -55,7 +55,7 @@ export default function PricingSection() {
             </ul>
 
             <button onClick={() => setShowModal(true)} className="sw-btn-primary" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 15, fontWeight: 500, gap: 8 }}>
-              Pilotgespräch anfragen
+              Anfragen
             </button>
           </div>
 
@@ -86,7 +86,7 @@ export default function PricingSection() {
             </ul>
 
             <button onClick={() => setShowModal(true)} className="sw-btn-outline" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 15, fontWeight: 500, color: 'var(--text-primary)' }}>
-              Angebot anfragen
+              Anfragen
             </button>
           </div>
 

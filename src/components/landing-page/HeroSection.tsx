@@ -131,7 +131,7 @@ function Navbar() {
             Anmelden
           </Link>
           <button onClick={() => setShowModal(true)} className="hidden md:inline-flex sw-btn-outline" style={{ height: 38, fontSize: 13.5, padding: '0 18px' }}>
-            Demo anfragen
+            Anfragen
           </button>
           <button onClick={() => setOpen(!open)} className="md:hidden" style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-secondary)', padding: 4 }}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
@@ -151,7 +151,7 @@ function Navbar() {
           ))}
           <div style={{ marginTop: 16, display: 'flex', flexDirection: 'column', gap: 10 }}>
             <Link href="/login" onClick={() => setOpen(false)} style={{ textAlign: 'center', padding: 10, fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 14, color: 'var(--text-muted)', textDecoration: 'none' }}>Anmelden</Link>
-            <button onClick={() => { setOpen(false); setShowModal(true) }} className="sw-btn-primary" style={{ justifyContent: 'center', width: '100%' }}>Demo anfragen</button>
+            <button onClick={() => { setOpen(false); setShowModal(true) }} className="sw-btn-primary" style={{ justifyContent: 'center', width: '100%' }}>Anfragen</button>
           </div>
         </div>
       )}
@@ -198,7 +198,7 @@ export default function HeroSection() {
                 Das System verarbeitet in Sekunden. Ihr Team entscheidet mit einem Klick.
               </p>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'center' }}>
-                <button onClick={() => setShowModal(true)} className="sw-btn-primary">Demo anfragen</button>
+                <button onClick={() => setShowModal(true)} className="sw-btn-primary">Anfragen</button>
                 <a href="#ablauf" style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 15, color: 'var(--text-secondary)', textDecoration: 'none', transition: 'color 0.2s' }}
                   onMouseEnter={e => (e.currentTarget.style.color = 'var(--text-primary)')}
                   onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-secondary)')}>

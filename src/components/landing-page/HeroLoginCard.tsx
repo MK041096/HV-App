@@ -241,7 +241,7 @@ export default function HeroLoginCard() {
               <button onClick={() => setShowModal(true)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(181,131,74,0.9)', fontWeight: 500, fontSize: 13, fontFamily: 'var(--font-dm-sans, sans-serif)', padding: 0, transition: 'color 0.2s' }}
                 onMouseEnter={e => (e.currentTarget.style.color = '#B5834A')}
                 onMouseLeave={e => (e.currentTarget.style.color = 'rgba(181,131,74,0.9)')}>
-                Demo anfragen
+                Anfragen
               </button>
             </p>
           </div>

@@ -27,7 +27,7 @@ export default function FinalCTASection() {
             className="sw-btn-primary"
             style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 15, fontWeight: 500, padding: '0 32px', gap: 8 }}
           >
-            Demo anfragen
+            Anfragen
           </button>
           <a
             href="tel:+436644682910"
