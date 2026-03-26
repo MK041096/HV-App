@@ -268,7 +268,7 @@ export default function OnboardingModal({ onClose }: { onClose: () => void }) {
                   April-Aktion sichern
                 </h2>
                 <p style={{ color: '#A09488', fontSize: '14px', margin: 0 }}>
-                  Nur 3 Plätze im April · 349 € statt 699 € Onboarding
+                  April-Aktion · 349 € statt 699 € Onboarding
                 </p>
               </div>
 

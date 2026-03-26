@@ -26,7 +26,7 @@ export default function PricingSection() {
           <div style={{ background: 'var(--bg-primary)', border: '1px solid var(--accent)', borderRadius: 10, padding: '40px 36px', position: 'relative', display: 'flex', flexDirection: 'column' }}>
             {/* Badge */}
             <div style={{ position: 'absolute', top: -13, left: 32, background: 'var(--accent)', borderRadius: 4, padding: '4px 12px' }}>
-              <span style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 11, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--text-primary)' }}>Nur 3 Plätze</span>
+              <span style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 11, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--text-primary)' }}>Nur noch 3 Plätze für April</span>
             </div>
 
             <p style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 13, fontWeight: 500, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--accent-light)', margin: '0 0 20px' }}>April-Aktion</p>
