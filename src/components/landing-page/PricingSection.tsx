@@ -37,7 +37,7 @@ export default function PricingSection() {
                 <span style={{ fontFamily: 'var(--font-dm-serif, Georgia, serif)', fontSize: 44, color: 'var(--text-primary)', lineHeight: 1 }}>349 €</span>
                 <span style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 13, color: 'var(--accent-light)' }}>einmalig</span>
               </div>
-              <span style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 14, color: 'var(--text-secondary)', display: 'block', marginTop: 8 }}>Onboarding · Erstes Monat kostenlos</span>
+              <span style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 14, color: 'var(--text-secondary)', display: 'block', marginTop: 8 }}>Einmaliges Onboarding</span>
             </div>
 
             <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 36px', display: 'flex', flexDirection: 'column', gap: 12, flex: 1 }}>
@@ -45,7 +45,7 @@ export default function PricingSection() {
                 'Vollständiges Onboarding inklusive',
                 'Alle Funktionen freigeschaltet',
                 'Persönliche Einführung Ihres Teams',
-                'Erstes Monat kostenlos — danach individuell je Einheit',
+                'Monatliches Abo individuell je Einheit abgestimmt',
                 'Kein langfristiger Vertrag',
               ].map((item) => (
                 <li key={item} style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
