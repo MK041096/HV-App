@@ -463,10 +463,9 @@ export default function OnboardingModal({ onClose }: { onClose: () => void }) {
                       Ich akzeptiere die{' '}
                       <a
                         href="/datenschutz"
-                        target="_blank"
                         rel="noopener noreferrer"
                         style={{ color: '#B5834A', textDecoration: 'underline' }}
-                        onClick={(e) => e.stopPropagation()}
+                        onClick={(e) => { e.preventDefault(); e.stopPropagation(); window.open('/datenschutz', '_blank', 'noopener,noreferrer') }}
                       >
                         Datenschutzerklärung
                       </a>
@@ -500,10 +499,9 @@ export default function OnboardingModal({ onClose }: { onClose: () => void }) {
                       Ich akzeptiere den{' '}
                       <a
                         href="/avv"
-                        target="_blank"
                         rel="noopener noreferrer"
                         style={{ color: '#B5834A', textDecoration: 'underline' }}
-                        onClick={(e) => e.stopPropagation()}
+                        onClick={(e) => { e.preventDefault(); e.stopPropagation(); window.open('/avv', '_blank', 'noopener,noreferrer') }}
                       >
                         Auftragsverarbeitungsvertrag
                       </a>
