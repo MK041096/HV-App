@@ -2,69 +2,92 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import HeroLoginCard from './HeroLoginCard'
 import OnboardingModal from './OnboardingModal'
 
 /* ─────────────────────────────────────────────
-   Dashboard Mockup – reines HTML/CSS, kein Bild
+   Dashboard Mockup – dunkles HV-Portal Design
    ───────────────────────────────────────────── */
 function DashboardMockup() {
   const cases = [
-    { status: 'NEU',            bg: '#e6f0ec', color: '#2E5540', title: 'Wasserschaden – Badezimmer',  addr: 'Musterstraße 12, Top 4',  time: 'Heute, 09:14'   },
-    { status: 'IN BEARBEITUNG', bg: '#fef3db', color: '#92600a', title: 'Riss in Außenwand',           addr: 'Beispielgasse 7, Top 8', time: 'Gestern, 14:32' },
-    { status: 'ABGESCHLOSSEN',  bg: '#f3f4f6', color: '#6b7280', title: 'Defekte Heizung',             addr: 'Testweg 3, Top 2',       time: 'Mo, 11:05'      },
+    { status: 'NEU',            sc: '#4ade80', sb: 'rgba(74,222,128,0.12)',  se: 'rgba(74,222,128,0.22)',  title: 'Wasserschaden – Badezimmer', addr: 'Musterstraße 12, Top 4',  time: 'Heute, 09:14'   },
+    { status: 'IN BEARBEITUNG', sc: '#fbbf24', sb: 'rgba(251,191,36,0.12)', se: 'rgba(251,191,36,0.22)', title: 'Riss in Außenwand',          addr: 'Beispielgasse 7, Top 8', time: 'Gestern, 14:32' },
+    { status: 'TERMIN',         sc: '#60a5fa', sb: 'rgba(96,165,250,0.12)', se: 'rgba(96,165,250,0.22)', title: 'Defekte Heizung',            addr: 'Testweg 3, Top 2',       time: 'Mo, 11:05'      },
+    { status: 'ERLEDIGT',       sc: '#6b7280', sb: 'rgba(107,114,128,0.1)', se: 'rgba(107,114,128,0.2)', title: 'Türschloss defekt',          addr: 'Hauptgasse 5, Top 1',    time: 'Fr, 09:30'      },
+  ]
+
+  const stats = [
+    { label: 'Offen',         value: '4',  color: '#B5834A' },
+    { label: 'In Bearbeitung',value: '2',  color: '#fbbf24' },
+    { label: 'Erledigt',      value: '12', color: '#4ade80' },
   ]
 
   return (
     <div style={{
-      background: '#0A0A0A',
-      border: '1px solid #2A2A2A',
-      borderRadius: 12,
-      boxShadow: '0 40px 80px rgba(0,0,0,0.6)',
+      background: '#0D0D0D',
+      border: '1px solid #222',
+      borderRadius: 14,
+      boxShadow: '0 40px 80px rgba(0,0,0,0.75), 0 0 0 1px rgba(255,255,255,0.03)',
       overflow: 'hidden',
       width: '100%',
-      maxWidth: 500,
+      maxWidth: 480,
     }}>
       {/* Browser chrome */}
-      <div style={{ background: '#141414', borderBottom: '1px solid #222', padding: '10px 14px', display: 'flex', alignItems: 'center', gap: 8 }}>
-        <div style={{ display: 'flex', gap: 6 }}>
-          {['#3a3a3a','#444','#555'].map((c,i) => <div key={i} style={{ width: 11, height: 11, borderRadius: '50%', background: c }} />)}
+      <div style={{ background: '#111', borderBottom: '1px solid #1e1e1e', padding: '9px 14px', display: 'flex', alignItems: 'center', gap: 8 }}>
+        <div style={{ display: 'flex', gap: 5 }}>
+          {['#2e2e2e','#353535','#3e3e3e'].map((c,i) => <div key={i} style={{ width: 10, height: 10, borderRadius: '50%', background: c }} />)}
         </div>
-        <div style={{ flex: 1, marginLeft: 8, background: '#1c1c1c', borderRadius: 4, height: 22, maxWidth: 200, border: '1px solid #2a2a2a', display: 'flex', alignItems: 'center', padding: '0 8px' }}>
-          <span style={{ color: '#555', fontSize: 10, fontFamily: 'monospace' }}>app.zerodamage.de/dashboard</span>
+        <div style={{ flex: 1, marginLeft: 6, background: '#181818', borderRadius: 4, height: 20, maxWidth: 210, border: '1px solid #252525', display: 'flex', alignItems: 'center', padding: '0 8px' }}>
+          <span style={{ color: '#3a3a3a', fontSize: 9, fontFamily: 'monospace' }}>app.instaclaim.at/dashboard</span>
         </div>
       </div>
 
-      {/* Light inner panel */}
-      <div style={{ background: '#F7F6F4' }}>
-        {/* Header */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '13px 18px', borderBottom: '1px solid #e8e6e2', background: '#fff' }}>
-          <span style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 13, fontWeight: 600, color: '#1a1a1a' }}>Instaclaim · HV-Dashboard</span>
-          <span style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 11, color: '#6b7280', background: '#f3f4f6', padding: '3px 8px', borderRadius: 4, border: '1px solid #e5e7eb' }}>Alle Fälle (6)</span>
+      {/* Top bar */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '11px 16px', borderBottom: '1px solid #1a1a1a' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+          <div style={{ background: 'rgba(181,131,74,0.15)', border: '1px solid rgba(181,131,74,0.25)', borderRadius: 6, width: 24, height: 24, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M3 10.5L12 3l9 7.5V21a1 1 0 01-1 1H4a1 1 0 01-1-1v-10.5z" stroke="#B5834A" strokeWidth="2" fill="none"/><path d="M9 22v-7h6v7" stroke="#B5834A" strokeWidth="2"/></svg>
+          </div>
+          <span style={{ fontFamily: 'var(--font-dm-serif, Georgia, serif)', fontSize: 13, color: '#F5F0E8' }}>Instaclaim</span>
         </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <span style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 10, color: '#444', background: '#161616', border: '1px solid #222', padding: '2px 8px', borderRadius: 4 }}>HV-Dashboard</span>
+          <div style={{ width: 24, height: 24, borderRadius: '50%', background: 'rgba(181,131,74,0.2)', border: '1px solid rgba(181,131,74,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <span style={{ fontSize: 9, color: '#B5834A', fontWeight: 600, fontFamily: 'var(--font-dm-sans, sans-serif)' }}>MK</span>
+          </div>
+        </div>
+      </div>
 
-        {/* Cards */}
-        <div style={{ padding: 10, display: 'flex', flexDirection: 'column', gap: 7 }}>
-          {cases.map((c, i) => (
-            <div key={i} style={{ background: '#fff', border: '1px solid #e8e6e2', borderRadius: 7, padding: '11px 13px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'default' }}>
-              <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start', flex: 1 }}>
-                <span style={{ background: c.bg, color: c.color, fontSize: 9, fontWeight: 700, letterSpacing: '0.06em', padding: '2px 6px', borderRadius: 3, whiteSpace: 'nowrap', marginTop: 2, fontFamily: 'var(--font-dm-sans, sans-serif)' }}>{c.status}</span>
-                <div>
-                  <div style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 12.5, fontWeight: 500, color: '#1a1a1a', marginBottom: 2 }}>{c.title}</div>
-                  <div style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 11, color: '#9ca3af' }}>{c.addr} · {c.time}</div>
-                </div>
+      {/* Stats row */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', borderBottom: '1px solid #1a1a1a' }}>
+        {stats.map((s, i) => (
+          <div key={s.label} style={{ padding: '10px 0', textAlign: 'center', borderRight: i < 2 ? '1px solid #1a1a1a' : 'none' }}>
+            <div style={{ fontFamily: 'var(--font-dm-serif, Georgia, serif)', fontSize: 20, color: s.color, lineHeight: 1 }}>{s.value}</div>
+            <div style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 9, color: '#444', marginTop: 3, letterSpacing: '0.04em' }}>{s.label.toUpperCase()}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* Case list */}
+      <div style={{ padding: '8px', display: 'flex', flexDirection: 'column', gap: 4 }}>
+        {cases.map((c, i) => (
+          <div key={i} style={{ background: '#111', border: '1px solid #1e1e1e', borderRadius: 7, padding: '9px 11px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+            <div style={{ display: 'flex', gap: 9, alignItems: 'flex-start', flex: 1, minWidth: 0 }}>
+              <span style={{ background: c.sb, color: c.sc, border: `1px solid ${c.se}`, fontSize: 7.5, fontWeight: 700, letterSpacing: '0.06em', padding: '2px 5px', borderRadius: 3, whiteSpace: 'nowrap', marginTop: 2, fontFamily: 'var(--font-dm-sans, sans-serif)', flexShrink: 0 }}>{c.status}</span>
+              <div style={{ minWidth: 0 }}>
+                <div style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 11.5, fontWeight: 500, color: '#EDE8E0', marginBottom: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{c.title}</div>
+                <div style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 10, color: '#444' }}>{c.addr} · {c.time}</div>
               </div>
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#d1d5db" strokeWidth="2"><path d="M9 18l6-6-6-6" strokeLinecap="round" strokeLinejoin="round"/></svg>
             </div>
-          ))}
-        </div>
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#2e2e2e" strokeWidth="2.5" style={{ flexShrink: 0 }}><path d="M9 18l6-6-6-6" strokeLinecap="round" strokeLinejoin="round"/></svg>
+          </div>
+        ))}
+      </div>
 
-        {/* Tab bar */}
-        <div style={{ padding: '9px 18px', borderTop: '1px solid #e8e6e2', background: '#fafaf9', display: 'flex', gap: 4 }}>
-          {['Übersicht','Mieter','Objekte','Archiv'].map((t, i) => (
-            <span key={t} style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 11, fontWeight: i===0?600:400, color: i===0?'#2E5540':'#9ca3af', padding: '4px 9px', borderRadius: 4, background: i===0?'#e6f0ec':'transparent' }}>{t}</span>
-          ))}
-        </div>
+      {/* Bottom nav */}
+      <div style={{ padding: '8px 10px', borderTop: '1px solid #1a1a1a', display: 'flex', gap: 2 }}>
+        {['Übersicht','Fälle','Mieter','Objekte','Werkstätten'].map((t, i) => (
+          <span key={t} style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 9.5, fontWeight: i===0?600:400, color: i===0?'#B5834A':'#3a3a3a', padding: '3px 7px', borderRadius: 4, background: i===0?'rgba(181,131,74,0.12)':'transparent', border: i===0?'1px solid rgba(181,131,74,0.2)':'1px solid transparent' }}>{t}</span>
+        ))}
       </div>
     </div>
   )
@@ -206,9 +229,9 @@ export default function HeroSection() {
               </div>
             </div>
 
-            {/* Login Card */}
+            {/* Dashboard Mockup */}
             <div className="hero-mockup" style={{ display: 'flex', justifyContent: 'center' }}>
-              <HeroLoginCard />
+              <DashboardMockup />
             </div>
           </div>
 
