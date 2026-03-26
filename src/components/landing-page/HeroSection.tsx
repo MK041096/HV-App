@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import HeroLoginCard from './HeroLoginCard'
 import OnboardingModal from './OnboardingModal'
 
 /* ─────────────────────────────────────────────
@@ -206,9 +207,9 @@ export default function HeroSection() {
               </div>
             </div>
 
-            {/* Dashboard Mockup */}
+            {/* Login Card */}
             <div className="hero-mockup" style={{ display: 'flex', justifyContent: 'center' }}>
-              <DashboardMockup />
+              <HeroLoginCard />
             </div>
           </div>
 
