@@ -85,20 +85,20 @@
 }
 
 /* ══════════════════════════════════════════════════
-   [SOFTWARE] Design System — Premium Dark / Rogo-Style
+   [SOFTWARE] Design System — Premium Warm Dark
    ══════════════════════════════════════════════════ */
 :root {
-  /* ── Farben ── */
-  --bg-primary:    #0D0D0D;
-  --bg-card:       #181818;
-  --bg-elevated:   #1E1E1E;
-  --border:        #242424;
-  --text-primary:  #F4F3EF;
-  --text-secondary:#A09D99;
-  --text-muted:    #8A8680;
-  --accent:        #2E5540;
-  --accent-light:  #3D7056;
-  --accent-subtle: #1A3329;
+  /* ── Farben (Capacity-inspiriert: warm, erdig, dunkel) ── */
+  --bg-primary:    #0E0C09;
+  --bg-card:       #171410;
+  --bg-elevated:   #1F1C17;
+  --border:        #2C2820;
+  --text-primary:  #F5F0E8;
+  --text-secondary:#A09488;
+  --text-muted:    #6E6560;
+  --accent:        #9A6B3C;
+  --accent-light:  #B5834A;
+  --accent-subtle: #3D2815;
 
   /* ── Legacy (für bestehende App-Bereiche) ── */
   --gold: #d97706;

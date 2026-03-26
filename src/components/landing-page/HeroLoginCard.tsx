@@ -67,8 +67,8 @@ export default function HeroLoginCard() {
         }
         .hlc-input-wrap:focus-within {
           background: rgba(255,255,255,0.07);
-          border-color: rgba(61,112,86,0.6);
-          box-shadow: 0 0 0 3px rgba(46,85,64,0.18);
+          border-color: rgba(181,131,74,0.6);
+          box-shadow: 0 0 0 3px rgba(154,107,60,0.18);
         }
         .hlc-input {
           flex: 1;
@@ -95,10 +95,10 @@ export default function HeroLoginCard() {
         .hlc-btn {
           width: 100%;
           height: 50px;
-          background: #2E5540;
+          background: #9A6B3C;
           border: none;
           border-radius: 999px;
-          color: #F4F3EF;
+          color: #F5F0E8;
           font-family: var(--font-dm-sans, sans-serif);
           font-size: 15px;
           font-weight: 500;
@@ -108,11 +108,11 @@ export default function HeroLoginCard() {
           justify-content: center;
           gap: 8px;
           transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
-          box-shadow: 0 4px 20px rgba(46,85,64,0.35);
+          box-shadow: 0 4px 20px rgba(154,107,60,0.35);
         }
         .hlc-btn:hover:not(:disabled) {
-          background: #3D7056;
-          box-shadow: 0 6px 28px rgba(46,85,64,0.45);
+          background: #B5834A;
+          box-shadow: 0 6px 28px rgba(154,107,60,0.45);
         }
         .hlc-btn:active:not(:disabled) { transform: scale(0.98); }
         .hlc-btn:disabled { opacity: 0.6; cursor: not-allowed; }
@@ -147,10 +147,10 @@ export default function HeroLoginCard() {
           {/* Logo + Heading */}
           <div style={{ marginBottom: 28 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 9, marginBottom: 18 }}>
-              <div style={{ background: 'rgba(46,85,64,0.25)', border: '1px solid rgba(46,85,64,0.4)', borderRadius: 8, width: 34, height: 34, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <div style={{ background: 'rgba(154,107,60,0.2)', border: '1px solid rgba(181,131,74,0.35)', borderRadius: 8, width: 34, height: 34, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                  <path d="M3 10.5L12 3l9 7.5V21a1 1 0 01-1 1H4a1 1 0 01-1-1v-10.5z" stroke="#3D7056" strokeWidth="1.8" fill="none" strokeLinejoin="round"/>
-                  <path d="M9 22v-7h6v7" stroke="#3D7056" strokeWidth="1.8" strokeLinejoin="round"/>
+                  <path d="M3 10.5L12 3l9 7.5V21a1 1 0 01-1 1H4a1 1 0 01-1-1v-10.5z" stroke="#B5834A" strokeWidth="1.8" fill="none" strokeLinejoin="round"/>
+                  <path d="M9 22v-7h6v7" stroke="#B5834A" strokeWidth="1.8" strokeLinejoin="round"/>
                 </svg>
               </div>
               <span style={{ fontFamily: 'var(--font-dm-serif, Georgia, serif)', fontSize: 15, color: 'rgba(244,243,239,0.7)', fontWeight: 400, letterSpacing: '0.01em' }}>[SOFTWARE]</span>
@@ -236,9 +236,9 @@ export default function HeroLoginCard() {
           <div style={{ marginTop: 22, textAlign: 'center' }}>
             <p style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 13, color: 'rgba(160,157,153,0.6)', margin: 0 }}>
               Noch kein Zugang?{' '}
-              <a href="#kontakt" style={{ color: 'rgba(61,112,86,0.9)', textDecoration: 'none', fontWeight: 500, transition: 'color 0.2s' }}
-                onMouseEnter={e => (e.currentTarget.style.color = '#3D7056')}
-                onMouseLeave={e => (e.currentTarget.style.color = 'rgba(61,112,86,0.9)')}>
+              <a href="#kontakt" style={{ color: 'rgba(181,131,74,0.9)', textDecoration: 'none', fontWeight: 500, transition: 'color 0.2s' }}
+                onMouseEnter={e => (e.currentTarget.style.color = '#B5834A')}
+                onMouseLeave={e => (e.currentTarget.style.color = 'rgba(181,131,74,0.9)')}>
                 Demo anfragen
               </a>
             </p>
