@@ -1,6 +1,5 @@
 import Link from "next/link"
-import { Building2, ArrowLeft } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import { Building2 } from "lucide-react"
 
 export const metadata = {
   title: "Auftragsverarbeitungsvertrag (AVV) | SchadensMelder",
@@ -20,12 +19,6 @@ export default function AvvPage() {
             </div>
             <span className="font-semibold">SchadensMelder</span>
           </Link>
-          <Button variant="ghost" size="sm" asChild>
-            <Link href="/hv-registrierung">
-              <ArrowLeft className="h-4 w-4 mr-1" />
-              Zurück zur Registrierung
-            </Link>
-          </Button>
         </div>
       </header>
 
@@ -343,15 +336,6 @@ export default function AvvPage() {
 
         </div>
 
-        {/* Back button */}
-        <div className="pt-4 border-t">
-          <Button variant="outline" asChild>
-            <Link href="/hv-registrierung">
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Zurück zur Registrierung
-            </Link>
-          </Button>
-        </div>
       </main>
     </div>
   )
