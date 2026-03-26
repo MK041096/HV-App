@@ -17,7 +17,8 @@ export default function PricingSection() {
         </h2>
 
         <p style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 17, lineHeight: 1.7, color: 'var(--text-secondary)', margin: '0 0 64px' }}>
-          Das Nutzungsmodell wird individuell auf Ihre Hausverwaltung abgestimmt.
+          Das Onboarding ist einmalig. Das Abo läuft monatlich oder jährlich —
+          und wird individuell auf die Anzahl Ihrer Einheiten abgestimmt.
         </p>
 
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24, maxWidth: 800, margin: '0 auto' }} className="pricing-grid">
@@ -45,7 +46,7 @@ export default function PricingSection() {
                 'Vollständiges Onboarding',
                 'Alle Funktionen freigeschaltet',
                 'Persönliche Einführung',
-                'Monatliches Abo individuell je Einheit abgestimmt',
+                'Abo monatlich oder jährlich — individuell je Einheit',
                 'Kein langfristiger Vertrag',
               ].map((item) => (
                 <li key={item} style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
@@ -76,7 +77,7 @@ export default function PricingSection() {
                 'Vollständiges Onboarding',
                 'Alle Funktionen freigeschaltet',
                 'Persönliche Einführung',
-                'Nutzungsmodell individuell abgestimmt',
+                'Abo monatlich oder jährlich — individuell je Einheit',
                 'Support & Weiterentwicklung inklusive',
               ].map((item) => (
                 <li key={item} style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
@@ -94,6 +95,26 @@ export default function PricingSection() {
           </div>
 
         </div>
+
+        {/* Abo-Erklärung */}
+        <div style={{ maxWidth: 800, margin: '40px auto 0', background: 'var(--bg-elevated, #1F1C17)', border: '1px solid var(--border)', borderRadius: 10, padding: '28px 32px', display: 'flex', gap: 20, alignItems: 'flex-start' }}>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--accent-light)" strokeWidth="1.6" style={{ flexShrink: 0, marginTop: 2 }}>
+            <circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01" strokeLinecap="round"/>
+          </svg>
+          <div>
+            <p style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 15, fontWeight: 500, color: 'var(--text-primary)', margin: '0 0 6px' }}>
+              Wie funktioniert das Abo?
+            </p>
+            <p style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 14, lineHeight: 1.7, color: 'var(--text-secondary)', margin: 0 }}>
+              Nach dem Onboarding wird gemeinsam mit Ihnen ein Abo-Modell festgelegt —
+              basierend auf der Anzahl Ihrer verwalteten Einheiten.
+              Sie wählen zwischen <strong style={{ color: 'var(--text-primary)' }}>monatlicher</strong> oder{' '}
+              <strong style={{ color: 'var(--text-primary)' }}>jährlicher Abrechnung</strong>.
+              Kein Pauschalpreis, kein versteckter Fixbetrag — nur was zu Ihrer Verwaltung passt.
+            </p>
+          </div>
+        </div>
+
       </div>
 
       <style jsx global>{`
