@@ -2,10 +2,8 @@ import { redirect } from "next/navigation"
 import { createServerSupabaseClient } from "@/lib/supabase-server"
 import HeroSection from "@/components/landing-page/HeroSection"
 import ProblemSection from "@/components/landing-page/ProblemSection"
-import SolutionSection from "@/components/landing-page/SolutionSection"
 import FeaturesSection from "@/components/landing-page/FeaturesSection"
 import ProcessSection from "@/components/landing-page/ProcessSection"
-import BenefitsSection from "@/components/landing-page/BenefitsSection"
 import TrustSection from "@/components/landing-page/TrustSection"
 import PricingSection from "@/components/landing-page/PricingSection"
 import FinalCTASection from "@/components/landing-page/FinalCTASection"
@@ -41,10 +39,8 @@ export default async function RootPage() {
       <main>
         <HeroSection />
         <ProblemSection />
-        <SolutionSection />
         <FeaturesSection />
         <ProcessSection />
-        <BenefitsSection />
         <TrustSection />
         <PricingSection />
         <FinalCTASection />

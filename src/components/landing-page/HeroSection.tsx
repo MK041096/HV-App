@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import HeroLoginCard from './HeroLoginCard'
 import OnboardingModal from './OnboardingModal'
 
 /* ─────────────────────────────────────────────
@@ -188,14 +187,14 @@ export default function HeroSection() {
             {/* Text */}
             <div style={{ opacity: ready ? 1 : 0, transform: ready ? 'none' : 'translateY(20px)', transition: 'opacity 0.65s ease, transform 0.65s ease' }}>
               <h1 style={{ fontFamily: 'var(--font-dm-serif, Georgia, serif)', fontSize: 'clamp(2.1rem, 4vw, 3.5rem)', lineHeight: 1.1, color: 'var(--text-primary)', margin: '0 0 24px', fontWeight: 400 }}>
-                Schadensfälle digital erfassen.<br />
-                Sauber abwickeln.<br />
-                Lückenlos dokumentieren.
+                Schadensmeldungen, die Ihr Team<br />
+                in unter 3 Minuten bearbeitet.
               </h1>
               <p style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 17, lineHeight: 1.7, color: 'var(--text-secondary)', margin: '0 0 36px', maxWidth: 480 }}>
-                [SOFTWARE] strukturiert den Schadensprozess für Hausverwaltungen –
-                von der ersten Mietermeldung bis zur vollständigen Dokumentation.
-                Das System verarbeitet in Sekunden. Ihr Team entscheidet mit einem Klick.
+                Mieter meldet digital. Das System analysiert vollständig und bereitet
+                Einschätzung, Handwerker und Dokumentation vor.
+                Ihr Mitarbeiter prüft auf einen Blick — und klickt einmal.
+                Was heute 20 Minuten kostet, dauert unter 3.
               </p>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'center' }}>
                 <button onClick={() => setShowModal(true)} className="sw-btn-primary">Anfragen</button>
@@ -207,9 +206,9 @@ export default function HeroSection() {
               </div>
             </div>
 
-            {/* Login Card */}
+            {/* Dashboard Mockup */}
             <div className="hero-mockup" style={{ display: 'flex', justifyContent: 'center' }}>
-              <HeroLoginCard />
+              <DashboardMockup />
             </div>
           </div>
 

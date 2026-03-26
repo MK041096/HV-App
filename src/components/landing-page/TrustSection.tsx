@@ -16,11 +16,6 @@ const items = [
     title: 'Nachvollziehbare Dokumentation',
     text: 'Jede Aktion ist protokolliert – für interne Prüfungen und rechtliche Anforderungen geeignet.',
   },
-  {
-    icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6" strokeLinecap="round"/><line x1="8" y1="2" x2="8" y2="6" strokeLinecap="round"/><line x1="3" y1="10" x2="21" y2="10" strokeLinecap="round"/></svg>,
-    title: 'April-Aktion',
-    text: 'Nur im April: 349 € statt 699 € für das Onboarding.',
-  },
 ]
 
 export default function TrustSection() {
@@ -34,7 +29,7 @@ export default function TrustSection() {
           Entwickelt für den professionellen Einsatz.
         </h2>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 32 }} className="trust-grid">
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 32 }} className="trust-grid">
           {items.map((item) => (
             <div key={item.title}>
               <div style={{ color: 'var(--accent-light)', marginBottom: 16 }}>{item.icon}</div>
@@ -47,7 +42,7 @@ export default function TrustSection() {
 
       <style jsx global>{`
         @media (max-width: 640px) { .trust-grid { grid-template-columns: 1fr !important; gap: 40px !important; } }
-        @media (min-width: 641px) and (max-width: 1024px) { .trust-grid { grid-template-columns: repeat(2, 1fr) !important; } }
+        @media (min-width: 641px) and (max-width: 900px) { .trust-grid { grid-template-columns: repeat(2, 1fr) !important; } }
       `}</style>
     </section>
   )

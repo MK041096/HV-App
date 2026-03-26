@@ -34,13 +34,13 @@ export default function ProcessSection() {
         <p className="sw-label" style={{ marginBottom: 20 }}>Der Ablauf</p>
 
         <h2 style={{ fontFamily: 'var(--font-dm-serif, Georgia, serif)', fontSize: 'clamp(1.75rem, 3vw, 2.5rem)', lineHeight: 1.15, color: 'var(--text-primary)', margin: '0 0 16px', fontWeight: 400 }}>
-          Von der Meldung bis zur Werkstatt.<br />
-          Ein durchgängiger Prozess.
+          Von der Meldung bis zur fertigen<br />
+          Dokumentation. Fünf Schritte.
         </h2>
 
         <p style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 17, lineHeight: 1.7, color: 'var(--text-secondary)', margin: '0 0 64px' }}>
-          Was früher über mehrere Kanäle koordiniert werden musste,
-          läuft bei [SOFTWARE] strukturiert durch einen einzigen Kanal.
+          Was früher 20 Minuten dauerte, erledigt Ihr Mitarbeiter
+          jetzt mit einem einzigen Klick.
         </p>
 
         {/* Steps */}
