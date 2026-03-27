@@ -76,7 +76,7 @@ export default function PricingSection() {
                 'Vollständiges Onboarding',
                 'Alle Funktionen freigeschaltet',
                 'Persönliche Einführung',
-                'Abo monatlich oder jährlich — individuell je Einheit',
+                'Abo monatlich oder jährlich, individuell je Einheit',
                 'Support & Weiterentwicklung inklusive',
               ].map((item) => (
                 <li key={item} style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
@@ -105,11 +105,11 @@ export default function PricingSection() {
               Wie funktioniert das Abo?
             </p>
             <p style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 14, lineHeight: 1.7, color: 'var(--text-secondary)', margin: 0 }}>
-              Nach dem Onboarding wird gemeinsam mit Ihnen ein Abo-Modell festgelegt —
+              Nach dem Onboarding wird gemeinsam mit Ihnen ein Abo-Modell festgelegt,
               basierend auf der Anzahl Ihrer verwalteten Einheiten.
               Sie wählen zwischen <strong style={{ color: 'var(--text-primary)' }}>monatlicher</strong> oder{' '}
               <strong style={{ color: 'var(--text-primary)' }}>jährlicher Abrechnung</strong>.
-              Kein Pauschalpreis, kein versteckter Fixbetrag — nur was zu Ihrer Verwaltung passt.
+              Kein Pauschalpreis, kein versteckter Fixbetrag, nur was zu Ihrer Verwaltung passt.
             </p>
           </div>
         </div>

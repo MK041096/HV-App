@@ -4,19 +4,19 @@ const features = [
   {
     icon: <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18" strokeLinecap="round"/></svg>,
     title: 'Strukturierte Digitalmeldung',
-    text: 'Mieter füllen ein geführtes Formular aus — Foto, Ort, Beschreibung, Dringlichkeit. Keine fehlenden Angaben mehr, keine Rückfragen, kein Telefonat.',
+    text: 'Mieter füllen ein geführtes Formular aus: Foto, Ort, Beschreibung, Dringlichkeit. Keine fehlenden Angaben mehr, keine Rückfragen, kein Telefonat.',
     tag: 'Vollständige Meldungen ab Tag 1',
   },
   {
     icon: <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M22 11.08V12a10 10 0 11-5.93-9.14" strokeLinecap="round" strokeLinejoin="round"/><polyline points="22 4 12 14.01 9 11.01" strokeLinecap="round" strokeLinejoin="round"/></svg>,
     title: 'Analyse und 1-Klick-Freigabe',
     text: 'Henri bereitet Einschätzung, Schadenstyp und passenden Handwerkervorschlag automatisch vor. Ihr Mitarbeiter prüft auf einen Blick, und gibt mit einem Klick frei.',
-    tag: 'Ein Klick — alles läuft',
+    tag: 'Ein Klick, alles läuft',
   },
   {
     icon: <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" strokeLinecap="round" strokeLinejoin="round"/><polyline points="14 2 14 8 20 8" strokeLinecap="round" strokeLinejoin="round"/><path d="M9 15l2 2 4-4" strokeLinecap="round" strokeLinejoin="round"/></svg>,
     title: 'Automatische Dokumentation',
-    text: 'Statusverlauf, Kommunikationsprotokoll, Versicherungsblatt — alles entsteht automatisch aus dem laufenden Prozess. Kein manuelles Zusammensuchen am Ende.',
+    text: 'Statusverlauf, Kommunikationsprotokoll, Versicherungsblatt, alles entsteht automatisch aus dem laufenden Prozess. Kein manuelles Zusammensuchen am Ende.',
     tag: 'Revisionssicher und archiviert',
   },
   {

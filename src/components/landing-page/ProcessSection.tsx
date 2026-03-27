@@ -40,7 +40,7 @@ export default function ProcessSection() {
 
         <p style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 17, lineHeight: 1.7, color: 'var(--text-secondary)', margin: '0 0 64px' }}>
           Was früher über Telefon, E-Mail und Excel koordiniert werden musste,
-          läuft jetzt strukturiert durch einen einzigen Kanal — mit einem Klick Ihrer Mitarbeiter.
+          läuft jetzt strukturiert durch einen einzigen Kanal, mit einem Klick Ihrer Mitarbeiter.
         </p>
 
         {/* Steps */}

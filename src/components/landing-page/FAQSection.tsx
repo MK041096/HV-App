@@ -17,7 +17,7 @@ const faqs = [
   },
   {
     q: 'Was passiert mit unseren Daten?',
-    a: 'Alle Daten liegen ausschließlich auf Servern innerhalb der EU — vollständig DSGVO-konform. Ein Auftragsverarbeitungsvertrag (AVV) nach Art. 28 DSGVO ist im Onboarding inklusive.',
+    a: 'Alle Daten liegen ausschließlich auf Servern innerhalb der EU, vollständig DSGVO-konform. Ein Auftragsverarbeitungsvertrag (AVV) nach Art. 28 DSGVO ist im Onboarding inklusive.',
   },
   {
     q: 'Müssen wir unsere bisherige Software ablösen?',
