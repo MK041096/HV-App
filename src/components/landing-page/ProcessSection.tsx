@@ -6,7 +6,7 @@ const steps = [
   },
   {
     num: '2',
-    title: 'Das System verarbeitet die Meldung in Sekunden',
+    title: 'Henri verarbeitet die Meldung in Sekunden',
     text: 'Automatische Strukturierung der Falldaten. Ersteinschätzung, Schadenstyp und Handlungsoptionen werden sofort aufbereitet.',
   },
   {

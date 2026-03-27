@@ -212,7 +212,7 @@ export default function HeroSection() {
               einem Klick von selbst erledigen.
             </h1>
             <p style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 18, lineHeight: 1.75, color: 'var(--text-secondary)', margin: '0 0 40px', maxWidth: 560 }}>
-              Mieter meldet digital. Das System klärt Zuständigkeit, Versicherungsdeckung
+              Mieter meldet digital. Henri klärt Zuständigkeit, Versicherungsdeckung
               und den passenden Handwerker, alles vollständig vorbereitet.
               Ihr Mitarbeiter prüft und klickt einmal.
             </p>

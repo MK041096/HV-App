@@ -5,11 +5,11 @@ import { useState } from 'react'
 const faqs = [
   {
     q: 'Wie melden sich meine Mieter an?',
-    a: 'Sie laden Ihre Mieter einmal mit Adresse und Kontaktdaten hoch, den Rest erledigt das System. Jeder Mieter erhält automatisch eine E-Mail mit seinem persönlichen Aktivierungscode und kann sich sofort selbst registrieren. Kein manuelles Versenden, kein Aufwand Ihrerseits.',
+    a: 'Sie laden Ihre Mieter einmal mit Adresse und Kontaktdaten hoch, den Rest erledigt Henri. Jeder Mieter erhält automatisch eine E-Mail mit seinem persönlichen Aktivierungscode und kann sich sofort selbst registrieren. Kein manuelles Versenden, kein Aufwand Ihrerseits.',
   },
   {
     q: 'Wie lange dauert das Onboarding?',
-    a: 'Wenige Stunden, Sie müssen nichts vorbereiten. Wir richten alles ein, zeigen Ihnen wie es funktioniert, und danach läuft das System von selbst.',
+    a: 'Wenige Stunden, Sie müssen nichts vorbereiten. Wir richten alles ein, zeigen Ihnen wie Henri funktioniert, und danach läuft er von selbst.',
   },
   {
     q: 'Funktioniert das auch bei vielen Einheiten?',
