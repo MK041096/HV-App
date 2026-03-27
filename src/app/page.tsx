@@ -6,6 +6,7 @@ import FeaturesSection from "@/components/landing-page/FeaturesSection"
 import ProcessSection from "@/components/landing-page/ProcessSection"
 import TrustSection from "@/components/landing-page/TrustSection"
 import FAQSection from "@/components/landing-page/FAQSection"
+import FounderSection from "@/components/landing-page/FounderSection"
 import PricingSection from "@/components/landing-page/PricingSection"
 import FinalCTASection from "@/components/landing-page/FinalCTASection"
 import Footer from "@/components/landing-page/Footer"
@@ -44,6 +45,7 @@ export default async function RootPage() {
         <ProcessSection />
         <TrustSection />
         <FAQSection />
+        <FounderSection />
         <PricingSection />
         <FinalCTASection />
       </main>
