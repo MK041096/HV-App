@@ -1,3 +1,5 @@
+'use client'
+
 export default function FounderSection() {
   return (
     <section style={{ background: 'var(--bg-primary)', padding: '120px 24px', borderTop: '1px solid var(--border)' }}>
