@@ -9,13 +9,10 @@ export default function OnboardingModal({ onClose }: { onClose: () => void }) {
     last_name: '',
     org_name: '',
     email: '',
-    password: '',
     phone: '',
     units_estimate: '',
     privacy_accepted: false,
-    avv_accepted: false,
   })
-  const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
@@ -37,27 +34,13 @@ export default function OnboardingModal({ onClose }: { onClose: () => void }) {
       setError('Bitte akzeptieren Sie die Datenschutzerklärung.')
       return
     }
-    if (!form.avv_accepted) {
-      setError('Bitte akzeptieren Sie den Auftragsverarbeitungsvertrag.')
-      return
-    }
 
     setIsLoading(true)
     try {
-      const res = await fetch('/api/auth/register-hv', {
+      const res = await fetch('/api/contact/inquiry', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          first_name: form.first_name,
-          last_name: form.last_name,
-          org_name: form.org_name,
-          email: form.email,
-          password: form.password,
-          phone: form.phone || undefined,
-          units_estimate: form.units_estimate || undefined,
-          privacy_accepted: true,
-          avv_accepted: true,
-        }),
+        body: JSON.stringify(form),
       })
       const data = await res.json()
       if (!res.ok) {
@@ -176,43 +159,16 @@ export default function OnboardingModal({ onClose }: { onClose: () => void }) {
           {success ? (
             /* Success Screen */
             <div style={{ textAlign: 'center', padding: '16px 0' }}>
-              <svg
-                width="64"
-                height="64"
-                viewBox="0 0 64 64"
-                fill="none"
-                style={{ margin: '0 auto 20px' }}
-              >
+              <svg width="64" height="64" viewBox="0 0 64 64" fill="none" style={{ margin: '0 auto 20px' }}>
                 <circle cx="32" cy="32" r="32" fill="rgba(34,197,94,0.15)" />
                 <circle cx="32" cy="32" r="24" fill="rgba(34,197,94,0.2)" />
-                <path
-                  d="M21 32l8 8 14-16"
-                  stroke="#22c55e"
-                  strokeWidth="3"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
+                <path d="M21 32l8 8 14-16" stroke="#22c55e" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
-              <h2
-                style={{
-                  fontFamily: 'var(--font-dm-serif), Georgia, serif',
-                  fontSize: '26px',
-                  color: '#F5F0E8',
-                  margin: '0 0 12px',
-                  fontWeight: 400,
-                }}
-              >
-                Registrierung eingegangen!
+              <h2 style={{ fontFamily: 'var(--font-dm-serif), Georgia, serif', fontSize: '26px', color: '#F5F0E8', margin: '0 0 12px', fontWeight: 400 }}>
+                Anfrage eingegangen!
               </h2>
-              <p
-                style={{
-                  color: '#A09488',
-                  fontSize: '15px',
-                  lineHeight: 1.6,
-                  margin: '0 0 28px',
-                }}
-              >
-                Wir prüfen Ihre Anfrage und schalten Ihren Zugang innerhalb von 24 Stunden frei. Sie erhalten eine E-Mail sobald Ihr Konto aktiv ist.
+              <p style={{ color: '#A09488', fontSize: '15px', lineHeight: 1.6, margin: '0 0 28px' }}>
+                Wir melden uns persönlich bei Ihnen, üblicherweise innerhalb von 24 Stunden. Keine Zahlung, keine Verpflichtung.
               </p>
               <button
                 onClick={onClose}
@@ -235,40 +191,29 @@ export default function OnboardingModal({ onClose }: { onClose: () => void }) {
               </button>
             </div>
           ) : (
-            /* Registration Form */
+            /* Inquiry Form */
             <form onSubmit={handleSubmit}>
               {/* Header */}
               <div style={{ marginBottom: '24px' }}>
-                <div
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '6px',
-                    background: 'rgba(154,107,60,0.15)',
-                    border: '1px solid rgba(154,107,60,0.3)',
-                    borderRadius: '999px',
-                    padding: '4px 12px',
-                    marginBottom: '14px',
-                  }}
-                >
+                <div style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  background: 'rgba(154,107,60,0.15)',
+                  border: '1px solid rgba(154,107,60,0.3)',
+                  borderRadius: '999px',
+                  padding: '4px 12px',
+                  marginBottom: '14px',
+                }}>
                   <span style={{ fontSize: '10px', letterSpacing: '0.12em', color: '#B5834A', fontWeight: 600 }}>
-                    SOFTWARE
+                    UNVERBINDLICH
                   </span>
                 </div>
-                <h2
-                  style={{
-                    fontFamily: 'var(--font-dm-serif), Georgia, serif',
-                    fontSize: '28px',
-                    color: '#F5F0E8',
-                    margin: '0 0 6px',
-                    fontWeight: 400,
-                    lineHeight: 1.2,
-                  }}
-                >
-                  April-Aktion sichern
+                <h2 style={{ fontFamily: 'var(--font-dm-serif), Georgia, serif', fontSize: '28px', color: '#F5F0E8', margin: '0 0 6px', fontWeight: 400, lineHeight: 1.2 }}>
+                  Jetzt anfragen
                 </h2>
                 <p style={{ color: '#A09488', fontSize: '14px', margin: 0 }}>
-                  April-Aktion · 349 € statt 699 € Onboarding
+                  Keine Zahlung jetzt, wir melden uns persönlich bei Ihnen.
                 </p>
               </div>
 
@@ -307,14 +252,13 @@ export default function OnboardingModal({ onClose }: { onClose: () => void }) {
 
                 {/* Company name */}
                 <div>
-                  <label style={labelStyle}>Firmenname der Hausverwaltung *</label>
+                  <label style={labelStyle}>Firmenname der Hausverwaltung</label>
                   <input
                     type="text"
                     name="org_name"
                     value={form.org_name}
                     onChange={handleChange}
                     placeholder="Muster Hausverwaltung GmbH"
-                    required
                     style={inputStyle}
                     onFocus={(e) => { e.currentTarget.style.borderColor = 'rgba(181,131,74,0.6)' }}
                     onBlur={(e) => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.09)' }}
@@ -335,59 +279,6 @@ export default function OnboardingModal({ onClose }: { onClose: () => void }) {
                     onFocus={(e) => { e.currentTarget.style.borderColor = 'rgba(181,131,74,0.6)' }}
                     onBlur={(e) => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.09)' }}
                   />
-                </div>
-
-                {/* Password */}
-                <div>
-                  <label style={labelStyle}>Passwort *</label>
-                  <div style={{ position: 'relative' }}>
-                    <input
-                      type={showPassword ? 'text' : 'password'}
-                      name="password"
-                      value={form.password}
-                      onChange={handleChange}
-                      placeholder="Mindestens 8 Zeichen"
-                      required
-                      minLength={8}
-                      style={{ ...inputStyle, paddingRight: '50px' }}
-                      onFocus={(e) => { e.currentTarget.style.borderColor = 'rgba(181,131,74,0.6)' }}
-                      onBlur={(e) => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.09)' }}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword((v) => !v)}
-                      style={{
-                        position: 'absolute',
-                        right: '16px',
-                        top: '50%',
-                        transform: 'translateY(-50%)',
-                        background: 'none',
-                        border: 'none',
-                        color: '#A09488',
-                        cursor: 'pointer',
-                        padding: '4px',
-                        display: 'flex',
-                        alignItems: 'center',
-                      }}
-                      tabIndex={-1}
-                    >
-                      {showPassword ? (
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94"/>
-                          <path d="M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19"/>
-                          <line x1="1" y1="1" x2="23" y2="23"/>
-                        </svg>
-                      ) : (
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                          <circle cx="12" cy="12" r="3"/>
-                        </svg>
-                      )}
-                    </button>
-                  </div>
-                  <p style={{ fontSize: '11px', color: '#6b6059', marginTop: '5px', paddingLeft: '4px' }}>
-                    Mindestens 8 Zeichen
-                  </p>
                 </div>
 
                 {/* Phone */}
@@ -434,80 +325,28 @@ export default function OnboardingModal({ onClose }: { onClose: () => void }) {
                   </select>
                 </div>
 
-                {/* Checkboxes */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                  <label
-                    style={{
-                      display: 'flex',
-                      alignItems: 'flex-start',
-                      gap: '10px',
-                      cursor: 'pointer',
-                    }}
-                  >
-                    <input
-                      type="checkbox"
-                      name="privacy_accepted"
-                      checked={form.privacy_accepted}
-                      onChange={handleChange}
-                      required
-                      style={{
-                        width: '16px',
-                        height: '16px',
-                        marginTop: '2px',
-                        accentColor: '#9A6B3C',
-                        cursor: 'pointer',
-                        flexShrink: 0,
-                      }}
-                    />
-                    <span style={{ fontSize: '13px', color: '#A09488', lineHeight: 1.5 }}>
-                      Ich akzeptiere die{' '}
-                      <a
-                        href="/datenschutz"
-                        rel="noopener noreferrer"
-                        style={{ color: '#B5834A', textDecoration: 'underline' }}
-                        onClick={(e) => { e.preventDefault(); e.stopPropagation(); window.open('/datenschutz', '_blank', 'noopener,noreferrer') }}
-                      >
-                        Datenschutzerklärung
-                      </a>
-                    </span>
-                  </label>
-
-                  <label
-                    style={{
-                      display: 'flex',
-                      alignItems: 'flex-start',
-                      gap: '10px',
-                      cursor: 'pointer',
-                    }}
-                  >
-                    <input
-                      type="checkbox"
-                      name="avv_accepted"
-                      checked={form.avv_accepted}
-                      onChange={handleChange}
-                      required
-                      style={{
-                        width: '16px',
-                        height: '16px',
-                        marginTop: '2px',
-                        accentColor: '#9A6B3C',
-                        cursor: 'pointer',
-                        flexShrink: 0,
-                      }}
-                    />
-                    <span style={{ fontSize: '13px', color: '#A09488', lineHeight: 1.5 }}>
-                      Ich akzeptiere den{' '}
-                      <a
-                        href="/avv"
-                        rel="noopener noreferrer"
-                        style={{ color: '#B5834A', textDecoration: 'underline' }}
-                        onClick={(e) => { e.preventDefault(); e.stopPropagation(); window.open('/avv', '_blank', 'noopener,noreferrer') }}
-                      >
-                        Auftragsverarbeitungsvertrag
-                      </a>
-                    </span>
-                  </label>
-                </div>
+                {/* Privacy checkbox */}
+                <label style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', cursor: 'pointer' }}>
+                  <input
+                    type="checkbox"
+                    name="privacy_accepted"
+                    checked={form.privacy_accepted}
+                    onChange={handleChange}
+                    required
+                    style={{ width: '16px', height: '16px', marginTop: '2px', accentColor: '#9A6B3C', cursor: 'pointer', flexShrink: 0 }}
+                  />
+                  <span style={{ fontSize: '13px', color: '#A09488', lineHeight: 1.5 }}>
+                    Ich akzeptiere die{' '}
+                    <a
+                      href="/datenschutz"
+                      rel="noopener noreferrer"
+                      style={{ color: '#B5834A', textDecoration: 'underline' }}
+                      onClick={(e) => { e.preventDefault(); e.stopPropagation(); window.open('/datenschutz', '_blank', 'noopener,noreferrer') }}
+                    >
+                      Datenschutzerklärung
+                    </a>
+                  </span>
+                </label>
 
                 {/* Error message */}
                 {error && (
@@ -549,32 +388,24 @@ export default function OnboardingModal({ onClose }: { onClose: () => void }) {
                     gap: '8px',
                     marginTop: '4px',
                   }}
-                  onMouseEnter={(e) => {
-                    if (!isLoading) e.currentTarget.style.background = '#B5834A'
-                  }}
-                  onMouseLeave={(e) => {
-                    if (!isLoading) e.currentTarget.style.background = '#9A6B3C'
-                  }}
+                  onMouseEnter={(e) => { if (!isLoading) e.currentTarget.style.background = '#B5834A' }}
+                  onMouseLeave={(e) => { if (!isLoading) e.currentTarget.style.background = '#9A6B3C' }}
                 >
                   {isLoading ? (
                     <>
-                      <svg
-                        width="16"
-                        height="16"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2.5"
-                        style={{ animation: 'spin 0.8s linear infinite' }}
-                      >
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ animation: 'spin 0.8s linear infinite' }}>
                         <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" />
                       </svg>
-                      Wird verarbeitet...
+                      Wird gesendet...
                     </>
                   ) : (
-                    'Anfrage absenden →'
+                    'Unverbindlich anfragen →'
                   )}
                 </button>
+
+                <p style={{ textAlign: 'center', fontSize: '12px', color: '#6b6059', margin: 0 }}>
+                  Keine Zahlung, keine Verpflichtung. Wir melden uns bei Ihnen.
+                </p>
               </div>
             </form>
           )}
