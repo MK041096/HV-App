@@ -47,7 +47,7 @@ function DashboardMockup() {
           <div style={{ background: 'rgba(181,131,74,0.15)', border: '1px solid rgba(181,131,74,0.25)', borderRadius: 6, width: 24, height: 24, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M3 10.5L12 3l9 7.5V21a1 1 0 01-1 1H4a1 1 0 01-1-1v-10.5z" stroke="#B5834A" strokeWidth="2" fill="none"/><path d="M9 22v-7h6v7" stroke="#B5834A" strokeWidth="2"/></svg>
           </div>
-          <span style={{ fontFamily: 'var(--font-dm-serif, Georgia, serif)', fontSize: 13, color: '#F5F0E8' }}>Instaclaim</span>
+          <span style={{ fontFamily: 'var(--font-dm-serif, Georgia, serif)', fontSize: 13, color: '#F5F0E8' }}>Anotherhenri</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
           <span style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 10, color: '#444', background: '#161616', border: '1px solid #222', padding: '2px 8px', borderRadius: 4 }}>HV-Dashboard</span>
@@ -132,7 +132,7 @@ function Navbar() {
             <path d="M9 22v-7h6v7" stroke="#B5834A" strokeWidth="1.6" strokeLinejoin="round"/>
             <path d="M12 7v4" stroke="#9A6B3C" strokeWidth="1.5" strokeLinecap="round"/>
           </svg>
-          <span style={{ fontFamily: 'var(--font-dm-serif, Georgia, serif)', fontSize: 18, color: 'var(--text-primary)', letterSpacing: '0.01em' }}>Instaclaim</span>
+          <span style={{ fontFamily: 'var(--font-dm-serif, Georgia, serif)', fontSize: 18, color: 'var(--text-primary)', letterSpacing: '0.01em' }}>Anotherhenri</span>
         </Link>
 
         {/* Desktop nav */}

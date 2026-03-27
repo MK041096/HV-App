@@ -21,7 +21,7 @@ const faqs = [
   },
   {
     q: 'Müssen wir unsere bisherige Software ablösen?',
-    a: 'Nein. Instaclaim ergänzt Ihre bestehende Verwaltung und übernimmt gezielt den Schadensprozess. Keine Umstellung, keine Datenmigration von bestehenden Systemen nötig.',
+    a: 'Nein. Anotherhenri ergänzt Ihre bestehende Verwaltung und übernimmt gezielt den Schadensprozess. Keine Umstellung, keine Datenmigration von bestehenden Systemen nötig.',
   },
 ]
 

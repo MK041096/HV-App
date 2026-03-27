@@ -17,7 +17,7 @@ export default function Footer() {
                 <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" strokeLinecap="round" strokeLinejoin="round"/>
                 <polyline points="9 22 9 12 15 12 15 22" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
-              <span style={{ fontFamily: 'var(--font-dm-serif, Georgia, serif)', fontSize: 18, color: 'var(--text-primary)', fontWeight: 400 }}>Instaclaim</span>
+              <span style={{ fontFamily: 'var(--font-dm-serif, Georgia, serif)', fontSize: 18, color: 'var(--text-primary)', fontWeight: 400 }}>Anotherhenri</span>
             </div>
             <p style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 14, lineHeight: 1.7, color: 'var(--text-secondary)', margin: '0 0 16px', maxWidth: 320 }}>
               Digitales Schadensmeldungs-Management für professionelle Hausverwaltungen.

@@ -158,7 +158,7 @@ export default function HeroLoginCard() {
                   <path d="M9 22v-7h6v7" stroke="#B5834A" strokeWidth="1.8" strokeLinejoin="round"/>
                 </svg>
               </div>
-              <span style={{ fontFamily: 'var(--font-dm-serif, Georgia, serif)', fontSize: 15, color: 'rgba(244,243,239,0.7)', fontWeight: 400, letterSpacing: '0.01em' }}>Instaclaim</span>
+              <span style={{ fontFamily: 'var(--font-dm-serif, Georgia, serif)', fontSize: 15, color: 'rgba(244,243,239,0.7)', fontWeight: 400, letterSpacing: '0.01em' }}>Anotherhenri</span>
             </div>
             <h2 style={{ fontFamily: 'var(--font-dm-serif, Georgia, serif)', fontSize: 28, fontWeight: 400, color: '#F4F3EF', margin: 0, lineHeight: 1.2 }}>
               Anmelden

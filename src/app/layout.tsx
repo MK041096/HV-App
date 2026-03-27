@@ -27,8 +27,8 @@ const dmSans = DM_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "Instaclaim – Schadensmeldungen für Hausverwaltungen",
-  description: "Instaclaim digitalisiert Schadensmeldungen für Hausverwaltungen. Von der strukturierten Erfassung bis zur vollständigen Dokumentation.",
+  title: "Anotherhenri – Schadensmeldungen für Hausverwaltungen",
+  description: "Anotherhenri digitalisiert Schadensmeldungen für Hausverwaltungen. Von der strukturierten Erfassung bis zur vollständigen Dokumentation.",
   openGraph: {
     type: "website",
     locale: "de_DE",

@@ -18,7 +18,7 @@ export default function FinalCTASection() {
 
         <p style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 17, lineHeight: 1.7, color: 'var(--text-secondary)', margin: '0 0 48px' }}>
           Sprechen Sie mit uns. In einem kurzen Gespräch zeigen wir Ihnen,
-          wie Instaclaim in Ihrer Hausverwaltung funktioniert — ohne Risiko, ohne Verpflichtung.
+          wie Anotherhenri in Ihrer Hausverwaltung funktioniert — ohne Risiko, ohne Verpflichtung.
         </p>
 
         <div style={{ display: 'flex', gap: 16, justifyContent: 'center', flexWrap: 'wrap', marginBottom: 40 }}>

@@ -40,7 +40,7 @@ export default function SolutionSection() {
 
         {/* Subline */}
         <p style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 17, lineHeight: 1.7, color: 'var(--text-secondary)', margin: '0 0 56px', maxWidth: 580 }}>
-          Instaclaim bringt Ordnung in den Schadensprozess.
+          Anotherhenri bringt Ordnung in den Schadensprozess.
           Das System verarbeitet jede Meldung in Sekunden, bereitet eine
           vollständige Analyse vor und legt sie dem zuständigen Mitarbeiter
           zur Entscheidung vor. Ein Klick – und der Fall geht weiter.
