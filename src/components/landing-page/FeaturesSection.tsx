@@ -22,7 +22,7 @@ const features = [
   {
     icon: <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12" strokeLinecap="round" strokeLinejoin="round"/></svg>,
     title: 'Echtzeit-Status für alle Beteiligten',
-    text: 'Mieter, Mitarbeiter und Handwerker sehen jederzeit den aktuellen Stand des Falls. Keine Rückfragen, kein manueller Statusabgleich, keine verlorenen Informationen.',
+    text: 'Mieter sehen den Status ihrer Meldung — ohne anzurufen. Ihr Mitarbeiter sieht denselben Stand — ohne Rückfragen. Der Handwerker kommt informiert an.',
     tag: 'Transparenz ohne Mehraufwand',
   },
 ]
@@ -39,7 +39,7 @@ export default function FeaturesSection() {
             Das System macht die Arbeit.<br />Ihr Team behält die Kontrolle.
           </h2>
           <p style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 17, lineHeight: 1.7, color: 'var(--text-secondary)', margin: 0, maxWidth: 560 }}>
-            Das System erledigt die Arbeit. Die finale Entscheidung liegt immer noch bei Ihnen.
+            Die finale Entscheidung liegt immer bei Ihnen — das System erledigt alles davor.
           </p>
         </div>
 

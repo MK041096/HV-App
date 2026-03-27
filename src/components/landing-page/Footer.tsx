@@ -35,8 +35,8 @@ export default function Footer() {
               {[
                 { label: 'Funktionen', href: '#funktionen' },
                 { label: 'Ablauf', href: '#ablauf' },
-                { label: 'Vorteile', href: '#vorteile' },
                 { label: 'Preise', href: '#preise' },
+                { label: 'FAQ', href: '#faq' },
               ].map((link) => (
                 <li key={link.label}>
                   <a href={link.href} style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 14, color: 'var(--text-secondary)', textDecoration: 'none' }}>{link.label}</a>
@@ -52,6 +52,7 @@ export default function Footer() {
               {[
                 { label: 'Impressum', href: '/impressum' },
                 { label: 'Datenschutz', href: '/datenschutz' },
+                { label: 'AVV', href: '/avv' },
                 { label: 'Kontakt', href: '/kontakt' },
               ].map((link) => (
                 <li key={link.label}>
