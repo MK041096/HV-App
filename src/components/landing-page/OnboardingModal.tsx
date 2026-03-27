@@ -213,7 +213,7 @@ export default function OnboardingModal({ onClose }: { onClose: () => void }) {
                   Jetzt anfragen
                 </h2>
                 <p style={{ color: '#A09488', fontSize: '14px', margin: 0 }}>
-                  Keine Zahlung jetzt, wir melden uns persönlich bei Ihnen.
+                  Keine Zahlung, wir melden uns persönlich bei Ihnen.
                 </p>
               </div>
 
