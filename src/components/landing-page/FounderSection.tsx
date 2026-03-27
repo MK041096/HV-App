@@ -20,11 +20,8 @@ export default function FounderSection() {
 
           {/* Text */}
           <div>
-            <p style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 17, fontWeight: 500, color: 'var(--text-primary)', margin: '0 0 4px' }}>
+            <p style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 17, fontWeight: 500, color: 'var(--text-primary)', margin: '0 0 20px' }}>
               Mathias Kracher, 29
-            </p>
-            <p style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 13, fontWeight: 500, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--accent-light)', margin: '0 0 20px' }}>
-              Gründer von Anotherhenri
             </p>
             <p style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 15, lineHeight: 1.8, color: 'var(--text-secondary)', margin: '0 0 24px' }}>
               "Anotherhenri ist aus einer persönlichen Erfahrung entstanden. Als Mieter habe ich erlebt wie Schadensmeldungen untergegangen sind, Wochen vergingen ohne Rückmeldung und der Schaden einfach blieb. Nicht weil die Hausverwaltung es nicht wollte, sondern weil der Prozess es nicht zuließ. Genau das wollte ich ändern."
