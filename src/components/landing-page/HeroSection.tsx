@@ -110,7 +110,6 @@ function Navbar() {
   const navLinks = [
     { label: 'Funktionen', href: '#funktionen' },
     { label: 'Ablauf',     href: '#ablauf'     },
-    { label: 'Vorteile',   href: '#vorteile'   },
     { label: 'Preise',     href: '#preise'     },
   ]
 
