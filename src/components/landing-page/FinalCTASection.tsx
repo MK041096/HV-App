@@ -13,7 +13,7 @@ export default function FinalCTASection() {
         <p className="sw-label" style={{ marginBottom: 20 }}>Jetzt starten</p>
 
         <h2 style={{ fontFamily: 'var(--font-dm-serif, Georgia, serif)', fontSize: 'clamp(2rem, 4vw, 3rem)', lineHeight: 1.1, color: 'var(--text-primary)', margin: '0 0 24px', fontWeight: 400 }}>
-          Ihr nächster Schaden — der erste,<br />der sich von selbst erledigt.
+          Ihr nächster Schaden, der erste,<br />der sich von selbst erledigt.
         </h2>
 
         <p style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 17, lineHeight: 1.7, color: 'var(--text-secondary)', margin: '0 0 48px' }}>

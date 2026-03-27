@@ -5,15 +5,15 @@ import { useState } from 'react'
 const faqs = [
   {
     q: 'Wie melden sich meine Mieter an?',
-    a: 'Sie laden Ihre Mieter einmal mit Adresse und Kontaktdaten hoch — den Rest erledigt das System. Jeder Mieter erhält automatisch eine E-Mail mit seinem persönlichen Aktivierungscode und kann sich sofort selbst registrieren. Kein manuelles Versenden, kein Aufwand Ihrerseits.',
+    a: 'Sie laden Ihre Mieter einmal mit Adresse und Kontaktdaten hoch, den Rest erledigt das System. Jeder Mieter erhält automatisch eine E-Mail mit seinem persönlichen Aktivierungscode und kann sich sofort selbst registrieren. Kein manuelles Versenden, kein Aufwand Ihrerseits.',
   },
   {
     q: 'Wie lange dauert das Onboarding?',
-    a: 'In der Regel einen halben Tag. Wir richten alles gemeinsam mit Ihnen ein, importieren Ihre Objekte und Einheiten, und führen Sie und Ihr Team persönlich durch das System.',
+    a: 'Wenige Stunden, Sie müssen nichts vorbereiten. Wir richten alles ein, zeigen Ihnen wie es funktioniert, und danach läuft das System von selbst.',
   },
   {
     q: 'Funktioniert das auch bei vielen Einheiten?',
-    a: 'Ja. Das Abo wird individuell je Einheit kalkuliert — egal ob Sie 30 oder 1.000 Einheiten verwalten. Je größer Ihre Verwaltung, desto mehr Zeit sparen Sie.',
+    a: 'Ja. Das Abo wird individuell je Einheit kalkuliert, egal ob Sie 30 oder 1.000 Einheiten verwalten. Je größer Ihre Verwaltung, desto mehr Zeit sparen Sie.',
   },
   {
     q: 'Was passiert mit unseren Daten?',
