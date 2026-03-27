@@ -279,6 +279,62 @@ export async function sendDamageReportNotificationEmail(params: {
   })
 }
 
+export async function sendTerminVereinbartEmail(params: {
+  to: string
+  tenantName: string
+  caseNumber: string
+  caseTitle: string
+  scheduledAppointment: string | null
+  orgName: string
+}): Promise<void> {
+  const { to, tenantName, caseNumber, caseTitle, scheduledAppointment, orgName } = params
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://zerodamage.de'
+
+  let appointmentHtml = ''
+  if (scheduledAppointment) {
+    const date = new Date(scheduledAppointment)
+    const formatted = date.toLocaleDateString('de-AT', {
+      weekday: 'long', day: '2-digit', month: 'long', year: 'numeric',
+    }) + ', ' + date.toLocaleTimeString('de-AT', { hour: '2-digit', minute: '2-digit' }) + ' Uhr'
+    appointmentHtml = `
+    <div style="background-color:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:16px 20px;margin-bottom:24px;">
+      <p style="color:#16a34a;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;margin:0 0 6px 0;">&#128197; Bestätigter Termin</p>
+      <p style="color:#18181b;font-size:18px;font-weight:700;margin:0;">${formatted}</p>
+    </div>`
+  }
+
+  const content = `
+    <h2 style="color:#18181b;font-size:22px;font-weight:700;margin:0 0 8px 0;">
+      Termin für Ihre Schadensmeldung
+    </h2>
+    <p style="color:#71717a;font-size:14px;margin:0 0 24px 0;">Hallo ${tenantName},</p>
+
+    <div style="background-color:#f4f4f5;border-radius:8px;padding:16px 20px;margin-bottom:24px;">
+      <p style="color:#71717a;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;margin:0 0 4px 0;">Meldung</p>
+      <p style="color:#18181b;font-size:15px;font-weight:600;margin:0 0 4px 0;">${caseTitle}</p>
+      <p style="color:#71717a;font-size:13px;margin:0;">Fall-Nr. ${caseNumber}</p>
+    </div>
+
+    ${appointmentHtml}
+
+    <p style="color:#52525b;font-size:14px;line-height:1.6;margin:0 0 24px 0;">
+      Bitte stellen Sie sicher, dass die Wohnung zum vereinbarten Termin zugänglich ist.
+      Bei Fragen wenden Sie sich an Ihre Hausverwaltung.
+    </p>
+
+    <a href="${appUrl}/mein-bereich/meldungen"
+       style="display:inline-block;background-color:#18181b;color:#ffffff;text-decoration:none;padding:12px 24px;border-radius:8px;font-size:14px;font-weight:600;">
+      Meldung ansehen &rarr;
+    </a>
+  `
+  await resend.emails.send({
+    from: FROM_EMAIL,
+    to,
+    subject: `[${caseNumber}] Termin vereinbart – ${orgName}`,
+    html: baseTemplate(content, orgName),
+  })
+}
+
 export async function sendAblehnungEmail(params: {
   to: string
   tenantName: string

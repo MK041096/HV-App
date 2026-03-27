@@ -8,7 +8,7 @@ import {
 } from '@/lib/validations/hv-case-management'
 import { CATEGORY_LABELS, URGENCY_LABELS } from '@/lib/validations/damage-report'
 import { STATUS_DISPLAY_MAP } from '@/lib/validations/damage-report-dashboard'
-import { sendStatusChangeEmail, NOTIFICATION_STATUSES } from '@/lib/email'
+import { sendStatusChangeEmail, sendTerminVereinbartEmail, NOTIFICATION_STATUSES } from '@/lib/email'
 
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
@@ -228,7 +228,7 @@ export async function PATCH(
     // Verify case exists and belongs to org
     const { data: existingReport, error: fetchError } = await supabase
       .from('damage_reports')
-      .select('id, status, organization_id, reporter_id, case_number, title')
+      .select('id, status, organization_id, reporter_id, case_number, title, scheduled_appointment')
       .eq('id', id)
       .eq('organization_id', profile.organization_id)
       .eq('is_deleted', false)
@@ -307,7 +307,38 @@ export async function PATCH(
         details: { old_status, new_status, comment },
       })
 
-      // Send email notification (fire-and-forget, never fail the request)
+      // Send email notification for termin_vereinbart (fire-and-forget)
+      if (new_status === 'termin_vereinbart' && existingReport.reporter_id) {
+        ;(async () => {
+          try {
+            const adminClient = createAdminClient()
+            const [reporterResult, orgResult, reporterProfileResult] = await Promise.all([
+              adminClient.auth.admin.getUserById(existingReport.reporter_id!),
+              supabase.from('organizations').select('name').eq('id', profile.organization_id).single(),
+              supabase.from('profiles').select('first_name, last_name').eq('id', existingReport.reporter_id!).single(),
+            ])
+            const email = reporterResult.data?.user?.email
+            const name = reporterProfileResult.data
+              ? `${reporterProfileResult.data.first_name || ''} ${reporterProfileResult.data.last_name || ''}`.trim() || 'Mieter'
+              : 'Mieter'
+            const org = orgResult.data?.name || 'Hausverwaltung'
+            if (email) {
+              await sendTerminVereinbartEmail({
+                to: email,
+                tenantName: name,
+                caseNumber: existingReport.case_number,
+                caseTitle: existingReport.title,
+                scheduledAppointment: existingReport.scheduled_appointment || null,
+                orgName: org,
+              })
+            }
+          } catch (err) {
+            console.error('Termin email notification error:', err)
+          }
+        })()
+      }
+
+      // Legacy: generic status change emails (currently none configured)
       if (NOTIFICATION_STATUSES.includes(new_status) && existingReport.reporter_id) {
         const orgName = 'Hausverwaltung'
         try {
