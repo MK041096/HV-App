@@ -5,7 +5,7 @@ import { useState } from 'react'
 const faqs = [
   {
     q: 'Wie melden sich meine Mieter an?',
-    a: 'Sie vergeben einen Aktivierungscode pro Mieter — einmal, fertig. Der Mieter registriert sich damit selbst. Kein App-Download, kein technisches Wissen nötig. Funktioniert auf jedem Smartphone und PC.',
+    a: 'Sie laden Ihre Mieter einmal mit Adresse und Kontaktdaten hoch — den Rest erledigt das System. Jeder Mieter erhält automatisch eine E-Mail mit seinem persönlichen Aktivierungscode und kann sich sofort selbst registrieren. Kein manuelles Versenden, kein Aufwand Ihrerseits.',
   },
   {
     q: 'Wie lange dauert das Onboarding?',
