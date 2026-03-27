@@ -11,7 +11,7 @@ const steps = [
   },
   {
     num: '3',
-    title: 'Der HV-Mitarbeiter erhält eine vollständige Analyse',
+    title: 'Ihr Mitarbeiter erhält eine vollständige Analyse',
     text: 'Schadensart, vorbereitete Einschätzung, Handwerkervorschlag und nächste mögliche Schritte – übersichtlich auf einen Blick.',
   },
   {
