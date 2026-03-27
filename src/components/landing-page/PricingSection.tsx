@@ -46,8 +46,7 @@ export default function PricingSection() {
                 'Vollständiges Onboarding',
                 'Alle Funktionen freigeschaltet',
                 'Persönliche Einführung',
-                'Abo monatlich oder jährlich, individuell je Einheit',
-                'Monatlich oder jährlich, Sie wählen',
+                'Abo individuell je Einheit, monatlich oder jährlich',
               ].map((item) => (
                 <li key={item} style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
                   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--accent-light)" strokeWidth="2.2" style={{ flexShrink: 0, marginTop: 2 }}>

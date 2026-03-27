@@ -212,9 +212,9 @@ export default function HeroSection() {
               einem Klick von selbst erledigen.
             </h1>
             <p style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 18, lineHeight: 1.75, color: 'var(--text-secondary)', margin: '0 0 40px', maxWidth: 560 }}>
-              Mieter meldet digital. Henri klärt Zuständigkeit, Versicherungsdeckung
-              und den passenden Handwerker, alles vollständig vorbereitet.
-              Ihr Mitarbeiter prüft und klickt einmal.
+              Mieter meldet den Schaden digital. Henri analysiert, klärt die Zuständigkeit
+              und schlägt den passenden Handwerker vor. Sie bestätigen mit einem Klick,
+              die Werkstatt wird automatisch informiert.
             </p>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, alignItems: 'center' }}>
               <button onClick={() => setShowModal(true)} className="sw-btn-primary">Anfragen</button>
