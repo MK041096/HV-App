@@ -8,13 +8,17 @@ const CATEGORY_LABELS: Record<string, string> = {
   fenster_tueren: 'Fenster/Türen', boeden: 'Böden', schimmel: 'Schimmel',
   sanitaer: 'Sanitär', sonstiges: 'Sonstiges',
 }
-const URGENCY_LABELS: Record<string, string> = {
-  notfall: 'Notfall (sofort)', dringend: 'Dringend (innerhalb 48h)', normal: 'Normal',
-}
 
 export interface KiAnalyseResult {
   analysisText: string
   leaseFound: boolean
+}
+
+function parseUrgencyFromAnalysis(text: string): 'notfall' | 'dringend' | 'normal' {
+  const lower = text.toLowerCase()
+  if (lower.includes('**dringlichkeit:** notfall') || lower.includes('dringlichkeit: notfall')) return 'notfall'
+  if (lower.includes('**dringlichkeit:** dringend') || lower.includes('dringlichkeit: dringend')) return 'dringend'
+  return 'normal'
 }
 
 export async function runKiAnalyse(params: {
@@ -25,7 +29,6 @@ export async function runKiAnalyse(params: {
   description: string | null
   category: string
   subcategory: string | null
-  urgency: string
   room: string | null
   unitId: string | null
   unitName: string | null
@@ -33,7 +36,7 @@ export async function runKiAnalyse(params: {
 }): Promise<KiAnalyseResult> {
   const {
     supabase, organizationId, reportId,
-    title, description, category, subcategory, urgency, room,
+    title, description, category, subcategory, room,
     unitId, unitName, unitAddress,
   } = params
 
@@ -70,11 +73,16 @@ export async function runKiAnalyse(params: {
     `Titel: ${title}`,
     `Kategorie: ${CATEGORY_LABELS[category] || category}`,
     subcategory ? `Unterkategorie: ${subcategory}` : null,
-    `Dringlichkeit: ${URGENCY_LABELS[urgency] || urgency}`,
     room ? `Raum: ${room}` : null,
     description ? `Beschreibung: ${description}` : null,
     unitName ? `Wohneinheit: ${unitName}${unitAddress ? `, ${unitAddress}` : ''}` : null,
   ].filter(Boolean).join('\n')
+
+  const urgencyInstruction = `
+**DRINGLICHKEIT:** [Notfall / Dringend / Normal]
+- Notfall: Akute Gefahr, sofortiger Handlungsbedarf (z.B. Wasserrohrbruch, Gasgeruch, Stromausfall, Überflutung)
+- Dringend: Eingeschränkte Nutzbarkeit der Wohnung, Reaktion innerhalb 48 Stunden erforderlich (z.B. Heizungsausfall, defekte Toilette, Schimmel)
+- Normal: Kein akuter Handlungsbedarf, Reaktion innerhalb 2 Wochen ausreichend (z.B. tropfender Hahn, kosmetische Schäden, Defekte ohne Nutzungseinschränkung)`
 
   let messages: Anthropic.MessageParam[]
 
@@ -95,6 +103,7 @@ Analysiere diese Schadensmeldung anhand des Mietvertrags. Antworte IMMER in dies
 **VERANTWORTLICH:** [Mieter / Hausverwaltung / Unklar]
 **BEGRÜNDUNG:** [1-2 Sätze, was der Mietvertrag oder das MRG sagt, mit Seitenzahl wenn möglich]
 **EMPFEHLUNG:** [Konkreter nächster Schritt für die Hausverwaltung]
+${urgencyInstruction}
 
 Schadensmeldung:
 ${damageInfo}`,
@@ -112,6 +121,7 @@ Analysiere diese Schadensmeldung nach österreichischem MRG (kein Mietvertrag hi
 **BEGRÜNDUNG:** [1-2 Sätze nach MRG § 3 / § 8]
 **EMPFEHLUNG:** [Konkreter nächster Schritt]
 **HINWEIS:** Kein Mietvertrag hinterlegt — bitte Vertrag in Dokumentenablage hochladen.
+${urgencyInstruction}
 
 Schadensmeldung:
 ${damageInfo}`,
@@ -120,7 +130,7 @@ ${damageInfo}`,
 
   const response = await anthropic.messages.create({
     model: 'claude-haiku-4-5-20251001',
-    max_tokens: 512,
+    max_tokens: 600,
     messages,
   })
 
@@ -129,10 +139,17 @@ ${damageInfo}`,
     .map((b) => (b as Anthropic.TextBlock).text)
     .join('\n')
 
-  // Save to DB (fire-and-forget style, ignore errors)
+  // Parse urgency from Henri's analysis
+  const henriUrgency = parseUrgencyFromAnalysis(analysisText)
+
+  // Save analysis + update urgency based on Henri's assessment
   await supabase
     .from('damage_reports')
-    .update({ ki_analyse_result: analysisText, ki_analyse_at: new Date().toISOString() })
+    .update({
+      ki_analyse_result: analysisText,
+      ki_analyse_at: new Date().toISOString(),
+      urgency: henriUrgency,
+    })
     .eq('id', reportId)
     .eq('organization_id', organizationId)
 

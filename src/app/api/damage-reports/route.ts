@@ -383,7 +383,6 @@ export async function POST(request: NextRequest) {
               description: parsed.data.description || null,
               category: parsed.data.category,
               subcategory: parsed.data.subcategory || null,
-              urgency: parsed.data.urgency,
               room: parsed.data.room || null,
               unitId: profile.unit_id,
               unitName,

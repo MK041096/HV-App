@@ -170,9 +170,7 @@ export const createDamageReportSchema = z.object({
     .max(1000, 'Beschreibung darf maximal 1000 Zeichen lang sein')
     .optional()
     .nullable(),
-  urgency: z.enum(URGENCY_LEVELS, {
-    error: 'Bitte wählen Sie eine Dringlichkeitsstufe',
-  }),
+  urgency: z.enum(URGENCY_LEVELS).optional().default('normal'),
   preferred_appointment: z
     .string()
     .datetime({ message: 'Ungültiges Datumsformat' })

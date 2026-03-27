@@ -44,8 +44,6 @@ import {
   SUBCATEGORIES,
   ROOMS_EXTENDED,
   ROOM_LABELS_EXTENDED,
-  URGENCY_LEVELS,
-  URGENCY_LABELS,
   DAMAGE_SIDES,
   DAMAGE_SIDE_LABELS,
   DAMAGE_SIDE_DESCRIPTIONS,
@@ -56,7 +54,6 @@ import {
 
 type DamageCategory = (typeof DAMAGE_CATEGORIES)[number]
 type DamageSide = (typeof DAMAGE_SIDES)[number]
-type Urgency = (typeof URGENCY_LEVELS)[number]
 
 interface UploadedPhoto {
   id: string
@@ -71,7 +68,6 @@ interface FormData {
   subcategories: string[]
   rooms: string[]
   damage_side: DamageSide | null
-  urgency: Urgency | null
   title: string
   description: string
   damage_since: string
@@ -87,7 +83,6 @@ interface SubmitResult {
   case_number: string
   title: string
   category: string
-  urgency: string
 }
 
 // ─── Constants ───────────────────────────────────────────────────────────────
@@ -176,34 +171,6 @@ const SUBCATEGORY_LABELS: Record<string, string> = {
   sonstiges: "Sonstiges",
 }
 
-const URGENCY_CONFIG: Record<
-  Urgency,
-  {
-    icon: React.ElementType
-    description: string
-    color: string
-    selectedColor: string
-  }
-> = {
-  notfall: {
-    icon: CircleAlert,
-    description: "Sofortige Reaktion erforderlich. Wasserrohrbruch, Stromausfall, Sicherheitsrisiko.",
-    color: "text-red-600 bg-red-50 border-red-200 hover:bg-red-100",
-    selectedColor: "ring-2 ring-red-500 bg-red-100 border-red-400",
-  },
-  dringend: {
-    icon: Clock,
-    description: "Reaktion innerhalb von 48 Stunden. Eingeschränkte Nutzbarkeit der Wohnung.",
-    color: "text-amber-600 bg-amber-50 border-amber-200 hover:bg-amber-100",
-    selectedColor: "ring-2 ring-amber-500 bg-amber-100 border-amber-400",
-  },
-  normal: {
-    icon: CheckCircle2,
-    description: "Reaktion innerhalb von 2 Wochen. Kein akuter Handlungsbedarf.",
-    color: "text-green-600 bg-green-50 border-green-200 hover:bg-green-100",
-    selectedColor: "ring-2 ring-green-500 bg-green-100 border-green-400",
-  },
-}
 
 const DAMAGE_SIDE_CONFIG: Record<
   DamageSide,
@@ -240,7 +207,6 @@ export default function NeueMeldungPage() {
     subcategories: [],
     rooms: [],
     damage_side: null,
-    urgency: null,
     title: "",
     description: "",
     damage_since: "",
@@ -261,7 +227,7 @@ export default function NeueMeldungPage() {
     switch (step) {
       case 1: return formData.category !== null
       case 2: return true
-      case 3: return formData.urgency !== null && formData.description.trim().length >= 1
+      case 3: return formData.description.trim().length >= 1
       case 4: return formData.reporter_phone.trim().length >= 1
       case 5: return true
       default: return false
@@ -330,7 +296,7 @@ export default function NeueMeldungPage() {
   }
 
   async function handleSubmit() {
-    if (!formData.category || !formData.urgency || !formData.description.trim()) {
+    if (!formData.category || !formData.description.trim()) {
       setSubmitError("Bitte füllen Sie alle Pflichtfelder aus.")
       return
     }
@@ -350,7 +316,6 @@ export default function NeueMeldungPage() {
         damage_side: formData.damage_side || null,
         title: autoTitle,
         description: formData.description.trim(),
-        urgency: formData.urgency,
         preferred_appointment: formData.preferred_appointment ? new Date(formData.preferred_appointment).toISOString() : null,
         preferred_appointment_2: formData.preferred_appointment_2 ? new Date(formData.preferred_appointment_2).toISOString() : null,
         damage_since: formData.damage_since || null,
@@ -364,7 +329,7 @@ export default function NeueMeldungPage() {
         throw new Error(errData.error || `Fehler beim Absenden (${res.status})`)
       }
       const { data } = await res.json()
-      setSubmitResult({ id: data.id, case_number: data.case_number, title: data.title, category: data.category, urgency: data.urgency })
+      setSubmitResult({ id: data.id, case_number: data.case_number, title: data.title, category: data.category })
     } catch (err) {
       setSubmitError(err instanceof Error ? err.message : "Ein unerwarteter Fehler ist aufgetreten.")
     } finally {
@@ -434,11 +399,9 @@ export default function NeueMeldungPage() {
             />
           )}
           {currentStep === 3 && (
-            <Step3UrgencyDetails
-              urgency={formData.urgency}
+            <Step3Details
               description={formData.description}
               damageSince={formData.damage_since}
-              onUrgencySelect={(u) => setFormData((prev) => ({ ...prev, urgency: u }))}
               onDescriptionChange={(d) => setFormData((prev) => ({ ...prev, description: d }))}
               onDamageSinceChange={(d) => setFormData((prev) => ({ ...prev, damage_since: d }))}
             />
@@ -644,64 +607,30 @@ function Step2SubcategoryRoom({
 
 // ─── Step 3 ───────────────────────────────────────────────────────────────────
 
-function Step3UrgencyDetails({
-  urgency, description, damageSince, onUrgencySelect, onDescriptionChange, onDamageSinceChange,
+function Step3Details({
+  description, damageSince, onDescriptionChange, onDamageSinceChange,
 }: {
-  urgency: Urgency | null
   description: string
   damageSince: string
-  onUrgencySelect: (u: Urgency) => void
   onDescriptionChange: (d: string) => void
   onDamageSinceChange: (d: string) => void
 }) {
   return (
     <div className="space-y-6">
-      <div className="space-y-3">
-        <div>
-          <h2 className="text-lg font-semibold">Wie dringend ist es? <span className="text-red-500">*</span></h2>
-          <p className="text-sm text-muted-foreground mt-1">Bitte schätzen Sie die Dringlichkeit realistisch ein.</p>
-        </div>
-        <div className="space-y-3">
-          {URGENCY_LEVELS.map((level) => {
-            const config = URGENCY_CONFIG[level]
-            const Icon = config.icon
-            const isSelected = urgency === level
-            return (
-              <button key={level} type="button" onClick={() => onUrgencySelect(level)}
-                className={cn("flex items-start gap-4 w-full rounded-xl border-2 p-4 text-left transition-all", isSelected ? config.selectedColor : config.color)}>
-                <Icon className="h-6 w-6 mt-0.5 shrink-0" />
-                <div className="space-y-1 min-w-0">
-                  <span className="font-semibold text-sm block">{URGENCY_LABELS[level]}</span>
-                  <span className="text-xs opacity-80 block">{config.description}</span>
-                </div>
-              </button>
-            )
-          })}
-        </div>
+      <div>
+        <h2 className="text-lg font-semibold">Beschreiben Sie den Schaden</h2>
+        <p className="text-sm text-muted-foreground mt-1">Je genauer Ihre Beschreibung, desto besser kann Henri den Schaden einschätzen.</p>
       </div>
-
-      {urgency === "notfall" && (
-        <div className="rounded-lg border-2 border-red-300 bg-red-50 p-4 space-y-2">
-          <div className="flex items-center gap-2 text-red-700 font-semibold text-sm">
-            <Phone className="h-4 w-4" />Wichtiger Hinweis bei Notfällen
-          </div>
-          <p className="text-sm text-red-600">
-            Bei akuter Gefahr (Wasserrohrbruch, Gasgeruch, Stromausfall) rufen Sie bitte SOFORT die Notfall-Hotline Ihrer Hausverwaltung an. Diese Schadensmeldung ersetzt keinen Notruf!
-          </p>
-        </div>
-      )}
-
-      <Separator />
 
       <div className="space-y-2">
         <Label htmlFor="description">Beschreibung <span className="text-red-500">*</span></Label>
         <Textarea
           id="description"
-          placeholder="Beschreiben Sie den Schaden so genau wie möglich: Was ist passiert? Wo genau befindet sich der Schaden?"
+          placeholder="Beschreiben Sie den Schaden so genau wie möglich: Was ist passiert? Wo genau befindet sich der Schaden? Seit wann besteht er?"
           value={description}
           onChange={(e) => onDescriptionChange(e.target.value)}
           maxLength={1000}
-          rows={5}
+          rows={6}
         />
         <p className="text-xs text-muted-foreground text-right">{description.length}/1000 Zeichen</p>
       </div>
@@ -715,7 +644,6 @@ function Step3UrgencyDetails({
           onChange={(e) => onDamageSinceChange(e.target.value)}
           max={new Date().toISOString().slice(0, 10)}
         />
-        <p className="text-xs text-muted-foreground">Hilft der Hausverwaltung bei der Priorisierung.</p>
       </div>
     </div>
   )
@@ -856,13 +784,8 @@ function Step5Summary({ formData, onEditStep }: { formData: FormData; onEditStep
         </div>
       </SummarySection>
 
-      <SummarySection label="Dringlichkeit & Beschreibung" step={3} onEdit={onEditStep}>
+      <SummarySection label="Beschreibung" step={3} onEdit={onEditStep}>
         <div className="space-y-2 text-sm">
-          {formData.urgency && (
-            <Badge variant={formData.urgency === "notfall" ? "destructive" : formData.urgency === "dringend" ? "default" : "secondary"}>
-              {URGENCY_LABELS[formData.urgency]}
-            </Badge>
-          )}
           {formData.damage_since && (
             <p><span className="text-muted-foreground">Seit wann:</span>{" "}
               {new Date(formData.damage_since + "T00:00:00").toLocaleDateString("de-AT", { day: "2-digit", month: "2-digit", year: "numeric" })}
