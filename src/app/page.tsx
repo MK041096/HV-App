@@ -37,7 +37,7 @@ export default async function RootPage() {
   }
 
   return (
-    <>
+    <div className="landing-page">
       <main>
         <HeroSection />
         <ProblemSection />
@@ -50,6 +50,6 @@ export default async function RootPage() {
         <FinalCTASection />
       </main>
       <Footer />
-    </>
+    </div>
   )
 }

@@ -9,7 +9,7 @@ const items = [
   {
     icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4" strokeLinecap="round" strokeLinejoin="round"/></svg>,
     title: 'Klare Rollen und Freigaben',
-    text: 'Henri unterscheidet klar zwischen Mieter-, Mitarbeiter- und Verwaltungszugängen.',
+    text: 'CARL unterscheidet klar zwischen Mieter-, Mitarbeiter- und Verwaltungszugängen.',
   },
   {
     icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" strokeLinecap="round" strokeLinejoin="round"/><polyline points="14 2 14 8 20 8" strokeLinecap="round" strokeLinejoin="round"/><path d="M9 15l2 2 4-4" strokeLinecap="round" strokeLinejoin="round"/></svg>,
@@ -25,7 +25,7 @@ export default function TrustSection() {
 
         <p className="sw-label" style={{ marginBottom: 20 }}>Vertrauen & Sicherheit</p>
 
-        <h2 style={{ fontFamily: 'var(--font-dm-serif, Georgia, serif)', fontSize: 'clamp(1.75rem, 3vw, 2.5rem)', lineHeight: 1.15, color: 'var(--text-primary)', margin: '0 0 64px', fontWeight: 400 }}>
+        <h2 style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 'clamp(1.75rem, 3vw, 2.5rem)', lineHeight: 1.15, color: 'var(--text-primary)', margin: '0 0 64px', fontWeight: 700 }}>
           Entwickelt für den professionellen Einsatz.
         </h2>
 

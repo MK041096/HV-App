@@ -11,21 +11,21 @@ export default function FounderSection() {
           <div style={{ flexShrink: 0 }}>
             <img
               src="/mathias.jpg"
-              alt="Mathias Kracher, Gründer von Anotherhenri"
-              style={{ width: 180, height: 180, borderRadius: '50%', objectFit: 'cover', objectPosition: 'center top', border: '1px solid var(--border)' }}
+              alt="Mathias Kracher, Gründer von SMARTCARL"
+              style={{ width: 180, height: 180, borderRadius: '50%', objectFit: 'cover', objectPosition: 'center top', border: '1px solid #E0E0E0' }}
             />
           </div>
 
           {/* Text */}
           <div>
-            <p style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 17, fontWeight: 500, color: 'var(--text-primary)', margin: '0 0 4px' }}>
+            <p style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 17, fontWeight: 600, color: 'var(--text-primary)', margin: '0 0 4px' }}>
               Mathias Kracher, 29
             </p>
-            <p style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 13, fontWeight: 500, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--accent-light)', margin: '0 0 20px' }}>
-              Gründer von Anotherhenri
+            <p style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 13, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#C74229', margin: '0 0 20px' }}>
+              Gründer von SMARTCARL
             </p>
             <p style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 15, lineHeight: 1.8, color: 'var(--text-secondary)', margin: '0 0 24px' }}>
-              "Anotherhenri ist aus einer persönlichen Erfahrung entstanden. Als Mieter habe ich erlebt wie Schadensmeldungen untergegangen sind, Wochen vergingen ohne Rückmeldung und der Schaden einfach blieb. Nicht weil die Hausverwaltung es nicht wollte, sondern weil der Prozess es nicht zuließ. Genau das wollte ich ändern."
+              "SMARTCARL ist aus einer persönlichen Erfahrung entstanden. Als Mieter habe ich erlebt wie Schadensmeldungen untergegangen sind, Wochen vergingen ohne Rückmeldung und der Schaden einfach blieb. Nicht weil die Hausverwaltung es nicht wollte, sondern weil der Prozess es nicht zuließ. Genau das wollte ich ändern."
             </p>
 
             {/* Social Links */}
@@ -35,8 +35,8 @@ export default function FounderSection() {
                 target="_blank"
                 rel="noopener noreferrer"
                 style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)', textDecoration: 'none', transition: 'color 0.2s' }}
-                onMouseEnter={e => (e.currentTarget.style.color = 'var(--text-primary)')}
-                onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-secondary)')}
+                onMouseEnter={e => (e.currentTarget.style.color = '#C74229')}
+                onMouseLeave={e => (e.currentTarget.style.color = '')}
               >
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M16 8a6 6 0 016 6v7h-4v-7a2 2 0 00-2-2 2 2 0 00-2 2v7h-4v-7a6 6 0 016-6zM2 9h4v12H2z"/>
@@ -49,8 +49,8 @@ export default function FounderSection() {
                 target="_blank"
                 rel="noopener noreferrer"
                 style={{ display: 'inline-flex', alignItems: 'center', gap: 8, fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 13, fontWeight: 500, color: 'var(--text-secondary)', textDecoration: 'none', transition: 'color 0.2s' }}
-                onMouseEnter={e => (e.currentTarget.style.color = 'var(--text-primary)')}
-                onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-secondary)')}
+                onMouseEnter={e => (e.currentTarget.style.color = '#C74229')}
+                onMouseLeave={e => (e.currentTarget.style.color = '')}
               >
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <rect x="2" y="2" width="20" height="20" rx="5" ry="5"/>

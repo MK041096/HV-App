@@ -25,7 +25,7 @@ export default function ProblemSection() {
 
         <p className="sw-label" style={{ marginBottom: 20 }}>Das Problem</p>
 
-        <h2 style={{ fontFamily: 'var(--font-dm-serif, Georgia, serif)', fontSize: 'clamp(1.75rem, 3vw, 2.5rem)', lineHeight: 1.15, color: 'var(--text-primary)', margin: '0 0 64px', fontWeight: 400, maxWidth: 600 }}>
+        <h2 style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 'clamp(1.75rem, 3vw, 2.5rem)', lineHeight: 1.15, color: 'var(--text-primary)', margin: '0 0 64px', fontWeight: 700, maxWidth: 600 }}>
           So läuft Schadensmeldung heute<br />in den meisten Hausverwaltungen.
         </h2>
 

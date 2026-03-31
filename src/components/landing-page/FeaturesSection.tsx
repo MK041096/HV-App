@@ -10,7 +10,7 @@ const features = [
   {
     icon: <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M22 11.08V12a10 10 0 11-5.93-9.14" strokeLinecap="round" strokeLinejoin="round"/><polyline points="22 4 12 14.01 9 11.01" strokeLinecap="round" strokeLinejoin="round"/></svg>,
     title: 'Analyse und 1-Klick-Freigabe',
-    text: 'Henri bereitet Einschätzung, Schadenstyp und passenden Handwerkervorschlag automatisch vor. Ihr Mitarbeiter prüft auf einen Blick, und gibt mit einem Klick frei.',
+    text: 'CARL bereitet Einschätzung, Schadenstyp und passenden Handwerkervorschlag automatisch vor. Ihr Mitarbeiter prüft auf einen Blick, und gibt mit einem Klick frei.',
     tag: 'Ein Klick, alles läuft',
   },
   {
@@ -32,14 +32,14 @@ export default function FeaturesSection() {
     <section id="funktionen" style={{ background: 'var(--bg-card)', padding: '120px 24px', borderTop: '1px solid var(--border)' }}>
       <div style={{ maxWidth: 1100, margin: '0 auto' }}>
 
-        <p className="sw-label" style={{ marginBottom: 20 }}>Was Henri übernimmt</p>
+        <p className="sw-label" style={{ marginBottom: 20 }}>Was CARL für Sie übernimmt</p>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 56 }}>
-          <h2 style={{ fontFamily: 'var(--font-dm-serif, Georgia, serif)', fontSize: 'clamp(1.75rem, 3vw, 2.5rem)', lineHeight: 1.15, color: 'var(--text-primary)', margin: 0, fontWeight: 400 }}>
-            Henri macht die Arbeit.<br />Sie behalten die Kontrolle.
+          <h2 style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 'clamp(1.75rem, 3vw, 2.5rem)', lineHeight: 1.15, color: 'var(--text-primary)', margin: 0, fontWeight: 700 }}>
+            CARL macht die Arbeit.<br />Sie behalten die Kontrolle.
           </h2>
           <p style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 17, lineHeight: 1.7, color: 'var(--text-secondary)', margin: 0, maxWidth: 560 }}>
-            Die finale Entscheidung liegt immer bei Ihnen, Henri erledigt alles davor.
+            Die finale Entscheidung liegt immer bei Ihnen, CARL erledigt alles davor.
           </p>
         </div>
 
@@ -51,7 +51,7 @@ export default function FeaturesSection() {
                 <p style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 17, fontWeight: 500, color: 'var(--text-primary)', margin: '0 0 10px' }}>{f.title}</p>
                 <p style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 14, lineHeight: 1.7, color: 'var(--text-secondary)', margin: 0 }}>{f.text}</p>
               </div>
-              <div style={{ display: 'inline-flex', alignSelf: 'flex-start', background: 'rgba(154,107,60,0.12)', border: '1px solid rgba(181,131,74,0.25)', borderRadius: 4, padding: '4px 10px' }}>
+              <div style={{ display: 'inline-flex', alignSelf: 'flex-start', background: 'rgba(199,66,41,0.08)', border: '1px solid rgba(199,66,41,0.2)', borderRadius: 4, padding: '4px 10px' }}>
                 <span style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 12, fontWeight: 500, color: 'var(--accent-light)', letterSpacing: '0.03em' }}>{f.tag}</span>
               </div>
             </div>

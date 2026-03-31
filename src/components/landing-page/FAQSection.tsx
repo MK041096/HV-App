@@ -5,11 +5,11 @@ import { useState } from 'react'
 const faqs = [
   {
     q: 'Wie melden sich meine Mieter an?',
-    a: 'Sie laden Ihre Mieter einmal mit Adresse und Kontaktdaten hoch, den Rest erledigt Henri. Jeder Mieter erhält automatisch eine E-Mail mit seinem persönlichen Aktivierungscode und kann sich sofort selbst registrieren. Kein manuelles Versenden, kein Aufwand Ihrerseits.',
+    a: 'Sie laden Ihre Mieter einmal mit Adresse und Kontaktdaten hoch, den Rest erledigt CARL. Jeder Mieter erhält automatisch eine E-Mail mit seinem persönlichen Aktivierungscode und kann sich sofort selbst registrieren. Kein manuelles Versenden, kein Aufwand Ihrerseits.',
   },
   {
     q: 'Wie lange dauert das Onboarding?',
-    a: 'Wenige Stunden, Sie müssen nichts vorbereiten. Wir richten alles ein, zeigen Ihnen wie Henri funktioniert, und danach läuft er von selbst.',
+    a: 'Wenige Stunden, Sie müssen nichts vorbereiten. Wir richten alles ein, zeigen Ihnen wie CARL funktioniert, und danach läuft er von selbst.',
   },
   {
     q: 'Funktioniert das auch bei vielen Einheiten?',
@@ -21,7 +21,7 @@ const faqs = [
   },
   {
     q: 'Müssen wir unsere bisherige Software ablösen?',
-    a: 'Nein. Anotherhenri ergänzt Ihre bestehende Verwaltung und übernimmt gezielt den Schadensprozess. Keine Umstellung, keine Datenmigration von bestehenden Systemen nötig.',
+    a: 'Nein. SMARTCARL ergänzt Ihre bestehende Verwaltung und übernimmt gezielt den Schadensprozess. Keine Umstellung, keine Datenmigration von bestehenden Systemen nötig.',
   },
 ]
 
@@ -34,7 +34,7 @@ export default function FAQSection() {
 
         <p className="sw-label" style={{ marginBottom: 20 }}>Häufige Fragen</p>
 
-        <h2 style={{ fontFamily: 'var(--font-dm-serif, Georgia, serif)', fontSize: 'clamp(1.75rem, 3vw, 2.5rem)', lineHeight: 1.15, color: 'var(--text-primary)', margin: '0 0 56px', fontWeight: 400 }}>
+        <h2 style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 'clamp(1.75rem, 3vw, 2.5rem)', lineHeight: 1.15, color: 'var(--text-primary)', margin: '0 0 56px', fontWeight: 700 }}>
           Fragen, die wir oft hören.
         </h2>
 

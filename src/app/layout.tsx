@@ -27,14 +27,14 @@ const dmSans = DM_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "Anotherhenri – Schadensmeldungen für Hausverwaltungen",
-  description: "Anotherhenri digitalisiert Schadensmeldungen für Hausverwaltungen. Von der strukturierten Erfassung bis zur vollständigen Dokumentation.",
+  title: "SMARTCARL – Schadensmeldungen für Hausverwaltungen",
+  description: "SMARTCARL digitalisiert Schadensmeldungen für Hausverwaltungen. Von der strukturierten Erfassung bis zur vollständigen Dokumentation.",
   openGraph: {
     type: "website",
     locale: "de_DE",
-    siteName: "SchadensMelder",
+    siteName: "SMARTCARL",
     url: "https://zerodamage.de",
-    title: "SchadensMelder - Digitale Schadensmeldung für Hausverwaltungen",
+    title: "SMARTCARL - Digitale Schadensmeldung für Hausverwaltungen",
     description: "Effiziente, mandantenfähige Plattform zur automatisierten Schadensabwicklung.",
     images: [
       {
@@ -64,7 +64,7 @@ export default function RootLayout({
             __html: JSON.stringify({
               "@context": "https://schema.org",
               "@type": "Organization",
-              name: "SchadensMelder",
+              name: "SMARTCARL",
               url: "https://zerodamage.de",
               logo: "https://zerodamage.de/logo.png",
               sameAs: [

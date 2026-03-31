@@ -88,7 +88,7 @@
    [SOFTWARE] Design System — Premium Warm Dark
    ══════════════════════════════════════════════════ */
 :root {
-  /* ── Farben (Capacity-inspiriert: warm, erdig, dunkel) ── */
+  /* ── Farben (Dashboard: warm, erdig, dunkel) ── */
   --bg-primary:    #0E0C09;
   --bg-card:       #171410;
   --bg-elevated:   #1F1C17;
@@ -107,6 +107,26 @@
   --font-playfair: var(--font-playfair, Georgia, serif);
   --font-dm-serif: var(--font-dm-serif, Georgia, serif);
   --font-dm-sans:  var(--font-dm-sans, system-ui, sans-serif);
+}
+
+/* ══════════════════════════════════════════════════
+   Landing Page — Zara-Inspired Light Theme
+   Accent: Sikkens C7.68.38 (warm Terracotta-Rot)
+   ══════════════════════════════════════════════════ */
+.landing-page {
+  --bg-primary:    #FFFFFF;
+  --bg-card:       #F5F5F5;
+  --bg-elevated:   #EBEBEB;
+  --border:        #E0E0E0;
+  --text-primary:  #000000;
+  --text-secondary:#555555;
+  --text-muted:    #888888;
+  --accent:        #C74229;
+  --accent-light:  #D85640;
+  --accent-subtle: rgba(199, 66, 41, 0.06);
+  --gold:          #C74229;
+  --gold-light:    #D85640;
+  --lp-bg:         #FFFFFF;
 }
 
 /* ── Typografie-Utilities ── */
@@ -143,6 +163,21 @@
   text-decoration: none;
 }
 .sw-btn-outline:hover { border-color: var(--accent); background: var(--accent-subtle); }
+
+/* ── Landing Page Card override ── */
+.landing-page .sw-card {
+  background: #FFFFFF;
+  border: 1px solid #E0E0E0;
+}
+.landing-page .sw-card:hover {
+  border-color: #CCCCCC;
+  background: #FAFAFA;
+}
+
+/* Landing Page Label override */
+.landing-page .sw-label {
+  color: #C74229;
+}
 
 /* ── [SOFTWARE] Section Label ── */
 .sw-label {
@@ -184,8 +219,8 @@
   50%       { transform: translateX(-50%) translateY(7px); }
 }
 @keyframes lp-gold-pulse {
-  0%, 100% { box-shadow: 0 0 0 rgba(201,164,76,0); }
-  50%       { box-shadow: 0 0 32px rgba(201,164,76,0.35); }
+  0%, 100% { box-shadow: 0 0 0 rgba(199,66,41,0); }
+  50%       { box-shadow: 0 0 32px rgba(199,66,41,0.2); }
 }
 @keyframes lp-shimmer-line {
   0%   { background-position: -200% center; }
@@ -198,59 +233,59 @@
 .lp-anim-right { animation: lp-slide-right 0.75s cubic-bezier(0.16,1,0.3,1) both; }
 .lp-anim-fade  { animation: lp-fade-in    0.75s cubic-bezier(0.16,1,0.3,1) both; }
 
-/* Warm amber gradient text — Capacity style */
+/* Accent gradient text */
 .lp-gold-text {
-  background: linear-gradient(135deg, #d97706 0%, #f59e0b 50%, #d97706 100%);
+  background: linear-gradient(135deg, #C74229 0%, #D85640 50%, #C74229 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
-/* Warm shimmer decorative line */
+/* Shimmer decorative line */
 .lp-shimmer-line {
   height: 1px;
-  background: linear-gradient(90deg, transparent 0%, #d97706 50%, transparent 100%);
+  background: linear-gradient(90deg, transparent 0%, #C74229 50%, transparent 100%);
   background-size: 200% auto;
   animation: lp-shimmer-line 3s linear infinite;
 }
 
-/* Section label — warm subtle */
+/* Section label — Zara-style uppercase */
 .lp-label {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
   padding: 0.375rem 1rem;
   border-radius: 9999px;
-  border: 1px solid rgba(217, 119, 6, 0.35);
-  background: rgba(217, 119, 6, 0.10);
-  color: #f59e0b;
+  border: 1px solid rgba(199, 66, 41, 0.25);
+  background: rgba(199, 66, 41, 0.06);
+  color: #C74229;
   font-size: 0.7rem;
   letter-spacing: 0.18em;
   text-transform: uppercase;
 }
 
-/* Glass card — warm tinted */
+/* Glass card — light tinted */
 .lp-glass {
-  background: rgba(255, 240, 210, 0.07);
-  border: 1px solid rgba(255, 220, 160, 0.15);
+  background: rgba(255, 255, 255, 0.85);
+  border: 1px solid #E0E0E0;
   backdrop-filter: blur(22px) saturate(1.5);
   -webkit-backdrop-filter: blur(22px) saturate(1.5);
   border-radius: 18px;
-  box-shadow: 0 4px 32px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,220,160,0.08);
+  box-shadow: 0 4px 32px rgba(0,0,0,0.06);
   transition: border-color 0.3s, box-shadow 0.3s;
 }
 .lp-glass:hover {
-  border-color: rgba(217, 119, 6, 0.4);
-  box-shadow: 0 4px 40px rgba(0,0,0,0.5), 0 0 40px rgba(217, 119, 6, 0.12), inset 0 1px 0 rgba(255,220,160,0.12);
+  border-color: rgba(199, 66, 41, 0.3);
+  box-shadow: 0 4px 40px rgba(0,0,0,0.08), 0 0 40px rgba(199, 66, 41, 0.06);
 }
 
-/* Primary button — warm amber */
+/* Primary button — Sikkens Terracotta */
 .lp-btn-gold {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   padding: 0.875rem 2rem;
-  background: #d97706;
+  background: #C74229;
   color: #ffffff;
   font-weight: 600;
   font-size: 0.9375rem;
@@ -260,27 +295,26 @@
   border: none;
 }
 .lp-btn-gold:hover {
-  background: #f59e0b;
-  box-shadow: 0 0 32px rgba(217, 119, 6, 0.5);
+  background: #D85640;
+  box-shadow: 0 0 32px rgba(199, 66, 41, 0.3);
 }
 
-/* Ghost button */
+/* Ghost button — light */
 .lp-btn-ghost {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   padding: 0.875rem 2rem;
-  background: rgba(255,255,255,0.06);
-  color: #ffffff;
+  background: transparent;
+  color: #000000;
   font-weight: 500;
   font-size: 0.9375rem;
   border-radius: 0.5rem;
-  border: 1px solid rgba(255,255,255,0.15);
-  backdrop-filter: blur(10px);
+  border: 1px solid #E0E0E0;
   transition: border-color 0.2s, background 0.2s;
   cursor: pointer;
 }
 .lp-btn-ghost:hover {
-  border-color: rgba(217, 119, 6, 0.5);
-  background: rgba(217, 119, 6, 0.08);
+  border-color: rgba(199, 66, 41, 0.5);
+  background: rgba(199, 66, 41, 0.04);
 }

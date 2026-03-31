@@ -58,12 +58,13 @@ export default function OnboardingModal({ onClose }: { onClose: () => void }) {
   const inputStyle: React.CSSProperties = {
     width: '100%',
     height: '48px',
-    background: 'rgba(255,255,255,0.04)',
-    border: '1px solid rgba(255,255,255,0.09)',
-    borderRadius: '999px',
+    background: '#F5F5F5',
+    border: '1px solid #E0E0E0',
+    borderRadius: '4px',
     padding: '0 18px',
-    color: '#F5F0E8',
+    color: '#000',
     fontSize: '14px',
+    fontFamily: 'var(--font-dm-sans, sans-serif)',
     outline: 'none',
     boxSizing: 'border-box',
     transition: 'border-color 0.2s',
@@ -72,9 +73,13 @@ export default function OnboardingModal({ onClose }: { onClose: () => void }) {
   const labelStyle: React.CSSProperties = {
     display: 'block',
     fontSize: '12px',
-    color: '#A09488',
+    fontFamily: 'var(--font-dm-sans, sans-serif)',
+    fontWeight: 500,
+    color: '#555',
     marginBottom: '6px',
     paddingLeft: '4px',
+    letterSpacing: '0.04em',
+    textTransform: 'uppercase',
   }
 
   return (
@@ -88,7 +93,7 @@ export default function OnboardingModal({ onClose }: { onClose: () => void }) {
         style={{
           position: 'fixed',
           inset: 0,
-          background: 'rgba(0,0,0,0.75)',
+          background: 'rgba(0,0,0,0.4)',
           backdropFilter: 'blur(4px)',
           zIndex: 49,
         }}
@@ -118,15 +123,13 @@ export default function OnboardingModal({ onClose }: { onClose: () => void }) {
             maxWidth: '520px',
             maxHeight: '90vh',
             overflowY: 'auto',
-            background: 'rgba(14,12,9,0.92)',
-            backdropFilter: 'blur(20px)',
-            border: '1px solid rgba(255,255,255,0.07)',
-            borderRadius: '20px',
+            background: '#FFFFFF',
+            border: '1px solid #E0E0E0',
+            borderRadius: '12px',
             padding: '32px',
             position: 'relative',
             pointerEvents: 'auto',
-            scrollbarWidth: 'thin',
-            scrollbarColor: 'rgba(154,107,60,0.4) transparent',
+            boxShadow: '0 20px 60px rgba(0,0,0,0.15)',
           }}
           onClick={(e) => e.stopPropagation()}
         >
@@ -141,9 +144,9 @@ export default function OnboardingModal({ onClose }: { onClose: () => void }) {
               width: '32px',
               height: '32px',
               borderRadius: '50%',
-              background: 'rgba(255,255,255,0.06)',
-              border: '1px solid rgba(255,255,255,0.08)',
-              color: '#A09488',
+              background: '#F5F5F5',
+              border: '1px solid #E0E0E0',
+              color: '#888',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -160,14 +163,14 @@ export default function OnboardingModal({ onClose }: { onClose: () => void }) {
             /* Success Screen */
             <div style={{ textAlign: 'center', padding: '16px 0' }}>
               <svg width="64" height="64" viewBox="0 0 64 64" fill="none" style={{ margin: '0 auto 20px' }}>
-                <circle cx="32" cy="32" r="32" fill="rgba(34,197,94,0.15)" />
-                <circle cx="32" cy="32" r="24" fill="rgba(34,197,94,0.2)" />
+                <circle cx="32" cy="32" r="32" fill="rgba(34,197,94,0.1)" />
+                <circle cx="32" cy="32" r="24" fill="rgba(34,197,94,0.15)" />
                 <path d="M21 32l8 8 14-16" stroke="#22c55e" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
-              <h2 style={{ fontFamily: 'var(--font-dm-serif), Georgia, serif', fontSize: '26px', color: '#F5F0E8', margin: '0 0 12px', fontWeight: 400 }}>
+              <h2 style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: '26px', color: '#000', margin: '0 0 12px', fontWeight: 700 }}>
                 Anfrage eingegangen!
               </h2>
-              <p style={{ color: '#A09488', fontSize: '15px', lineHeight: 1.6, margin: '0 0 28px' }}>
+              <p style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', color: '#555', fontSize: '15px', lineHeight: 1.6, margin: '0 0 28px' }}>
                 Wir melden uns persönlich bei Ihnen, üblicherweise innerhalb von 24 Stunden. Keine Zahlung, keine Verpflichtung.
               </p>
               <button
@@ -175,17 +178,20 @@ export default function OnboardingModal({ onClose }: { onClose: () => void }) {
                 style={{
                   width: '100%',
                   height: '50px',
-                  background: '#9A6B3C',
+                  background: '#C74229',
                   border: 'none',
-                  borderRadius: '999px',
-                  color: '#F5F0E8',
+                  borderRadius: '4px',
+                  color: '#fff',
                   fontSize: '15px',
+                  fontFamily: 'var(--font-dm-sans, sans-serif)',
                   fontWeight: 600,
                   cursor: 'pointer',
                   transition: 'background 0.2s',
+                  letterSpacing: '0.04em',
+                  textTransform: 'uppercase',
                 }}
-                onMouseEnter={(e) => { e.currentTarget.style.background = '#B5834A' }}
-                onMouseLeave={(e) => { e.currentTarget.style.background = '#9A6B3C' }}
+                onMouseEnter={(e) => { e.currentTarget.style.background = '#D85640' }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = '#C74229' }}
               >
                 Fenster schließen
               </button>
@@ -199,20 +205,20 @@ export default function OnboardingModal({ onClose }: { onClose: () => void }) {
                   display: 'inline-flex',
                   alignItems: 'center',
                   gap: '6px',
-                  background: 'rgba(154,107,60,0.15)',
-                  border: '1px solid rgba(154,107,60,0.3)',
-                  borderRadius: '999px',
+                  background: 'rgba(199,66,41,0.06)',
+                  border: '1px solid rgba(199,66,41,0.2)',
+                  borderRadius: '4px',
                   padding: '4px 12px',
                   marginBottom: '14px',
                 }}>
-                  <span style={{ fontSize: '10px', letterSpacing: '0.12em', color: '#B5834A', fontWeight: 600 }}>
+                  <span style={{ fontSize: '10px', letterSpacing: '0.12em', color: '#C74229', fontWeight: 600, fontFamily: 'var(--font-dm-sans, sans-serif)', textTransform: 'uppercase' }}>
                     UNVERBINDLICH
                   </span>
                 </div>
-                <h2 style={{ fontFamily: 'var(--font-dm-serif), Georgia, serif', fontSize: '28px', color: '#F5F0E8', margin: '0 0 6px', fontWeight: 400, lineHeight: 1.2 }}>
+                <h2 style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: '28px', color: '#000', margin: '0 0 6px', fontWeight: 700, lineHeight: 1.2 }}>
                   Jetzt anfragen
                 </h2>
-                <p style={{ color: '#A09488', fontSize: '14px', margin: 0 }}>
+                <p style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', color: '#555', fontSize: '14px', margin: 0 }}>
                   Keine Zahlung, wir melden uns persönlich bei Ihnen.
                 </p>
               </div>
@@ -230,8 +236,8 @@ export default function OnboardingModal({ onClose }: { onClose: () => void }) {
                       placeholder="Max"
                       required
                       style={inputStyle}
-                      onFocus={(e) => { e.currentTarget.style.borderColor = 'rgba(181,131,74,0.6)' }}
-                      onBlur={(e) => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.09)' }}
+                      onFocus={(e) => { e.currentTarget.style.borderColor = '#C74229' }}
+                      onBlur={(e) => { e.currentTarget.style.borderColor = '#E0E0E0' }}
                     />
                   </div>
                   <div>
@@ -244,8 +250,8 @@ export default function OnboardingModal({ onClose }: { onClose: () => void }) {
                       placeholder="Mustermann"
                       required
                       style={inputStyle}
-                      onFocus={(e) => { e.currentTarget.style.borderColor = 'rgba(181,131,74,0.6)' }}
-                      onBlur={(e) => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.09)' }}
+                      onFocus={(e) => { e.currentTarget.style.borderColor = '#C74229' }}
+                      onBlur={(e) => { e.currentTarget.style.borderColor = '#E0E0E0' }}
                     />
                   </div>
                 </div>
@@ -260,8 +266,8 @@ export default function OnboardingModal({ onClose }: { onClose: () => void }) {
                     onChange={handleChange}
                     placeholder="Muster Hausverwaltung GmbH"
                     style={inputStyle}
-                    onFocus={(e) => { e.currentTarget.style.borderColor = 'rgba(181,131,74,0.6)' }}
-                    onBlur={(e) => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.09)' }}
+                    onFocus={(e) => { e.currentTarget.style.borderColor = '#C74229' }}
+                    onBlur={(e) => { e.currentTarget.style.borderColor = '#E0E0E0' }}
                   />
                 </div>
 
@@ -276,8 +282,8 @@ export default function OnboardingModal({ onClose }: { onClose: () => void }) {
                     placeholder="max@muster-hv.at"
                     required
                     style={inputStyle}
-                    onFocus={(e) => { e.currentTarget.style.borderColor = 'rgba(181,131,74,0.6)' }}
-                    onBlur={(e) => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.09)' }}
+                    onFocus={(e) => { e.currentTarget.style.borderColor = '#C74229' }}
+                    onBlur={(e) => { e.currentTarget.style.borderColor = '#E0E0E0' }}
                   />
                 </div>
 
@@ -291,8 +297,8 @@ export default function OnboardingModal({ onClose }: { onClose: () => void }) {
                     onChange={handleChange}
                     placeholder="+43 664 123 456"
                     style={inputStyle}
-                    onFocus={(e) => { e.currentTarget.style.borderColor = 'rgba(181,131,74,0.6)' }}
-                    onBlur={(e) => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.09)' }}
+                    onFocus={(e) => { e.currentTarget.style.borderColor = '#C74229' }}
+                    onBlur={(e) => { e.currentTarget.style.borderColor = '#E0E0E0' }}
                   />
                 </div>
 
@@ -307,21 +313,21 @@ export default function OnboardingModal({ onClose }: { onClose: () => void }) {
                       ...inputStyle,
                       appearance: 'none',
                       WebkitAppearance: 'none',
-                      backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23A09488' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E")`,
+                      backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E")`,
                       backgroundRepeat: 'no-repeat',
                       backgroundPosition: 'right 18px center',
                       paddingRight: '42px',
                       cursor: 'pointer',
                     }}
-                    onFocus={(e) => { e.currentTarget.style.borderColor = 'rgba(181,131,74,0.6)' }}
-                    onBlur={(e) => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.09)' }}
+                    onFocus={(e) => { e.currentTarget.style.borderColor = '#C74229' }}
+                    onBlur={(e) => { e.currentTarget.style.borderColor = '#E0E0E0' }}
                   >
-                    <option value="" style={{ background: '#1a1714' }}>Bitte wählen</option>
-                    <option value="Bis 100 Einheiten" style={{ background: '#1a1714' }}>Bis 100 Einheiten</option>
-                    <option value="100–500 Einheiten" style={{ background: '#1a1714' }}>100–500 Einheiten</option>
-                    <option value="500–1.000 Einheiten" style={{ background: '#1a1714' }}>500–1.000 Einheiten</option>
-                    <option value="1.000–3.000 Einheiten" style={{ background: '#1a1714' }}>1.000–3.000 Einheiten</option>
-                    <option value="Mehr als 3.000 Einheiten" style={{ background: '#1a1714' }}>Mehr als 3.000 Einheiten</option>
+                    <option value="" style={{ background: '#fff' }}>Bitte wählen</option>
+                    <option value="Bis 100 Einheiten" style={{ background: '#fff' }}>Bis 100 Einheiten</option>
+                    <option value="100–500 Einheiten" style={{ background: '#fff' }}>100–500 Einheiten</option>
+                    <option value="500–1.000 Einheiten" style={{ background: '#fff' }}>500–1.000 Einheiten</option>
+                    <option value="1.000–3.000 Einheiten" style={{ background: '#fff' }}>1.000–3.000 Einheiten</option>
+                    <option value="Mehr als 3.000 Einheiten" style={{ background: '#fff' }}>Mehr als 3.000 Einheiten</option>
                   </select>
                 </div>
 
@@ -333,14 +339,14 @@ export default function OnboardingModal({ onClose }: { onClose: () => void }) {
                     checked={form.privacy_accepted}
                     onChange={handleChange}
                     required
-                    style={{ width: '16px', height: '16px', marginTop: '2px', accentColor: '#9A6B3C', cursor: 'pointer', flexShrink: 0 }}
+                    style={{ width: '16px', height: '16px', marginTop: '2px', accentColor: '#C74229', cursor: 'pointer', flexShrink: 0 }}
                   />
-                  <span style={{ fontSize: '13px', color: '#A09488', lineHeight: 1.5 }}>
+                  <span style={{ fontSize: '13px', fontFamily: 'var(--font-dm-sans, sans-serif)', color: '#555', lineHeight: 1.5 }}>
                     Ich akzeptiere die{' '}
                     <a
                       href="/datenschutz"
                       rel="noopener noreferrer"
-                      style={{ color: '#B5834A', textDecoration: 'underline' }}
+                      style={{ color: '#C74229', textDecoration: 'underline' }}
                       onClick={(e) => { e.preventDefault(); e.stopPropagation(); window.open('/datenschutz', '_blank', 'noopener,noreferrer') }}
                     >
                       Datenschutzerklärung
@@ -355,11 +361,12 @@ export default function OnboardingModal({ onClose }: { onClose: () => void }) {
                     animate={{ opacity: 1, y: 0 }}
                     style={{
                       padding: '12px 16px',
-                      background: 'rgba(239,68,68,0.12)',
-                      border: '1px solid rgba(239,68,68,0.3)',
-                      borderRadius: '10px',
-                      color: '#fca5a5',
+                      background: 'rgba(239,68,68,0.08)',
+                      border: '1px solid rgba(239,68,68,0.2)',
+                      borderRadius: '6px',
+                      color: '#dc2626',
                       fontSize: '13px',
+                      fontFamily: 'var(--font-dm-sans, sans-serif)',
                       lineHeight: 1.5,
                     }}
                   >
@@ -374,11 +381,12 @@ export default function OnboardingModal({ onClose }: { onClose: () => void }) {
                   style={{
                     width: '100%',
                     height: '50px',
-                    background: isLoading ? 'rgba(154,107,60,0.5)' : '#9A6B3C',
+                    background: isLoading ? 'rgba(199,66,41,0.5)' : '#C74229',
                     border: 'none',
-                    borderRadius: '999px',
-                    color: '#F5F0E8',
+                    borderRadius: '4px',
+                    color: '#fff',
                     fontSize: '15px',
+                    fontFamily: 'var(--font-dm-sans, sans-serif)',
                     fontWeight: 600,
                     cursor: isLoading ? 'not-allowed' : 'pointer',
                     transition: 'background 0.2s',
@@ -387,9 +395,11 @@ export default function OnboardingModal({ onClose }: { onClose: () => void }) {
                     justifyContent: 'center',
                     gap: '8px',
                     marginTop: '4px',
+                    letterSpacing: '0.04em',
+                    textTransform: 'uppercase',
                   }}
-                  onMouseEnter={(e) => { if (!isLoading) e.currentTarget.style.background = '#B5834A' }}
-                  onMouseLeave={(e) => { if (!isLoading) e.currentTarget.style.background = '#9A6B3C' }}
+                  onMouseEnter={(e) => { if (!isLoading) e.currentTarget.style.background = '#D85640' }}
+                  onMouseLeave={(e) => { if (!isLoading) e.currentTarget.style.background = '#C74229' }}
                 >
                   {isLoading ? (
                     <>
@@ -403,7 +413,7 @@ export default function OnboardingModal({ onClose }: { onClose: () => void }) {
                   )}
                 </button>
 
-                <p style={{ textAlign: 'center', fontSize: '12px', color: '#6b6059', margin: 0 }}>
+                <p style={{ textAlign: 'center', fontSize: '12px', fontFamily: 'var(--font-dm-sans, sans-serif)', color: '#888', margin: 0 }}>
                   Keine Zahlung, keine Verpflichtung. Wir melden uns bei Ihnen.
                 </p>
               </div>

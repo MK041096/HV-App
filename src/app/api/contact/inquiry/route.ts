@@ -13,7 +13,7 @@ export async function POST(req: NextRequest) {
     }
 
     await resend.emails.send({
-      from: 'Anotherhenri <noreply@zerodamage.de>',
+      from: 'SMARTCARL <noreply@zerodamage.de>',
       to: 'Kracherdigital@gmail.com',
       subject: `Neue Anfrage von ${first_name} ${last_name} (${org_name || 'keine Firma'})`,
       html: `
