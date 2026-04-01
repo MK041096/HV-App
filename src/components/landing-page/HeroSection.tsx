@@ -131,7 +131,7 @@ function Navbar() {
         </Link>
 
         {/* Desktop nav */}
-        <nav style={{ display: 'flex', gap: 32 }} className="hidden md:flex">
+        <nav style={{ gap: 32 }} className="hidden md:flex">
           {navLinks.map(l => (
             <a key={l.href} href={l.href} style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 13, fontWeight: 500, color: 'rgba(255,255,255,0.75)', textDecoration: 'none', letterSpacing: '0.04em', textTransform: 'uppercase', transition: 'color 0.2s' }}
               onMouseEnter={e => (e.currentTarget.style.color = '#fff')}
