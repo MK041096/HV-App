@@ -53,7 +53,7 @@ export default function ProcessSection() {
               <div key={s.num} style={{ display: 'flex', gap: 28, paddingBottom: i < steps.length - 1 ? 40 : 0 }}>
                 {/* Kreis */}
                 <div style={{ flexShrink: 0, width: 40, height: 40, borderRadius: '50%', background: 'var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1 }}>
-                  <span style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 14, fontWeight: 600, color: 'var(--text-primary)' }}>{s.num}</span>
+                  <span style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 14, fontWeight: 600, color: '#FFFFFF' }}>{s.num}</span>
                 </div>
 
                 {/* Text */}
