@@ -62,6 +62,26 @@ export async function POST(request: NextRequest) {
           const subscription = await stripe.subscriptions.retrieve(session.subscription as string)
           await updateOrgSubscription(adminClient, subscription)
         }
+
+        // April-Promo: nach 3 Käufen automatisch deaktivieren
+        const PROMO_PRICE_ID = process.env.STRIPE_PRICE_SETUP_FEE
+        const MAX_PROMO_USES = 3
+        if (PROMO_PRICE_ID && session.payment_status === 'paid') {
+          const lineItems = await stripe.checkout.sessions.listLineItems(session.id, { limit: 5 })
+          const usedPromo = lineItems.data.some((item: Stripe.LineItem) => item.price?.id === PROMO_PRICE_ID)
+          if (usedPromo) {
+            // Anzahl abgeschlossener Käufe mit diesem Preis zählen
+            const { count } = await adminClient
+              .from('organizations')
+              .select('id', { count: 'exact', head: true })
+              .eq('is_founder', true)
+              .in('subscription_status', ['active', 'trialing'])
+            if ((count ?? 0) >= MAX_PROMO_USES) {
+              await stripe.prices.update(PROMO_PRICE_ID, { active: false })
+              console.log(`Promo-Preis ${PROMO_PRICE_ID} nach ${MAX_PROMO_USES} Käufen deaktiviert.`)
+            }
+          }
+        }
         break
       }
 
