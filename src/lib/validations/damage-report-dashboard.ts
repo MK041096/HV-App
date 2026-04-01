@@ -6,7 +6,7 @@ export const STATUS_DISPLAY_MAP = {
   in_bearbeitung: 'In Bearbeitung',
   warte_auf_handwerker: 'In Bearbeitung',
   termin_vereinbart: 'Termin vereinbart',
-  termin_telefonisch: 'Termin telefonisch vereinbart',
+  termin_telefonisch: 'Werkstatt meldet sich bei Ihnen',
   erledigt: 'Abgeschlossen',
   abgelehnt: 'Abgeschlossen',
 } as const

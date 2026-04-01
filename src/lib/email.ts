@@ -6,7 +6,7 @@ const FROM_EMAIL = 'SchadensMelder <noreply@zerodamage.de>'
 const STATUS_LABELS: Record<string, string> = {
   in_bearbeitung: 'In Bearbeitung',
   termin_vereinbart: 'Termin vereinbart',
-  termin_telefonisch: 'Termin telefonisch vereinbart',
+  termin_telefonisch: 'Werkstatt vereinbart Termin persönlich',
   erledigt: 'Erledigt',
   abgelehnt: 'Abgelehnt',
 }
@@ -440,11 +440,12 @@ export async function sendContractorEmail(params: {
   unitAddress: string
   unitName: string
   wunschtermin: string | null
+  wunschtermin2: string | null
   tokenUrl: string
   orgName: string
   orgPhone?: string
 }): Promise<void> {
-  const { to, contractorName, caseNumber, caseTitle, category, description, unitAddress, unitName, wunschtermin, tokenUrl, orgName, orgPhone } = params
+  const { to, contractorName, caseNumber, caseTitle, category, description, unitAddress, unitName, wunschtermin, wunschtermin2, tokenUrl, orgName, orgPhone } = params
   const content = `
     <h2 style="color:#18181b;font-size:22px;font-weight:700;margin:0 0 8px 0;">
       Neuer Reparaturauftrag
@@ -464,24 +465,33 @@ export async function sendContractorEmail(params: {
       <p style="color:#71717a;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;margin:0 0 4px 0;">Adresse</p>
       <p style="color:#18181b;font-size:14px;margin:0 0 12px 0;">${unitAddress} &mdash; ${unitName}</p>
 
-      ${wunschtermin ? `
-      <p style="color:#71717a;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;margin:0 0 4px 0;">Wunschtermin des Mieters</p>
-      <p style="color:#18181b;font-size:15px;font-weight:700;margin:0 0 12px 0;">${wunschtermin}</p>
-      ` : ''}
-
       ${description ? `
-      <p style="color:#71717a;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;margin:0 0 4px 0;">Beschreibung</p>
+      <p style="color:#71717a;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;margin:0 0 4px 0;">Schadensbeschreibung</p>
       <p style="color:#18181b;font-size:14px;line-height:1.6;margin:0;">${description}</p>
       ` : ''}
     </div>
 
-    <p style="color:#52525b;font-size:14px;line-height:1.6;margin:0 0 20px 0;">
-      Bitte bestätigen Sie den Termin oder schlagen Sie einen anderen vor:
-    </p>
+    ${(wunschtermin || wunschtermin2) ? `
+    <p style="color:#18181b;font-size:14px;font-weight:600;margin:0 0 12px 0;">Terminwünsche des Mieters:</p>
+    ` : ''}
 
-    <a href="${tokenUrl}"
-       style="display:inline-block;background-color:#16a34a;color:#ffffff;text-decoration:none;padding:14px 32px;border-radius:8px;font-size:15px;font-weight:700;margin-bottom:24px;">
-      &#10003; Termin bestätigen / Neuen Termin vorschlagen &rarr;
+    ${wunschtermin ? `
+    <a href="${tokenUrl}?w=1"
+       style="display:block;background-color:#16a34a;color:#ffffff;text-decoration:none;padding:14px 20px;border-radius:8px;font-size:14px;font-weight:700;margin-bottom:10px;text-align:center;">
+      &#10003; Wunschtermin 1 bestätigen: ${wunschtermin}
+    </a>
+    ` : ''}
+
+    ${wunschtermin2 ? `
+    <a href="${tokenUrl}?w=2"
+       style="display:block;background-color:#16a34a;color:#ffffff;text-decoration:none;padding:14px 20px;border-radius:8px;font-size:14px;font-weight:700;margin-bottom:10px;text-align:center;">
+      &#10003; Wunschtermin 2 bestätigen: ${wunschtermin2}
+    </a>
+    ` : ''}
+
+    <a href="${tokenUrl}?w=phone"
+       style="display:block;background-color:#f4f4f5;color:#18181b;text-decoration:none;padding:14px 20px;border-radius:8px;font-size:14px;font-weight:600;margin-bottom:24px;text-align:center;border:1px solid #e4e4e7;">
+      &#128222; Termin persönlich mit Mieter vereinbaren
     </a>
 
     ${orgPhone ? `<p style="color:#71717a;font-size:13px;margin:0;">Rückfragen: ${orgName} &mdash; ${orgPhone}</p>` : `<p style="color:#71717a;font-size:13px;margin:0;">Rückfragen direkt an ${orgName}.</p>`}
@@ -490,6 +500,48 @@ export async function sendContractorEmail(params: {
     from: FROM_EMAIL,
     to,
     subject: `[${caseNumber}] Reparaturauftrag – ${caseTitle}`,
+    html: baseTemplate(content, orgName),
+  })
+}
+
+export async function sendTerminBestaetigungMieter(params: {
+  to: string
+  tenantName: string
+  caseNumber: string
+  caseTitle: string
+  contractorCompany: string
+  confirmedDate: string
+  orgName: string
+}): Promise<void> {
+  const { to, tenantName, caseNumber, caseTitle, contractorCompany, confirmedDate, orgName } = params
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://zerodamage.de'
+
+  const content = `
+    <h2 style="color:#18181b;font-size:22px;font-weight:700;margin:0 0 8px 0;">
+      Ihr Reparaturtermin wurde bestätigt
+    </h2>
+    <p style="color:#71717a;font-size:14px;margin:0 0 24px 0;">Hallo ${tenantName},</p>
+
+    <div style="background-color:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:16px 20px;margin-bottom:24px;">
+      <p style="color:#16a34a;font-size:13px;font-weight:700;margin:0 0 4px 0;">&#10003; Termin bestätigt</p>
+      <p style="color:#18181b;font-size:18px;font-weight:700;margin:4px 0 4px 0;">${confirmedDate}</p>
+      <p style="color:#71717a;font-size:13px;margin:0;">${contractorCompany} &mdash; Fall ${caseNumber}: ${caseTitle}</p>
+    </div>
+
+    <p style="color:#52525b;font-size:14px;line-height:1.6;margin:0 0 20px 0;">
+      Bitte halten Sie sich diesen Termin frei. Die Werkstatt kommt zu Ihnen.
+    </p>
+
+    <a href="${appUrl}/mein-bereich/meldungen"
+       style="display:inline-block;background-color:#18181b;color:#ffffff;text-decoration:none;padding:12px 24px;border-radius:8px;font-size:14px;font-weight:600;">
+      Meldung ansehen &rarr;
+    </a>
+  `
+
+  await resend.emails.send({
+    from: FROM_EMAIL,
+    to,
+    subject: `[${caseNumber}] Ihr Reparaturtermin: ${confirmedDate}`,
     html: baseTemplate(content, orgName),
   })
 }

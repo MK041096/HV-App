@@ -31,7 +31,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     // Load case + contractor in parallel
     const [{ data: report }, { data: contractor }] = await Promise.all([
       adminClient.from('damage_reports')
-        .select('id, case_number, title, description, category, reporter_id, unit_id, preferred_appointment, preferred_appointment_2')
+        .select('id, case_number, title, description, category, urgency, reporter_id, unit_id, preferred_appointment, preferred_appointment_2')
         .eq('id', id)
         .eq('organization_id', profile.organization_id)
         .single(),
@@ -51,7 +51,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       )
     }
 
-    const appointmentDate = scheduled_appointment || report.preferred_appointment || report.preferred_appointment_2
+    const appointmentDate = scheduled_appointment || report.preferred_appointment || null
 
     // Load current status
     const { data: currentStatusData } = await supabase
@@ -95,7 +95,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     ;(async () => {
       try {
         const [{ data: tenantProfile }, { data: unit }, { data: org }, { data: { users } }] = await Promise.all([
-          adminClient.from('profiles').select('id, first_name, last_name').eq('id', report.reporter_id).single(),
+          adminClient.from('profiles').select('id, first_name, last_name, phone').eq('id', report.reporter_id).single(),
           adminClient.from('units').select('name, address').eq('id', report.unit_id).single(),
           adminClient.from('organizations').select('name, phone').eq('id', profile.organization_id).single(),
           adminClient.auth.admin.listUsers({ perPage: 1000 }),
@@ -105,9 +105,14 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
         const tenantEmail = tenantUser?.email
         const tenantName = [tenantProfile?.first_name, tenantProfile?.last_name].filter(Boolean).join(' ') || 'Mieter'
         const orgName = org?.name || 'Hausverwaltung'
-        const wunschterminLabel = appointmentDate
-          ? new Date(appointmentDate).toLocaleDateString('de-AT', { weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+
+        const formatDate = (d: string | null) => d
+          ? new Date(d).toLocaleDateString('de-AT', { weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })
           : null
+
+        const wunschterminLabel = formatDate(report.preferred_appointment)
+        const wunschtermin2Label = formatDate(report.preferred_appointment_2)
+        const appointmentForTenant = formatDate(appointmentDate)
 
         await Promise.all([
           tenantEmail ? sendWeiterleitungTenantEmail({
@@ -117,7 +122,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
             caseTitle: report.title,
             contractorName: contractor.name,
             contractorCompany: contractor.company,
-            wunschtermin: wunschterminLabel,
+            wunschtermin: appointmentForTenant,
             orgName,
           }) : Promise.resolve(),
           sendContractorEmail({
@@ -130,6 +135,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
             unitAddress: unit?.address || '',
             unitName: unit?.name || '',
             wunschtermin: wunschterminLabel,
+            wunschtermin2: wunschtermin2Label,
             tokenUrl,
             orgName,
             orgPhone: (org as any)?.phone,

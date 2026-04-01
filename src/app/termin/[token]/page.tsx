@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState, use } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { CheckCircle, Calendar, XCircle, Loader2, Phone } from 'lucide-react'
@@ -20,40 +21,52 @@ interface TokenData {
     category: string
     description: string | null
     preferred_appointment: string | null
+    preferred_appointment_2: string | null
     unit: { name: string; address: string } | null
   }
   contractor: { name: string; company: string } | null
   tenantContact: { name: string; phone: string | null } | null
 }
 
+type ActionType = 'confirm_1' | 'confirm_2' | 'confirm_phone' | null
+
 export default function TerminPage({ params }: { params: Promise<{ token: string }> }) {
   const { token } = use(params)
+  const searchParams = useSearchParams()
   const [data, setData] = useState<TokenData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [action, setAction] = useState<'confirm' | 'call' | null>(null)
+  const [action, setAction] = useState<ActionType>(null)
   const [sending, setSending] = useState(false)
   const [confirmedDate, setConfirmedDate] = useState<string | null>(null)
-  const [phoneStatusUpdated, setPhoneStatusUpdated] = useState(false)
+  const [phoneReady, setPhoneReady] = useState(false)
 
   useEffect(() => {
     fetch(`/api/termin/${token}`)
       .then(r => r.json())
       .then(d => {
         if (d.error) setError(d.error)
-        else setData(d.data)
+        else {
+          setData(d.data)
+          // Pre-select action from URL param (?w=1, ?w=2, ?w=phone)
+          const w = searchParams.get('w')
+          if (w === '1') setAction('confirm_1')
+          else if (w === '2') setAction('confirm_2')
+          else if (w === 'phone') handlePhone()
+        }
       })
       .catch(() => setError('Fehler beim Laden'))
       .finally(() => setLoading(false))
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token])
 
-  async function handleConfirm() {
+  async function handleConfirm(selectedAction: 'confirm_1' | 'confirm_2') {
     setSending(true)
     try {
       const res = await fetch(`/api/termin/${token}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'confirm' }),
+        body: JSON.stringify({ action: selectedAction }),
       })
       const d = await res.json()
       if (!res.ok) throw new Error(d.error)
@@ -65,21 +78,28 @@ export default function TerminPage({ params }: { params: Promise<{ token: string
     }
   }
 
-  // Status changes to termin_telefonisch immediately when Werkstatt clicks this.
-  // No second button needed — phone number is shown right away.
-  async function handleCallMode() {
-    setAction('call')
+  async function handlePhone() {
+    setAction('confirm_phone')
+    setPhoneReady(false)
     try {
       const res = await fetch(`/api/termin/${token}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'confirm_phone' }),
       })
-      if (res.ok) setPhoneStatusUpdated(true)
+      if (res.ok) setPhoneReady(true)
     } catch {
-      // phone number still shown even if status update fails
+      setPhoneReady(true) // show contact info even if status update fails
     }
   }
+
+  function formatDate(iso: string | null) {
+    if (!iso) return null
+    return new Date(iso).toLocaleDateString('de-AT', {
+      weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit',
+    })
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -110,7 +130,7 @@ export default function TerminPage({ params }: { params: Promise<{ token: string
             <CheckCircle className="h-14 w-14 text-green-600 mb-4" />
             <h2 className="text-xl font-bold mb-2">Termin bestätigt!</h2>
             <p className="text-muted-foreground text-sm mb-4">
-              Der Mieter und die Hausverwaltung wurden automatisch informiert.
+              Der Mieter wurde automatisch per E-Mail informiert.
             </p>
             <div className="bg-green-50 border border-green-200 rounded-lg px-4 py-3 w-full">
               <p className="text-xs text-muted-foreground mb-1">Bestätigter Termin</p>
@@ -125,11 +145,8 @@ export default function TerminPage({ params }: { params: Promise<{ token: string
   if (!data) return null
 
   const report = data.damage_report
-  const wunschtermin = report.preferred_appointment
-    ? new Date(report.preferred_appointment).toLocaleDateString('de-AT', {
-        weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit',
-      })
-    : null
+  const wunschtermin1 = formatDate(report.preferred_appointment)
+  const wunschtermin2 = formatDate(report.preferred_appointment_2)
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
@@ -165,12 +182,6 @@ export default function TerminPage({ params }: { params: Promise<{ token: string
               <p className="text-xs text-muted-foreground">Adresse</p>
               <p className="font-medium">{report.unit?.address} — {report.unit?.name}</p>
             </div>
-            {wunschtermin && (
-              <div className="bg-blue-50 border border-blue-200 rounded-lg px-3 py-2">
-                <p className="text-xs text-blue-600 font-medium">Wunschtermin des Mieters</p>
-                <p className="font-semibold text-blue-900 mt-0.5">{wunschtermin}</p>
-              </div>
-            )}
           </CardContent>
         </Card>
 
@@ -183,42 +194,71 @@ export default function TerminPage({ params }: { params: Promise<{ token: string
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
+
+            {/* Keine Auswahl getroffen → 3 Buttons zeigen */}
             {action === null && (
-              <div className="grid grid-cols-1 gap-3">
-                <Button
-                  className="bg-green-700 hover:bg-green-800 text-white h-12"
-                  onClick={() => setAction('confirm')}
-                >
-                  <CheckCircle className="mr-2 h-5 w-5" />
-                  Wunschtermin bestätigen
-                </Button>
+              <div className="space-y-3">
+                {wunschtermin1 && (
+                  <Button
+                    className="w-full bg-green-700 hover:bg-green-800 text-white h-auto py-3 px-4 text-left flex-col items-start"
+                    onClick={() => setAction('confirm_1')}
+                  >
+                    <span className="text-xs font-normal opacity-80">Wunschtermin 1 bestätigen</span>
+                    <span className="font-bold">{wunschtermin1}</span>
+                  </Button>
+                )}
+                {wunschtermin2 && (
+                  <Button
+                    className="w-full bg-green-700 hover:bg-green-800 text-white h-auto py-3 px-4 text-left flex-col items-start"
+                    onClick={() => setAction('confirm_2')}
+                  >
+                    <span className="text-xs font-normal opacity-80">Wunschtermin 2 bestätigen</span>
+                    <span className="font-bold">{wunschtermin2}</span>
+                  </Button>
+                )}
+                {!wunschtermin1 && !wunschtermin2 && (
+                  <p className="text-sm text-muted-foreground">Kein Wunschtermin angegeben.</p>
+                )}
                 <Button
                   variant="outline"
-                  className="h-12"
-                  onClick={handleCallMode}
+                  className="w-full h-12"
+                  onClick={handlePhone}
                 >
-                  <Phone className="mr-2 h-5 w-5" />
-                  Wunschtermin nicht möglich — telefonisch vereinbaren
+                  <Phone className="mr-2 h-4 w-4" />
+                  Termin persönlich mit Mieter vereinbaren
                 </Button>
               </div>
             )}
 
-            {action === 'confirm' && (
+            {/* Wunschtermin 1 oder 2 bestätigen */}
+            {(action === 'confirm_1' || action === 'confirm_2') && (
               <div className="space-y-3">
-                <div className="bg-green-50 border border-green-200 rounded-lg px-3 py-2 text-sm">
-                  <p className="text-green-700 font-medium">Bestätigung: {wunschtermin || 'Wunschtermin'}</p>
+                <div className="bg-green-50 border border-green-200 rounded-lg px-3 py-3 text-sm">
+                  <p className="text-xs text-green-700 font-medium mb-1">
+                    {action === 'confirm_1' ? 'Wunschtermin 1' : 'Wunschtermin 2'} bestätigen:
+                  </p>
+                  <p className="text-green-900 font-bold">
+                    {action === 'confirm_1' ? wunschtermin1 : wunschtermin2}
+                  </p>
                 </div>
                 <div className="flex gap-2">
-                  <Button className="flex-1 bg-green-700 hover:bg-green-800" onClick={handleConfirm} disabled={sending}>
+                  <Button
+                    className="flex-1 bg-green-700 hover:bg-green-800"
+                    onClick={() => handleConfirm(action)}
+                    disabled={sending}
+                  >
                     {sending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <CheckCircle className="mr-2 h-4 w-4" />}
                     Jetzt bestätigen
                   </Button>
-                  <Button variant="outline" onClick={() => setAction(null)} disabled={sending}>Zurück</Button>
+                  <Button variant="outline" onClick={() => setAction(null)} disabled={sending}>
+                    Zurück
+                  </Button>
                 </div>
               </div>
             )}
 
-            {action === 'call' && (
+            {/* Persönliche Kontaktaufnahme */}
+            {action === 'confirm_phone' && (
               <div className="space-y-3">
                 <div className="bg-amber-50 border border-amber-200 rounded-lg px-4 py-4">
                   <p className="text-sm font-semibold text-amber-900 mb-3">
@@ -242,17 +282,17 @@ export default function TerminPage({ params }: { params: Promise<{ token: string
                     </p>
                   )}
                 </div>
-                {phoneStatusUpdated && (
+                {phoneReady && (
                   <div className="bg-teal-50 border border-teal-200 rounded-lg px-3 py-2 flex items-center gap-2">
                     <CheckCircle className="h-4 w-4 text-teal-600 shrink-0" />
                     <p className="text-sm text-teal-800 font-medium">
-                      Status aktualisiert: Termin telefonisch vereinbart
+                      Status aktualisiert — Mieter und HV wurden im Dashboard informiert.
                     </p>
                   </div>
                 )}
-                <Button variant="outline" className="w-full" onClick={() => setAction(null)} disabled={sending}>Zurück</Button>
               </div>
             )}
+
           </CardContent>
         </Card>
 

@@ -20,7 +20,7 @@ export const CASE_STATUS_LABELS: Record<CaseStatus, string> = {
   in_bearbeitung: 'In Bearbeitung',
   warte_auf_handwerker: 'Warte auf Handwerker',
   termin_vereinbart: 'Termin vereinbart',
-  termin_telefonisch: 'Termin telefonisch vereinbart',
+  termin_telefonisch: 'Werkstatt vereinbart Termin persönlich',
   erledigt: 'Erledigt',
   abgelehnt: 'Abgelehnt',
 }
