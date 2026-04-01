@@ -148,10 +148,11 @@ function Navbar() {
             onMouseLeave={e => (e.currentTarget.style.color = '#888')}>
             Anmelden
           </Link>
-          <button onClick={() => setShowModal(true)} className="hidden md:inline-flex" style={{
+          <button onClick={() => setShowModal(true)} className="hidden md:flex" style={{
             height: 38, fontSize: 13, padding: '0 20px', fontFamily: 'var(--font-dm-sans, sans-serif)', fontWeight: 600,
             background: '#C74229', color: '#fff', border: 'none', borderRadius: 4, cursor: 'pointer',
-            letterSpacing: '0.04em', textTransform: 'uppercase', transition: 'background 0.2s'
+            letterSpacing: '0.04em', textTransform: 'uppercase', transition: 'background 0.2s',
+            alignItems: 'center', justifyContent: 'center'
           }}
             onMouseEnter={e => (e.currentTarget.style.background = '#D85640')}
             onMouseLeave={e => (e.currentTarget.style.background = '#C74229')}>
@@ -201,18 +202,22 @@ export default function HeroSection() {
     <>
       <Navbar />
 
-      <section style={{ position: 'relative', minHeight: '100vh', overflow: 'hidden', background: '#FFFFFF' }}>
+      <section style={{ position: 'relative', minHeight: '100vh', overflow: 'hidden' }}>
+        {/* Hintergrundfoto */}
+        <div style={{ position: 'absolute', inset: 0, backgroundImage: "url('/wien_blutgasse_a.jpg')", backgroundSize: 'cover', backgroundPosition: 'center', zIndex: 0 }} />
+        {/* Overlay */}
+        <div style={{ position: 'absolute', inset: 0, background: 'rgba(7,7,7,0.74)', zIndex: 1 }} />
 
         {/* Inhalt */}
         <div style={{ position: 'relative', zIndex: 2, maxWidth: 1200, margin: '0 auto', padding: '0 24px', minHeight: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
 
           {/* Text – volle Breite */}
           <div style={{ maxWidth: 720, paddingTop: 100, paddingBottom: 60, opacity: ready ? 1 : 0, transform: ready ? 'none' : 'translateY(20px)', transition: 'opacity 0.65s ease, transform 0.65s ease' }}>
-            <h1 style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 'clamp(2.4rem, 5vw, 4rem)', lineHeight: 1.08, color: '#000', margin: '0 0 28px', fontWeight: 700, letterSpacing: '-0.02em' }}>
+            <h1 style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 'clamp(2.4rem, 5vw, 4rem)', lineHeight: 1.08, color: '#FFFFFF', margin: '0 0 28px', fontWeight: 700, letterSpacing: '-0.02em' }}>
               Schadensmeldungen, die sich mit nur<br />
               einem Klick von selbst erledigen.
             </h1>
-            <p style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 18, lineHeight: 1.75, color: '#555', margin: '0 0 40px', maxWidth: 560 }}>
+            <p style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 18, lineHeight: 1.75, color: 'rgba(255,255,255,0.75)', margin: '0 0 40px', maxWidth: 560 }}>
               Mieter meldet den Schaden digital. CARL analysiert, klärt die Zuständigkeit
               und schlägt den passenden Handwerker vor. Sie bestätigen mit einem Klick,
               die Werkstatt wird automatisch informiert.
@@ -227,17 +232,17 @@ export default function HeroSection() {
                 onMouseLeave={e => (e.currentTarget.style.background = '#C74229')}>
                 Anfragen
               </button>
-              <a href="#ablauf" style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 15, color: '#555', textDecoration: 'none', transition: 'color 0.2s' }}
-                onMouseEnter={e => (e.currentTarget.style.color = '#000')}
-                onMouseLeave={e => (e.currentTarget.style.color = '#555')}>
+              <a href="#ablauf" style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 15, color: 'rgba(255,255,255,0.75)', textDecoration: 'none', transition: 'color 0.2s' }}
+                onMouseEnter={e => (e.currentTarget.style.color = '#fff')}
+                onMouseLeave={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.75)')}>
                 Ablauf ansehen →
               </a>
             </div>
           </div>
 
           {/* Trust-Leiste */}
-          <div style={{ borderTop: '1px solid #E0E0E0', paddingTop: 22, paddingBottom: 32, textAlign: 'center', opacity: ready ? 1 : 0, transition: 'opacity 0.8s ease 0.35s' }}>
-            <p style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 13, color: '#888', margin: 0, letterSpacing: '0.06em', textTransform: 'uppercase' }}>
+          <div style={{ borderTop: '1px solid rgba(255,255,255,0.15)', paddingTop: 22, paddingBottom: 32, textAlign: 'center', opacity: ready ? 1 : 0, transition: 'opacity 0.8s ease 0.35s' }}>
+            <p style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 13, color: 'rgba(255,255,255,0.5)', margin: 0, letterSpacing: '0.06em', textTransform: 'uppercase' }}>
               DSGVO-konform&nbsp;&nbsp;·&nbsp;&nbsp;Hosting in der EU&nbsp;&nbsp;·&nbsp;&nbsp;Persönliche Einführung inklusive
             </p>
           </div>

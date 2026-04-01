@@ -164,19 +164,20 @@
 }
 .sw-btn-outline:hover { border-color: var(--accent); background: var(--accent-subtle); }
 
-/* ── Landing Page Card override ── */
-.landing-page .sw-card {
-  background: #FFFFFF;
-  border: 1px solid #E0E0E0;
-}
-.landing-page .sw-card:hover {
-  border-color: #CCCCCC;
-  background: #FAFAFA;
-}
 
 /* Landing Page Label override */
 .landing-page .sw-label {
   color: #C74229;
+}
+
+/* Kästchen: leicht grau wie Zara */
+.landing-page .sw-card {
+  background: #F5F5F5;
+  border: 1px solid #EBEBEB;
+}
+.landing-page .sw-card:hover {
+  background: #EFEFEF;
+  border-color: #E0E0E0;
 }
 
 /* ── [SOFTWARE] Section Label ── */
