@@ -13,7 +13,7 @@ export default function Footer() {
           {/* Spalte 1: Wordmark + Beschreibung */}
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
-              <span style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 18, fontWeight: 700, color: '#000', letterSpacing: '0.08em' }}>SMARTCARL</span>
+              <span style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 18, fontWeight: 700, color: '#C74229', letterSpacing: '0.08em' }}>SMARTCARL</span>
             </div>
             <p style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 14, lineHeight: 1.7, color: '#555', margin: '0 0 16px', maxWidth: 320 }}>
               Digitales Schadensmeldungs-Management für professionelle Hausverwaltungen.

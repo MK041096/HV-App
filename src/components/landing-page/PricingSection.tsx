@@ -21,10 +21,10 @@ export default function PricingSection() {
           und wird individuell auf die Anzahl Ihrer Einheiten abgestimmt.
         </p>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24, maxWidth: 800, margin: '0 auto' }} className="pricing-grid">
+        <div style={{ display: 'flex', justifyContent: 'center' }}>
 
           {/* April-Aktion */}
-          <div style={{ background: '#FFFFFF', border: '2px solid #C74229', borderRadius: 10, padding: '40px 36px', position: 'relative', display: 'flex', flexDirection: 'column' }}>
+          <div style={{ background: '#FFFFFF', border: '2px solid #C74229', borderRadius: 10, padding: '40px 36px', position: 'relative', display: 'flex', flexDirection: 'column', width: '100%', maxWidth: 420 }}>
             {/* Badge */}
             <div style={{ position: 'absolute', top: -13, left: 32, background: '#C74229', borderRadius: 4, padding: '4px 12px' }}>
               <span style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 11, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#fff' }}>Nur noch 3 Plätze für April</span>
@@ -69,44 +69,6 @@ export default function PricingSection() {
             </button>
           </div>
 
-          {/* Standard */}
-          <div style={{ background: '#FFFFFF', border: '1px solid #E0E0E0', borderRadius: 10, padding: '40px 36px', display: 'flex', flexDirection: 'column' }}>
-            <p style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 13, fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#888', margin: '0 0 20px' }}>Standard</p>
-
-            <div style={{ marginBottom: 24 }}>
-              <span style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 44, fontWeight: 700, color: '#000', lineHeight: 1 }}>699 €</span>
-              <span style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 14, color: '#555', display: 'block', marginTop: 8 }}>Einmaliges Onboarding</span>
-            </div>
-
-            <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 36px', display: 'flex', flexDirection: 'column', gap: 12, flex: 1 }}>
-              {[
-                'Vollständiges Onboarding',
-                'Alle Funktionen freigeschaltet',
-                'Persönliche Einführung',
-                'Abo monatlich oder jährlich, individuell je Einheit',
-                'Support & Weiterentwicklung inklusive',
-              ].map((item) => (
-                <li key={item} style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#CCCCCC" strokeWidth="2.2" style={{ flexShrink: 0, marginTop: 2 }}>
-                    <polyline points="20 6 9 17 4 12" strokeLinecap="round" strokeLinejoin="round"/>
-                  </svg>
-                  <span style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 14, lineHeight: 1.55, color: '#555' }}>{item}</span>
-                </li>
-              ))}
-            </ul>
-
-            <button onClick={() => setShowModal(true)} style={{
-              display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%',
-              height: 48, background: 'transparent', color: '#000', border: '1px solid #E0E0E0', borderRadius: 4,
-              fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 15, fontWeight: 600, cursor: 'pointer',
-              letterSpacing: '0.04em', textTransform: 'uppercase', transition: 'border-color 0.2s, background 0.2s'
-            }}
-              onMouseEnter={e => { e.currentTarget.style.borderColor = '#C74229'; e.currentTarget.style.background = 'rgba(199,66,41,0.04)' }}
-              onMouseLeave={e => { e.currentTarget.style.borderColor = '#E0E0E0'; e.currentTarget.style.background = 'transparent' }}>
-              Anfragen
-            </button>
-          </div>
-
         </div>
 
         {/* Abo-Erklärung */}
@@ -130,9 +92,6 @@ export default function PricingSection() {
 
       </div>
 
-      <style jsx global>{`
-        @media (max-width: 640px) { .pricing-grid { grid-template-columns: 1fr !important; } }
-      `}</style>
 
       {showModal && <OnboardingModal onClose={() => setShowModal(false)} />}
     </section>

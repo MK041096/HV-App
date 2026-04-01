@@ -127,7 +127,7 @@ function Navbar() {
 
         {/* Wordmark */}
         <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: 8, textDecoration: 'none' }}>
-          <span style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 18, fontWeight: 700, color: '#000', letterSpacing: '0.08em' }}>SMARTCARL</span>
+          <span style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 22, fontWeight: 700, color: '#C74229', letterSpacing: '0.08em' }}>SMARTCARL</span>
         </Link>
 
         {/* Desktop nav */}

@@ -32,7 +32,7 @@ export default function ProblemSection() {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 20 }} className="problem-grid">
           {problems.map((p) => (
             <div key={p.title} className="sw-card" style={{ display: 'flex', flexDirection: 'column', gap: 16, padding: '28px 24px' }}>
-              <div style={{ color: 'var(--text-muted)', opacity: 0.7 }}>{p.icon}</div>
+              <div style={{ color: '#C74229' }}>{p.icon}</div>
               <div>
                 <p style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 16, fontWeight: 500, color: 'var(--text-primary)', margin: '0 0 8px' }}>{p.title}</p>
                 <p style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 14, lineHeight: 1.7, color: 'var(--text-secondary)', margin: 0 }}>{p.text}</p>
