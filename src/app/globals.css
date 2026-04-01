@@ -173,8 +173,8 @@
 /* Kästchen: immer grau, keine Änderung bei Hover */
 .landing-page .sw-card,
 .landing-page .sw-card:hover {
-  background: #E5E5E5;
-  border: 1px solid #CCCCCC;
+  background: #EEEEEE;
+  border: 1px solid #E0E0E0;
 }
 
 /* ── [SOFTWARE] Section Label ── */
