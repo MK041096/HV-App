@@ -29,7 +29,7 @@ const features = [
 
 export default function FeaturesSection() {
   return (
-    <section id="funktionen" style={{ background: 'var(--bg-card)', padding: '120px 24px', borderTop: '1px solid var(--border)' }}>
+    <section id="funktionen" style={{ background: '#FFFFFF', padding: '120px 24px', borderTop: '1px solid var(--border)' }}>
       <div style={{ maxWidth: 1100, margin: '0 auto' }}>
 
         <p className="sw-label" style={{ marginBottom: 20 }}>Was CARL für Sie übernimmt</p>
