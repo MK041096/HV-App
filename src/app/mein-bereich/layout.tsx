@@ -7,6 +7,7 @@ import {
   Building2,
   LayoutDashboard,
   ClipboardList,
+  Settings,
   LogOut,
   Loader2,
   Menu,
@@ -41,6 +42,11 @@ const NAV_ITEMS = [
     href: "/mein-bereich/meldungen",
     icon: ClipboardList,
   },
+  {
+    label: "Einstellungen",
+    href: "/mein-bereich/einstellungen",
+    icon: Settings,
+  },
 ]
 
 function TenantSidebarContent({
@@ -64,7 +70,7 @@ function TenantSidebarContent({
           <Building2 className="h-5 w-5" />
         </div>
         <div className="flex flex-col min-w-0">
-          <span className="text-sm font-semibold truncate">SchadensMelder</span>
+          <span className="text-sm font-semibold truncate">SMARTCARL</span>
           <span className="text-xs text-muted-foreground truncate">
             {organization?.name || "Mieter-Portal"}
           </span>
@@ -288,7 +294,7 @@ export default function MeinBereichLayout({
           </Button>
           <div className="flex items-center gap-2">
             <Building2 className="h-5 w-5 text-primary" />
-            <span className="font-semibold text-sm">SchadensMelder</span>
+            <span className="font-semibold text-sm">SMARTCARL</span>
           </div>
         </header>
 

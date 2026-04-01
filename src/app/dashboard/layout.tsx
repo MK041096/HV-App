@@ -102,7 +102,7 @@ function SidebarContent({
           <Building2 className="h-5 w-5" />
         </div>
         <div className="flex flex-col min-w-0">
-          <span className="text-sm font-semibold truncate">SchadensMelder</span>
+          <span className="text-sm font-semibold truncate">SMARTCARL</span>
           <span className="text-xs text-muted-foreground truncate">
             {organization?.name || "Hausverwaltung"}
           </span>
@@ -319,7 +319,7 @@ export default function DashboardLayout({
           </Button>
           <div className="flex items-center gap-2">
             <Building2 className="h-5 w-5 text-primary" />
-            <span className="font-semibold text-sm">SchadensMelder</span>
+            <span className="font-semibold text-sm">SMARTCARL</span>
           </div>
         </header>
 
