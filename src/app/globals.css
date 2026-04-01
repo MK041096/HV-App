@@ -170,14 +170,14 @@
   color: #C74229;
 }
 
-/* Kästchen: leicht grau wie Zara */
+/* Kästchen: grau wie Zara — immer, nicht nur bei Hover */
 .landing-page .sw-card {
-  background: #F5F5F5;
-  border: 1px solid #EBEBEB;
+  background: #EEEEEE;
+  border: 1px solid #DCDCDC;
 }
 .landing-page .sw-card:hover {
-  background: #EFEFEF;
-  border-color: #E0E0E0;
+  background: #E5E5E5;
+  border-color: #CCCCCC;
 }
 
 /* ── [SOFTWARE] Section Label ── */

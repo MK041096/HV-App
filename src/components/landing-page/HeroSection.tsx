@@ -133,9 +133,9 @@ function Navbar() {
         {/* Desktop nav */}
         <nav style={{ display: 'flex', gap: 32 }} className="hidden md:flex">
           {navLinks.map(l => (
-            <a key={l.href} href={l.href} style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 13, fontWeight: 500, color: '#555', textDecoration: 'none', letterSpacing: '0.04em', textTransform: 'uppercase', transition: 'color 0.2s' }}
-              onMouseEnter={e => (e.currentTarget.style.color = '#000')}
-              onMouseLeave={e => (e.currentTarget.style.color = '#555')}>
+            <a key={l.href} href={l.href} style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 13, fontWeight: 500, color: 'rgba(255,255,255,0.75)', textDecoration: 'none', letterSpacing: '0.04em', textTransform: 'uppercase', transition: 'color 0.2s' }}
+              onMouseEnter={e => (e.currentTarget.style.color = '#fff')}
+              onMouseLeave={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.75)')}>
               {l.label}
             </a>
           ))}
@@ -143,9 +143,9 @@ function Navbar() {
 
         {/* Right */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-          <Link href="/login" className="hidden md:block" style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 13, fontWeight: 500, color: '#888', textDecoration: 'none', letterSpacing: '0.04em', textTransform: 'uppercase', transition: 'color 0.2s' }}
-            onMouseEnter={e => (e.currentTarget.style.color = '#000')}
-            onMouseLeave={e => (e.currentTarget.style.color = '#888')}>
+          <Link href="/login" className="hidden md:block" style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 13, fontWeight: 500, color: 'rgba(255,255,255,0.6)', textDecoration: 'none', letterSpacing: '0.04em', textTransform: 'uppercase', transition: 'color 0.2s' }}
+            onMouseEnter={e => (e.currentTarget.style.color = '#fff')}
+            onMouseLeave={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.6)')}>
             Anmelden
           </Link>
           <button onClick={() => setShowModal(true)} className="hidden md:flex" style={{
