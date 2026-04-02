@@ -22,6 +22,7 @@ import {
   Users,
   Mail,
   Check,
+  Tag,
 } from 'lucide-react'
 
 interface OrgBilling {
@@ -29,7 +30,6 @@ interface OrgBilling {
   einheiten_anzahl: number
   subscription_status: string
   subscription_plan: string
-  is_founder: boolean
   current_period_end: string | null
   stripe_customer_id: string | null
   stripe_subscription_id: string | null
@@ -51,21 +51,22 @@ const STATUS_COLOR: Record<string, string> = {
   inactive: 'bg-gray-100 text-gray-700',
 }
 
-// Volume pricing tiers — Gründerpreis / Normalpreis per unit/month
-const VOLUME_TIERS = [
-  { label: '1 – 499 Einheiten',     founder: 0.50, regular: 1.00, discount: null },
-  { label: '500 – 1.499 Einheiten', founder: 0.42, regular: 0.85, discount: '16%' },
-  { label: '1.500+ Einheiten',      founder: null,  regular: null,  discount: 'individuell' },
-]
-
-function getVolumeTier(units: number) {
-  if (units >= 1500) return VOLUME_TIERS[2]
-  if (units >= 500)  return VOLUME_TIERS[1]
-  return VOLUME_TIERS[0]
-}
+// Preise pro Einheit
+const PRICE_MONTHLY = 1.00      // 1,00 €/Einheit/Monat (regulär)
+const PRICE_YEARLY  = 0.85      // 0,85 €/Einheit/Monat = 10,20 €/Jahr (regulär)
+const PROMO_MONTHLY = 0.50      // April-Aktion: 50% off → 0,50 € (1. Monat)
+const PROMO_YEARLY  = 0.425     // April-Aktion: 50% off → 0,43 € × 12 (1. Jahr)
+const SETUP_FEE_PROMO   = 349   // April-Aktionspreis (einmalig)
+const SETUP_FEE_REGULAR = 699   // Regulär (einmalig)
 
 function fmt(n: number) {
   return n.toFixed(2).replace('.', ',')
+}
+
+// April-Aktion läuft bis 30. April 2026
+function isAprilPromoActive() {
+  const now = new Date()
+  return now >= new Date('2026-04-01') && now <= new Date('2026-04-30T23:59:59Z')
 }
 
 export default function BillingPage() {
@@ -74,11 +75,11 @@ export default function BillingPage() {
   const [loading, setLoading] = useState(true)
   const [actionLoading, setActionLoading] = useState(false)
   const [plan, setPlan] = useState<'monthly' | 'yearly'>('monthly')
-  const [customUnitCount, setCustomUnitCount] = useState<number>(1)
-  const isFounder = org?.is_founder ?? false
+  const [unitCount, setUnitCount] = useState<number>(1)
 
   const successParam = searchParams.get('success')
   const canceledParam = searchParams.get('canceled')
+  const isPromo = isAprilPromoActive()
 
   useEffect(() => {
     async function loadOrg() {
@@ -93,10 +94,13 @@ export default function BillingPage() {
       if (!profile?.organization_id) return
       const { data } = await supabase
         .from('organizations')
-        .select('name, einheiten_anzahl, subscription_status, subscription_plan, is_founder, current_period_end, stripe_customer_id, stripe_subscription_id')
+        .select('name, einheiten_anzahl, subscription_status, subscription_plan, current_period_end, stripe_customer_id, stripe_subscription_id')
         .eq('id', profile.organization_id)
         .single()
-      setOrg(data)
+      if (data) {
+        setOrg(data)
+        setUnitCount(Math.max(data.einheiten_anzahl || 1, 1))
+      }
       setLoading(false)
     }
     loadOrg()
@@ -108,7 +112,7 @@ export default function BillingPage() {
       const res = await fetch('/api/stripe/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ plan, isFounder, unitCount }),
+        body: JSON.stringify({ plan, unitCount: Math.max(unitCount, 1) }),
       })
       const data = await res.json()
       if (data.url) window.location.href = data.url
@@ -131,20 +135,19 @@ export default function BillingPage() {
   }
 
   const hasActiveSub = org?.subscription_status === 'active' || org?.subscription_status === 'trialing'
-  const unitCount = Math.max(org?.einheiten_anzahl || 1, 1)
   const isEnterprise = unitCount >= 1500
-  const tier = getVolumeTier(unitCount)
+  const safeUnitCount = Math.max(unitCount || 1, 1)
 
-  const founderMonthly = tier.founder ?? 0
-  const founderYearly  = founderMonthly * 0.85
-  const regularMonthly = tier.regular ?? 0
-  const regularYearly  = regularMonthly * 0.85
+  // Aktuelle Preise je nach Aktion + Plan
+  const pricePerUnitMonthly = isPromo ? PROMO_MONTHLY : PRICE_MONTHLY
+  const pricePerUnitYearly  = isPromo ? PROMO_YEARLY  : PRICE_YEARLY
+  const setupFee = isPromo ? SETUP_FEE_PROMO : SETUP_FEE_REGULAR
 
-  const selectedFounderPrice = plan === 'yearly' ? founderYearly : founderMonthly
-  const monthlyTotal = selectedFounderPrice * unitCount
-  const yearlyTotal  = founderYearly * unitCount * 12
-  const setupFee = 349
-  const setupFeeRegular = 699
+  const monthlyTotal = pricePerUnitMonthly * safeUnitCount
+  const yearlyTotal  = pricePerUnitYearly * safeUnitCount * 12
+
+  const selectedMonthlyDisplay = plan === 'yearly' ? pricePerUnitYearly : pricePerUnitMonthly
+  const selectedTotal          = plan === 'yearly' ? yearlyTotal : monthlyTotal
 
   if (loading) {
     return (
@@ -193,14 +196,8 @@ export default function BillingPage() {
           </div>
           <div className="flex items-center justify-between">
             <span className="text-sm text-muted-foreground flex items-center gap-1"><Users className="h-3 w-3" /> Einheiten</span>
-            <span className="text-sm font-medium">{unitCount}</span>
+            <span className="text-sm font-medium">{org?.einheiten_anzahl || 1}</span>
           </div>
-          {org?.is_founder && (
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-muted-foreground flex items-center gap-1"><Zap className="h-3 w-3" /> Gründungsrabatt</span>
-              <Badge variant="outline" className="text-xs text-purple-700 border-purple-300">Aktiv (Jahr 1)</Badge>
-            </div>
-          )}
           {org?.current_period_end && (
             <div className="flex items-center justify-between">
               <span className="text-sm text-muted-foreground flex items-center gap-1"><Calendar className="h-3 w-3" /> Nächste Abbuchung</span>
@@ -212,54 +209,18 @@ export default function BillingPage() {
 
       {!hasActiveSub ? (
         <>
-          {isFounder && (
-            <div className="rounded-lg border border-purple-200 bg-purple-50 px-4 py-3 flex items-center gap-3">
-              <Zap className="h-5 w-5 text-purple-600 shrink-0" />
+          {/* April-Aktion Banner */}
+          {isPromo && (
+            <div className="rounded-lg border border-orange-200 bg-orange-50 px-4 py-3 flex items-center gap-3">
+              <Tag className="h-5 w-5 text-orange-600 shrink-0" />
               <div>
-                <p className="text-sm font-semibold text-purple-800">Gründungskundenpreis aktiv</p>
-                <p className="text-xs text-purple-700">Sie sparen 50% im ersten Jahr — danach gelten die Normalpreise.</p>
+                <p className="text-sm font-semibold text-orange-800">April-Aktion — 50% Rabatt</p>
+                <p className="text-xs text-orange-700">
+                  Nur bis 30. April 2026: Monatlich 50% günstiger im ersten Monat · Jährlich 50% günstiger im ersten Jahr · Einrichtung nur 349 € statt 699 €
+                </p>
               </div>
             </div>
           )}
-
-          {/* Volume tiers table */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Preisstaffeln nach Einheitenanzahl</CardTitle>
-              <CardDescription>Je mehr Einheiten, desto günstiger der Stückpreis.</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                {VOLUME_TIERS.map((t, i) => {
-                  const isActive = t.label === tier.label
-                  return (
-                    <div
-                      key={i}
-                      className={`flex items-center justify-between rounded-lg px-4 py-3 text-sm ${isActive ? 'bg-primary text-primary-foreground' : 'bg-muted/50'}`}
-                    >
-                      <span className="font-medium">{t.label}</span>
-                      {t.founder !== null ? (
-                        <div className="flex items-center gap-2 flex-wrap justify-end">
-                          <span className="font-bold">{fmt(t.founder)} €</span>
-                          <span className={`line-through text-xs ${isActive ? 'text-primary-foreground/60' : 'text-muted-foreground'}`}>
-                            {fmt(t.regular!)} €
-                          </span>
-                          {t.discount && (
-                            <Badge variant="secondary" className="text-xs">{t.discount} Rabatt</Badge>
-                          )}
-                        </div>
-                      ) : (
-                        <span className={`font-semibold ${isActive ? '' : 'text-primary'}`}>Individuelles Angebot</span>
-                      )}
-                    </div>
-                  )
-                })}
-              </div>
-              <p className="text-xs text-muted-foreground mt-3">
-                Preise in € / Einheit / Monat (zzgl. MwSt.) · Gründerpreis / <span className="line-through">Normalpreis</span>
-              </p>
-            </CardContent>
-          </Card>
 
           {isEnterprise ? (
             <Card className="border-primary/30">
@@ -294,46 +255,79 @@ export default function BillingPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
+
+                {/* Einheiten-Eingabe */}
                 <div className="space-y-2">
-                <label className="text-sm font-medium">Anzahl Einheiten (Wohnungen)</label>
-                <Input
-                  type="number"
-                  min={1}
-                  max={1499}
-                  value={customUnitCount}
-                  onChange={(e) => setCustomUnitCount(Math.max(1, parseInt(e.target.value) || 1))}
-                  className="w-32"
-                />
-                <p className="text-xs text-muted-foreground">Anzahl Ihrer verwalteten Wohneinheiten</p>
-              </div>
-              <RadioGroup value={plan} onValueChange={(v) => setPlan(v as 'monthly' | 'yearly')}>
+                  <Label htmlFor="unitCount" className="text-sm font-medium">Anzahl verwalteter Wohneinheiten</Label>
+                  <Input
+                    id="unitCount"
+                    type="number"
+                    min={1}
+                    max={1499}
+                    value={unitCount}
+                    onChange={(e) => {
+                      const val = parseInt(e.target.value) || 1
+                      setUnitCount(Math.max(1, Math.min(1499, val)))
+                    }}
+                    className="w-40"
+                  />
+                  <p className="text-xs text-muted-foreground">Anzahl der von Ihnen verwalteten Wohnungen</p>
+                </div>
+
+                {/* Plan-Auswahl */}
+                <RadioGroup value={plan} onValueChange={(v) => setPlan(v as 'monthly' | 'yearly')}>
+                  {/* Monatlich */}
                   <div
                     className={`flex items-start space-x-3 rounded-lg border p-4 cursor-pointer transition-colors ${plan === 'monthly' ? 'border-primary bg-primary/5' : ''}`}
                     onClick={() => setPlan('monthly')}
                   >
                     <RadioGroupItem value="monthly" id="monthly" className="mt-0.5" />
-                    <Label htmlFor="monthly" className="cursor-pointer flex-1">
+                    <Label htmlFor="monthly" className="cursor-pointer flex-1 space-y-1">
                       <div className="font-semibold">Monatlich</div>
-                      <div className="text-sm text-muted-foreground mt-0.5 flex items-center gap-2 flex-wrap">
-                        <span className="font-semibold text-foreground">{fmt(founderMonthly)} € / Einheit / Monat</span>
-                        <span className="line-through text-xs">{fmt(regularMonthly)} €</span>
-                        <span>= <strong>{fmt(founderMonthly * unitCount)} € / Monat</strong></span>
+                      <div className="text-sm text-muted-foreground flex items-center gap-2 flex-wrap">
+                        {isPromo ? (
+                          <>
+                            <span className="font-bold text-foreground">{fmt(PROMO_MONTHLY)} € / Einheit</span>
+                            <span className="line-through text-xs">{fmt(PRICE_MONTHLY)} €</span>
+                            <Badge variant="secondary" className="text-xs text-orange-700 border-orange-200 bg-orange-50">1. Monat</Badge>
+                          </>
+                        ) : (
+                          <span className="font-bold text-foreground">{fmt(PRICE_MONTHLY)} € / Einheit / Monat</span>
+                        )}
+                      </div>
+                      <div className="text-sm font-semibold text-primary">
+                        = {fmt(monthlyTotal)} € / Monat
+                        {isPromo && <span className="text-xs font-normal text-muted-foreground ml-1">(danach {fmt(PRICE_MONTHLY * safeUnitCount)} €)</span>}
                       </div>
                     </Label>
                   </div>
+
+                  {/* Jährlich */}
                   <div
                     className={`flex items-start space-x-3 rounded-lg border p-4 cursor-pointer transition-colors ${plan === 'yearly' ? 'border-primary bg-primary/5' : ''}`}
                     onClick={() => setPlan('yearly')}
                   >
                     <RadioGroupItem value="yearly" id="yearly" className="mt-0.5" />
-                    <Label htmlFor="yearly" className="cursor-pointer flex-1">
+                    <Label htmlFor="yearly" className="cursor-pointer flex-1 space-y-1">
                       <div className="font-semibold flex items-center gap-2">
-                        Jährlich <Badge variant="secondary" className="text-xs">15% günstiger</Badge>
+                        Jährlich
+                        <Badge variant="secondary" className="text-xs">15% günstiger</Badge>
+                        {isPromo && <Badge className="text-xs bg-orange-500 hover:bg-orange-500">50% Rabatt</Badge>}
                       </div>
-                      <div className="text-sm text-muted-foreground mt-0.5 flex items-center gap-2 flex-wrap">
-                        <span className="font-semibold text-foreground">{fmt(founderYearly)} € / Einheit / Monat</span>
-                        <span className="line-through text-xs">{fmt(regularYearly)} €</span>
-                        <span>= <strong>{fmt(yearlyTotal)} € / Jahr</strong></span>
+                      <div className="text-sm text-muted-foreground flex items-center gap-2 flex-wrap">
+                        {isPromo ? (
+                          <>
+                            <span className="font-bold text-foreground">{fmt(PROMO_YEARLY)} € / Einheit / Monat</span>
+                            <span className="line-through text-xs">{fmt(PRICE_YEARLY)} €</span>
+                            <Badge variant="secondary" className="text-xs text-orange-700 border-orange-200 bg-orange-50">1. Jahr</Badge>
+                          </>
+                        ) : (
+                          <span className="font-bold text-foreground">{fmt(PRICE_YEARLY)} € / Einheit / Monat</span>
+                        )}
+                      </div>
+                      <div className="text-sm font-semibold text-primary">
+                        = {fmt(yearlyTotal)} € / Jahr
+                        {isPromo && <span className="text-xs font-normal text-muted-foreground ml-1">(danach {fmt(PRICE_YEARLY * safeUnitCount * 12)} €)</span>}
                       </div>
                     </Label>
                   </div>
@@ -341,19 +335,27 @@ export default function BillingPage() {
 
                 <Separator />
 
+                {/* Kostenübersicht */}
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between items-center">
-                    <span className="text-muted-foreground">Onboarding & Einrichtung (einmalig)</span>
+                    <span className="text-muted-foreground">
+                      Onboarding & Einrichtung (einmalig)
+                    </span>
                     <div className="text-right">
                       <span className="font-semibold">{setupFee} €</span>
-                      <span className="line-through text-xs text-muted-foreground ml-2">{setupFeeRegular} €</span>
+                      {isPromo && (
+                        <span className="line-through text-xs text-muted-foreground ml-2">{SETUP_FEE_REGULAR} €</span>
+                      )}
                     </div>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-muted-foreground">
-                      {unitCount} Einheit{unitCount !== 1 ? 'en' : ''} × {fmt(selectedFounderPrice)} €
+                      {safeUnitCount} Einheit{safeUnitCount !== 1 ? 'en' : ''} × {fmt(selectedMonthlyDisplay)} €
+                      {plan === 'yearly' ? ' × 12 Monate' : ' / Monat'}
                     </span>
-                    <span className="font-semibold">{fmt(monthlyTotal)} € / Monat</span>
+                    <span className="font-semibold">
+                      {plan === 'yearly' ? `${fmt(yearlyTotal)} € / Jahr` : `${fmt(monthlyTotal)} € / Monat`}
+                    </span>
                   </div>
                   <div className="border-t pt-2 mt-2 flex justify-between text-xs text-muted-foreground">
                     <span>Alle Preise zzgl. MwSt.</span>
@@ -362,10 +364,10 @@ export default function BillingPage() {
                 </div>
 
                 <p className="text-xs text-muted-foreground">
-                  Akzeptiert: Kreditkarte · SEPA-Lastschrift · Apple Pay · Google Pay · PayPal
+                  Akzeptiert: Kreditkarte · SEPA-Lastschrift · Apple Pay · Google Pay
                 </p>
 
-                <Button className="w-full" size="lg" onClick={handleCheckout} disabled={actionLoading}>
+                <Button className="w-full" size="lg" onClick={handleCheckout} disabled={actionLoading || isEnterprise}>
                   {actionLoading ? 'Weiterleitung...' : '30 Tage kostenlos testen → Jetzt starten'}
                   <ExternalLink className="h-4 w-4 ml-2" />
                 </Button>
@@ -386,6 +388,16 @@ export default function BillingPage() {
             <CardDescription>Zahlungsmethode ändern, Rechnungen herunterladen oder kündigen</CardDescription>
           </CardHeader>
           <CardContent>
+            <div className="space-y-2 text-sm mb-4">
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Plan</span>
+                <span className="font-medium">{org?.subscription_plan === 'yearly' ? 'Jährlich' : 'Monatlich'}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Einheiten</span>
+                <span className="font-medium">{org?.einheiten_anzahl}</span>
+              </div>
+            </div>
             <Button variant="outline" className="w-full" onClick={handlePortal} disabled={actionLoading}>
               {actionLoading ? 'Weiterleitung...' : 'Stripe Kundenportal öffnen'}
               <ExternalLink className="h-4 w-4 ml-2" />
