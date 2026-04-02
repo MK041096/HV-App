@@ -83,9 +83,9 @@ export async function POST(
         const resend = new Resend(process.env.RESEND_API_KEY)
 
         const { error: emailError } = await resend.emails.send({
-          from: 'SchadensMelder <no-reply@zerodamage.de>',
+          from: 'SMARTCARL <no-reply@zerodamage.de>',
           to: hvAdminEmail,
-          subject: 'Ihr SchadensMelder-Zugang ist jetzt aktiv',
+          subject: 'Ihr SMARTCARL-Zugang ist jetzt aktiv',
           html: `<!DOCTYPE html>
 <html lang="de">
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
@@ -93,7 +93,7 @@ export async function POST(
   <div style="max-width:600px;margin:40px auto;background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.08)">
     <!-- Header -->
     <div style="background:linear-gradient(135deg,#9A6B3C,#B5834A);padding:32px 40px;text-align:center">
-      <h1 style="margin:0;color:#ffffff;font-size:22px;font-weight:700;letter-spacing:-0.3px">SchadensMelder</h1>
+      <h1 style="margin:0;color:#ffffff;font-size:22px;font-weight:700;letter-spacing:-0.3px">SMARTCARL</h1>
       <p style="margin:6px 0 0;color:rgba(255,255,255,0.8);font-size:13px">Digitales Schadensmeldungs-Management</p>
     </div>
 
@@ -144,7 +144,7 @@ export async function POST(
     <!-- Footer -->
     <div style="background:#f9fafb;border-top:1px solid #e5e7eb;padding:20px 40px;text-align:center">
       <p style="margin:0;color:#9ca3af;font-size:12px">
-        © 2026 SchadensMelder · zerodamage.de
+        © 2026 SMARTCARL · zerodamage.de
       </p>
     </div>
   </div>

@@ -158,7 +158,7 @@ export default function BillingPage() {
     <div className="max-w-3xl mx-auto space-y-6 p-6">
       <div>
         <h1 className="text-2xl font-bold">Abonnement & Abrechnung</h1>
-        <p className="text-muted-foreground text-sm mt-1">Verwalten Sie Ihr SchadensMelder-Abonnement</p>
+        <p className="text-muted-foreground text-sm mt-1">Verwalten Sie Ihr SMARTCARL-Abonnement</p>
       </div>
 
       {successParam && (
@@ -280,7 +280,7 @@ export default function BillingPage() {
                   ))}
                 </div>
                 <Button className="w-full" size="lg" asChild>
-                  <a href="mailto:kracherdigital@gmail.com?subject=Individuelles%20Angebot%20SchadensMelder">
+                  <a href="mailto:kracherdigital@gmail.com?subject=Individuelles%20Angebot%20SMARTCARL">
                     Angebot anfragen <Mail className="h-4 w-4 ml-2" />
                   </a>
                 </Button>

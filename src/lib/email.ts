@@ -1,7 +1,7 @@
 import { Resend } from 'resend'
 
 const resend = new Resend(process.env.RESEND_API_KEY)
-const FROM_EMAIL = 'SchadensMelder <noreply@zerodamage.de>'
+const FROM_EMAIL = 'SMARTCARL <noreply@zerodamage.de>'
 
 const STATUS_LABELS: Record<string, string> = {
   in_bearbeitung: 'In Bearbeitung',
@@ -40,7 +40,7 @@ function baseTemplate(content: string, orgName: string): string {
               <table width="100%" cellpadding="0" cellspacing="0">
                 <tr>
                   <td>
-                    <span style="color:#ffffff;font-size:18px;font-weight:700;">SchadensMelder</span>
+                    <span style="color:#ffffff;font-size:18px;font-weight:700;">SMARTCARL</span>
                     <br>
                     <span style="color:#a1a1aa;font-size:13px;">${orgName}</span>
                   </td>
@@ -58,7 +58,7 @@ function baseTemplate(content: string, orgName: string): string {
           <tr>
             <td style="padding:20px 0;text-align:center;">
               <p style="color:#a1a1aa;font-size:12px;margin:0;">
-                SchadensMelder · zerodamage.de<br>
+                SMARTCARL · zerodamage.de<br>
                 Diese E-Mail wurde automatisch generiert.
               </p>
             </td>
@@ -117,7 +117,7 @@ export async function sendStatusChangeEmail(params: {
   await resend.emails.send({
     from: FROM_EMAIL,
     to,
-    subject: `[${caseNumber}] Status: ${statusLabel} – SchadensMelder`,
+    subject: `[${caseNumber}] Status: ${statusLabel} – SMARTCARL`,
     html: baseTemplate(content, orgName),
   })
 }
@@ -686,7 +686,7 @@ export async function sendNewCommentEmail(params: {
   await resend.emails.send({
     from: FROM_EMAIL,
     to,
-    subject: `[${caseNumber}] Neue Nachricht – SchadensMelder`,
+    subject: `[${caseNumber}] Neue Nachricht – SMARTCARL`,
     html: baseTemplate(content, orgName),
   })
 }

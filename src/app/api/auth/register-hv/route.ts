@@ -192,10 +192,10 @@ export async function POST(request: NextRequest) {
         const resend = new Resend(process.env.RESEND_API_KEY)
         const confirmUrl = linkData.properties.action_link
         const { error: sendError } = await resend.emails.send({
-          from: "SchadensMelder <no-reply@zerodamage.de>",
+          from: "SMARTCARL <no-reply@zerodamage.de>",
           to: email,
-          subject: "E-Mail-Adresse bestaetigen - SchadensMelder",
-          html: `<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:24px"><div style="background:#1a1a2e;padding:16px 24px;border-radius:8px 8px 0 0"><h1 style="color:#ffffff;margin:0;font-size:20px">SchadensMelder</h1></div><div style="background:#ffffff;border:1px solid #e5e7eb;border-top:none;padding:32px;border-radius:0 0 8px 8px"><h2 style="color:#111827;margin:0 0 16px">Willkommen, ${first_name}!</h2><p style="color:#374151;margin:0 0 24px">Ihr Konto fuer <strong>${org_name}</strong> wurde erfolgreich angelegt.<br>Bitte bestaetigen Sie jetzt Ihre E-Mail-Adresse um loszulegen.</p><a href="${confirmUrl}" style="display:inline-block;background:#2563eb;color:#ffffff;padding:12px 28px;border-radius:6px;text-decoration:none;font-weight:600;font-size:16px">E-Mail-Adresse bestaetigen</a><p style="color:#6b7280;margin:24px 0 0;font-size:14px">Falls der Button nicht funktioniert, kopieren Sie diesen Link:<br><a href="${confirmUrl}" style="color:#2563eb;word-break:break-all">${confirmUrl}</a></p><hr style="border:none;border-top:1px solid #e5e7eb;margin:24px 0"><p style="color:#9ca3af;font-size:12px;margin:0">SchadensMelder - Digitales Schadensmeldungs-Management<br>Bei Fragen: <a href="mailto:Kracherdigital@gmail.com" style="color:#6b7280">Kracherdigital@gmail.com</a></p></div></div>`,
+          subject: "E-Mail-Adresse bestaetigen - SMARTCARL",
+          html: `<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:24px"><div style="background:#1a1a2e;padding:16px 24px;border-radius:8px 8px 0 0"><h1 style="color:#ffffff;margin:0;font-size:20px">SMARTCARL</h1></div><div style="background:#ffffff;border:1px solid #e5e7eb;border-top:none;padding:32px;border-radius:0 0 8px 8px"><h2 style="color:#111827;margin:0 0 16px">Willkommen, ${first_name}!</h2><p style="color:#374151;margin:0 0 24px">Ihr Konto fuer <strong>${org_name}</strong> wurde erfolgreich angelegt.<br>Bitte bestaetigen Sie jetzt Ihre E-Mail-Adresse um loszulegen.</p><a href="${confirmUrl}" style="display:inline-block;background:#2563eb;color:#ffffff;padding:12px 28px;border-radius:6px;text-decoration:none;font-weight:600;font-size:16px">E-Mail-Adresse bestaetigen</a><p style="color:#6b7280;margin:24px 0 0;font-size:14px">Falls der Button nicht funktioniert, kopieren Sie diesen Link:<br><a href="${confirmUrl}" style="color:#2563eb;word-break:break-all">${confirmUrl}</a></p><hr style="border:none;border-top:1px solid #e5e7eb;margin:24px 0"><p style="color:#9ca3af;font-size:12px;margin:0">SMARTCARL - Digitales Schadensmeldungs-Management<br>Bei Fragen: <a href="mailto:Kracherdigital@gmail.com" style="color:#6b7280">Kracherdigital@gmail.com</a></p></div></div>`,
         })
         if (sendError) {
           console.error("Resend send error:", sendError)
@@ -211,7 +211,7 @@ export async function POST(request: NextRequest) {
     try {
       const resend = new Resend(process.env.RESEND_API_KEY)
       const { error: notifyError } = await resend.emails.send({
-        from: "SchadensMelder <no-reply@zerodamage.de>",
+        from: "SMARTCARL <no-reply@zerodamage.de>",
         to: "Kracherdigital@gmail.com",
         subject: `Neue HV-Anfrage: ${org_name}`,
         html: `<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:24px">

@@ -7,7 +7,7 @@ export const hero = {
 export const about = {
   title: "Über uns",
   description: "Ich bin Mathias Kracher, Softwareentwickler mit Fokus auf Lösungen für Hausverwaltungen. Zerodamage wurde entwickelt, um den täglichen Aufwand für Schadensmeldungen drastisch zu reduzieren.",
-  mission: "Mit SchadensMelder sparen HV‑Teams Zeit, reduzieren Fehler und verbessern die Mieterzufriedenheit."
+  mission: "Mit SMARTCARL sparen HV‑Teams Zeit, reduzieren Fehler und verbessern die Mieterzufriedenheit."
 }
 
 export const ctaSection = {

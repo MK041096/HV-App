@@ -2,9 +2,9 @@ import Link from "next/link"
 import { Building2 } from "lucide-react"
 
 export const metadata = {
-  title: "Auftragsverarbeitungsvertrag (AVV) | SchadensMelder",
+  title: "Auftragsverarbeitungsvertrag (AVV) | SMARTCARL",
   description:
-    "Auftragsverarbeitungsvertrag gemäß Art. 28 DSGVO zwischen SchadensMelder und Hausverwaltungen.",
+    "Auftragsverarbeitungsvertrag gemäß Art. 28 DSGVO zwischen SMARTCARL und Hausverwaltungen.",
 }
 
 export default function AvvPage() {
@@ -17,7 +17,7 @@ export default function AvvPage() {
             <div className="h-7 w-7 rounded-lg bg-primary flex items-center justify-center">
               <Building2 className="h-4 w-4 text-primary-foreground" />
             </div>
-            <span className="font-semibold">SchadensMelder</span>
+            <span className="font-semibold">SMARTCARL</span>
           </Link>
         </div>
       </header>
@@ -39,7 +39,7 @@ export default function AvvPage() {
             <h2 className="text-xl font-semibold">Präambel</h2>
             <p>
               Dieser Auftragsverarbeitungsvertrag (nachfolgend „AVV") wird zwischen
-              der Hausverwaltung, die sich bei SchadensMelder registriert
+              der Hausverwaltung, die sich bei SMARTCARL registriert
               (nachfolgend „Verantwortlicher"), und
             </p>
             <div className="bg-muted/50 rounded-lg p-4 space-y-1">
@@ -49,7 +49,7 @@ export default function AvvPage() {
               <p>Tel.: +43 664 46 82 910</p>
               <p>UID: ATU81585679 | GISA-Zahl: 37695736</p>
               <p className="text-muted-foreground text-xs">
-                Betreiber der Plattform SchadensMelder (nachfolgend „Auftragsverarbeiter")
+                Betreiber der Plattform SMARTCARL (nachfolgend „Auftragsverarbeiter")
               </p>
             </div>
             <p>geschlossen.</p>
@@ -68,7 +68,7 @@ export default function AvvPage() {
             <h2 className="text-xl font-semibold">§ 1 Gegenstand und Dauer der Verarbeitung</h2>
             <p>
               (1) Gegenstand der Auftragsverarbeitung ist die Bereitstellung und
-              der Betrieb der Plattform SchadensMelder, insbesondere:
+              der Betrieb der Plattform SMARTCARL, insbesondere:
             </p>
             <ul className="list-disc pl-6 space-y-1">
               <li>Erfassung und Verwaltung von Schadensmeldungen</li>

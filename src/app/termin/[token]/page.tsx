@@ -153,7 +153,7 @@ export default function TerminPage({ params }: { params: Promise<{ token: string
       <div className="max-w-lg w-full space-y-4">
         {/* Header */}
         <div className="text-center">
-          <h1 className="text-2xl font-bold">SchadensMelder</h1>
+          <h1 className="text-2xl font-bold">SMARTCARL</h1>
           <p className="text-muted-foreground text-sm mt-1">Reparaturauftrag — Terminbestätigung</p>
         </div>
 
@@ -297,7 +297,7 @@ export default function TerminPage({ params }: { params: Promise<{ token: string
         </Card>
 
         <p className="text-center text-xs text-muted-foreground">
-          SchadensMelder · zerodamage.de · Dieser Link ist 7 Tage gültig
+          SMARTCARL · zerodamage.de · Dieser Link ist 7 Tage gültig
         </p>
       </div>
     </div>

@@ -68,7 +68,7 @@ function downloadTemplate() {
   const url = URL.createObjectURL(blob)
   const a = document.createElement("a")
   a.href = url
-  a.download = "SchadensMelder_Vorlage.xlsx"
+  a.download = "SMARTCARL_Vorlage.xlsx"
   a.click()
   URL.revokeObjectURL(url)
 }

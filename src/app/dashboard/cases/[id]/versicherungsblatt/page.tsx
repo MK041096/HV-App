@@ -152,7 +152,7 @@ export default function VersicherungsblattPage({
               <h1 className="text-2xl font-bold">Versicherungsschadenblatt</h1>
             </div>
             <p className="text-muted-foreground text-sm">
-              Erstellt am {formatDate(new Date().toISOString(), true)} von SchadensMelder
+              Erstellt am {formatDate(new Date().toISOString(), true)} von SMARTCARL
             </p>
           </div>
           <div className="text-right space-y-1">
@@ -370,7 +370,7 @@ export default function VersicherungsblattPage({
 
         {/* Footer */}
         <div className="pt-8 border-t text-xs text-muted-foreground space-y-1 print:border-gray-300">
-          <p>Erstellt mit SchadensMelder · zerodamage.de</p>
+          <p>Erstellt mit SMARTCARL · zerodamage.de</p>
           <p>Dokument-ID: {report.id} · Fall: {report.case_number}</p>
         </div>
       </div>

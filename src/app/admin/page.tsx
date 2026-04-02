@@ -122,7 +122,7 @@ export default function AdminOverviewPage() {
       {/* Page Header */}
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Platform Übersicht</h1>
-        <p className="text-muted-foreground mt-1">SchadensMelder Betreiberansicht</p>
+        <p className="text-muted-foreground mt-1">SMARTCARL Betreiberansicht</p>
       </div>
 
       {/* Stats Grid */}

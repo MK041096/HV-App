@@ -122,7 +122,7 @@ export default function ResetPasswordPage() {
           <div className="flex items-center justify-center h-14 w-14 rounded-xl bg-primary text-primary-foreground">
             <Building2 className="h-7 w-7" />
           </div>
-          <h1 className="text-2xl font-bold tracking-tight">SchadensMelder</h1>
+          <h1 className="text-2xl font-bold tracking-tight">SMARTCARL</h1>
           <p className="text-sm text-muted-foreground">
             Hausverwaltungs-Portal
           </p>

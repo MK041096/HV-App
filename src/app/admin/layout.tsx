@@ -57,7 +57,7 @@ function SidebarContent({
           <Shield className="h-5 w-5" />
         </div>
         <div className="flex flex-col min-w-0">
-          <span className="text-sm font-semibold truncate">SchadensMelder</span>
+          <span className="text-sm font-semibold truncate">SMARTCARL</span>
           <span className="text-xs text-muted-foreground truncate">Admin Portal</span>
         </div>
       </div>
@@ -238,7 +238,7 @@ export default function AdminLayout({
           </Button>
           <div className="flex items-center gap-2">
             <Shield className="h-5 w-5 text-primary" />
-            <span className="font-semibold text-sm">SchadensMelder Admin</span>
+            <span className="font-semibold text-sm">SMARTCARL Admin</span>
           </div>
         </header>
 

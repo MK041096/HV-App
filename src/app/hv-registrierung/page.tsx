@@ -212,7 +212,7 @@ export default function HvRegistrierungPage() {
             <div className="h-10 w-10 rounded-xl bg-primary flex items-center justify-center">
               <Building2 className="h-5 w-5 text-primary-foreground" />
             </div>
-            <span className="text-xl font-bold">SchadensMelder</span>
+            <span className="text-xl font-bold">SMARTCARL</span>
           </Link>
           <p className="text-sm text-muted-foreground">
             Jetzt kostenlos testen — kein Risiko, kein Vertrag

@@ -1,7 +1,7 @@
 import type { Metadata } from "next"
 
 export const metadata: Metadata = {
-  title: "Datenschutzerklärung – SchadensMelder",
+  title: "Datenschutzerklärung – SMARTCARL",
   robots: { index: false },
 }
 

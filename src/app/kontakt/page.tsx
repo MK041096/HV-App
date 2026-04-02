@@ -1,5 +1,5 @@
 export const metadata = {
-  title: "Kontakt – SchadensMelder",
+  title: "Kontakt – SMARTCARL",
 }
 
 export default function KontaktPage() {

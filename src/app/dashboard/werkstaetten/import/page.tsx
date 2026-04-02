@@ -31,7 +31,7 @@ function downloadTemplate() {
   ws["!cols"] = [{ wch: 28 }, { wch: 20 }, { wch: 28 }, { wch: 28 }, { wch: 40 }]
   const wb = XLSX.utils.book_new()
   XLSX.utils.book_append_sheet(wb, ws, "Werkstätten")
-  XLSX.writeFile(wb, "SchadensMelder_Werkstaetten_Vorlage.xlsx")
+  XLSX.writeFile(wb, "SMARTCARL_Werkstaetten_Vorlage.xlsx")
 }
 
 export default function WerkstaettenImportPage() {

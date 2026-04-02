@@ -239,7 +239,7 @@ ${caseData.ki_analyse_result ? `
 </div>
 
 <div class="footer">
-  Erstellt am ${today} · Fallnummer ${caseData.case_number} · ${org?.name || 'Hausverwaltung'} · Dieses Formular wurde automatisch aus SchadensMelder generiert.
+  Erstellt am ${today} · Fallnummer ${caseData.case_number} · ${org?.name || 'Hausverwaltung'} · Dieses Formular wurde automatisch aus SMARTCARL generiert.
 </div>
 
 </body>
