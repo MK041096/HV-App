@@ -74,34 +74,27 @@ export async function POST(request: NextRequest) {
         .eq('id', org.id)
     }
 
-    // Choose price based on plan and founder status
+    // Choose price based on plan
     const unitCount = requestedUnitCount ?? Math.max(org.einheiten_anzahl || 1, 1)
     if (requestedUnitCount && requestedUnitCount !== org.einheiten_anzahl) {
       await adminClient.from('organizations').update({ einheiten_anzahl: requestedUnitCount }).eq('id', org.id)
     }
-    let priceId: string
-    if (plan === 'yearly') {
-      priceId = isFounder ? STRIPE_PRICES.founderYearly : STRIPE_PRICES.yearly
-    } else {
-      priceId = isFounder ? STRIPE_PRICES.founderMonthly : STRIPE_PRICES.monthly
-    }
+    const priceId = plan === 'yearly' ? STRIPE_PRICES.yearly : STRIPE_PRICES.monthly
+
+    // April-Aktion: 50% Rabatt automatisch bis 30. April 2026
+    const now = new Date()
+    const isAprilPromo = now >= new Date('2026-04-01') && now <= new Date('2026-04-30T23:59:59Z')
+    const aprilCoupon = isAprilPromo
+      ? (plan === 'yearly' ? 'APRIL2026_YEARLY' : 'APRIL2026_MONTHLY')
+      : null
 
     // Build line items: setup fee + subscription
     const lineItems: { price: string; quantity: number }[] = []
 
-    // One-time setup fee
     if (STRIPE_PRICES.setupFee) {
-      lineItems.push({
-        price: STRIPE_PRICES.setupFee,
-        quantity: 1,
-      })
+      lineItems.push({ price: STRIPE_PRICES.setupFee, quantity: 1 })
     }
-
-    // Recurring subscription (quantity = number of units)
-    lineItems.push({
-      price: priceId,
-      quantity: unitCount,
-    })
+    lineItems.push({ price: priceId, quantity: unitCount })
 
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
@@ -109,19 +102,11 @@ export async function POST(request: NextRequest) {
       line_items: lineItems,
       success_url: `${APP_URL}/dashboard/billing?success=1`,
       cancel_url: `${APP_URL}/dashboard/billing?canceled=1`,
-      metadata: {
-        organization_id: org.id,
-        plan,
-        is_founder: String(isFounder),
-      },
+      metadata: { organization_id: org.id, plan },
       subscription_data: {
-        metadata: {
-          organization_id: org.id,
-          plan,
-          is_founder: String(isFounder),
-        },
-        // 30-day payment delay for money-back guarantee
+        metadata: { organization_id: org.id, plan },
         trial_period_days: 30,
+        ...(aprilCoupon ? { coupon: aprilCoupon } : {}),
       },
       allow_promotion_codes: true,
       billing_address_collection: 'required',
