@@ -314,9 +314,39 @@ export async function POST(
       .map((block) => (block as Anthropic.TextBlock).text)
       .join('\n')
 
+    // Dringlichkeit aus CARL-Analyse ableiten und in DB setzen
+    const analysisLower = analysisText.toLowerCase()
+    let detectedUrgency: string | null = null
+    if (
+      analysisLower.includes('notfall') ||
+      analysisLower.includes('sofort') ||
+      analysisLower.includes('brandgefahr') ||
+      analysisLower.includes('stromschlag') ||
+      analysisLower.includes('gasgefahr') ||
+      analysisLower.includes('unmittelbare gefahr') ||
+      analysisLower.includes('sofortiges handeln')
+    ) {
+      detectedUrgency = 'notfall'
+    } else if (
+      analysisLower.includes('dringend') ||
+      analysisLower.includes('innerhalb 24') ||
+      analysisLower.includes('innerhalb 48') ||
+      analysisLower.includes('zeitnah')
+    ) {
+      detectedUrgency = 'dringend'
+    }
+
+    const updatePayload: Record<string, string> = {
+      ki_analyse_result: analysisText,
+      ki_analyse_at: new Date().toISOString(),
+    }
+    if (detectedUrgency && detectedUrgency !== caseData.urgency) {
+      updatePayload.urgency = detectedUrgency
+    }
+
     await supabase
       .from('damage_reports')
-      .update({ ki_analyse_result: analysisText, ki_analyse_at: new Date().toISOString() })
+      .update(updatePayload)
       .eq('id', id)
       .eq('organization_id', profile.organization_id)
 

@@ -1544,7 +1544,13 @@ export default function CaseDetailPage({
           {/* ── Schnellaktionen ── */}
           {kiResult && !['abgelehnt', 'erledigt'].includes(caseData.status) && (() => {
             const kiLower = kiResult.toLowerCase()
-            const isMieterVerantwortlich = kiLower.includes('verantwortlich: mieter') || kiLower.includes('verantwortung: mieter') || (kiLower.includes('mieter') && kiLower.includes('verantwortlich') && !kiLower.includes('hausverwaltung verantwortlich') && !kiLower.includes('vermieter verantwortlich'))
+            // Explizit prüfen ob Mieter verantwortlich — nur wenn CARL klar "Mieter" als Verantwortlichen nennt
+            // HV/Vermieter-Verantwortung hat immer Vorrang
+            const hvKeywords = ['hausverwaltung', 'vermieter', 'hv', 'mrg § 3', 'mrg §3', 'erhaltungspflicht']
+            const mieterKeywords = ['verantwortlich: mieter', 'verantwortung: mieter', 'mieter ist verantwortlich', 'mieter trägt', 'mieter haftet']
+            const hvMentioned = hvKeywords.some(k => kiLower.includes(k))
+            const mieterMentioned = mieterKeywords.some(k => kiLower.includes(k))
+            const isMieterVerantwortlich = mieterMentioned && !hvMentioned
             const matchingContractors = contractors.filter(c => c.specialties.includes(caseData.category))
             const suggestedContractor = matchingContractors[0] || contractors[0]
 
