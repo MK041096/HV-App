@@ -12,11 +12,12 @@ export async function GET(req: NextRequest) {
 
   return new ImageResponse(
     (
-      <div style={{ width: '100%', height: '100%', display: 'flex', position: 'relative' }}>
-        <img src={base64} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
-        <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.85)', display: 'flex' }} />
+      <div style={{ width: '100%', height: '100%', display: 'flex', background: '#000' }}>
+        {/* Foto mit sehr niedriger Deckkraft */}
+        <img src={base64} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: 0.25 }} />
+        {/* Roter Strich oben */}
         <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: 8, background: '#C74229', display: 'flex' }} />
-
+        {/* Text */}
         <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '60px 80px' }}>
           <div style={{ display: 'flex', marginBottom: 28 }}>
             <span style={{ color: '#C74229', fontSize: 36, fontWeight: 700, letterSpacing: '0.1em', display: 'flex' }}>SMARTCARL</span>
