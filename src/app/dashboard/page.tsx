@@ -18,6 +18,9 @@ import {
   ChevronUp,
   PlayCircle,
   Info,
+  Bell,
+  Flame,
+  X,
 } from "lucide-react"
 
 import { supabase } from "@/lib/supabase"
@@ -141,6 +144,7 @@ export default function DashboardPage() {
   const [stats, setStats] = useState<DashboardStats | null>(null)
   const [recentCases, setRecentCases] = useState<RecentCase[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [newCasesDismissed, setNewCasesDismissed] = useState(false)
   const [onboarding, setOnboarding] = useState<OnboardingState>({
     hasUnits: false,
     hasWerkstaetten: false,
@@ -316,6 +320,82 @@ export default function DashboardPage() {
           Willkommen im Case-Management Dashboard
         </p>
       </div>
+
+      {/* ── Neue Schadensmeldungen Banner ── */}
+      {!newCasesDismissed && (() => {
+        const newCases = recentCases.filter(c => c.status === 'neu')
+        if (newCases.length === 0) return null
+        const hasNotfall = newCases.some(c => c.urgency === 'notfall')
+        const hasDringend = newCases.some(c => c.urgency === 'dringend')
+        const bgClass = hasNotfall
+          ? 'bg-red-600 border-red-700'
+          : hasDringend
+          ? 'bg-orange-500 border-orange-600'
+          : 'bg-blue-600 border-blue-700'
+
+        return (
+          <div className={`rounded-xl border-2 ${bgClass} text-white shadow-lg`}>
+            <div className="p-4 sm:p-5">
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/20">
+                    {hasNotfall ? (
+                      <Flame className="h-5 w-5" />
+                    ) : (
+                      <Bell className="h-5 w-5" />
+                    )}
+                  </div>
+                  <div>
+                    <p className="font-bold text-base sm:text-lg">
+                      {newCases.length === 1
+                        ? '1 neue Schadensmeldung eingegangen'
+                        : `${newCases.length} neue Schadensmeldungen eingegangen`}
+                    </p>
+                    <p className="text-white/80 text-sm mt-0.5">
+                      {hasNotfall ? 'Darunter ein Notfall — sofortiges Handeln erforderlich' : hasDringend ? 'Darunter dringende Meldungen' : 'Bitte prüfen und bearbeiten'}
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setNewCasesDismissed(true)}
+                  className="shrink-0 rounded-md p-1 hover:bg-white/20 transition-colors"
+                  aria-label="Schließen"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+
+              <div className="mt-4 space-y-2">
+                {newCases.map(c => (
+                  <Link
+                    key={c.id}
+                    href={`/dashboard/cases/${c.id}`}
+                    className="flex items-center justify-between rounded-lg bg-white/15 hover:bg-white/25 transition-colors px-3 py-2.5 group"
+                  >
+                    <div className="flex items-center gap-3 min-w-0">
+                      <span className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-bold ${
+                        c.urgency === 'notfall' ? 'bg-white text-red-600'
+                        : c.urgency === 'dringend' ? 'bg-white text-orange-600'
+                        : 'bg-white/30 text-white'
+                      }`}>
+                        {c.urgency === 'notfall' ? 'NOTFALL' : c.urgency === 'dringend' ? 'DRINGEND' : 'NEU'}
+                      </span>
+                      <div className="min-w-0">
+                        <p className="font-medium text-sm truncate">{c.title}</p>
+                        <p className="text-white/70 text-xs truncate">
+                          {c.unit?.name && `${c.unit.name} · `}
+                          {c.reporter?.first_name} {c.reporter?.last_name}
+                        </p>
+                      </div>
+                    </div>
+                    <ArrowRight className="h-4 w-4 shrink-0 opacity-70 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all" />
+                  </Link>
+                ))}
+              </div>
+            </div>
+          </div>
+        )
+      })()}
 
       {/* Onboarding Guide */}
       {onboarding.loaded && (

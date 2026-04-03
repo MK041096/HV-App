@@ -157,6 +157,151 @@ interface CaseDetail {
   invoice_uploaded_at: string | null
 }
 
+// ── CARL Analysis Parser ──
+
+interface CarlSections {
+  verantwortlich: string | null
+  begruendung: string | null
+  empfehlung: string | null
+  dringlichkeit: string | null
+  hinweis: string | null
+  zustaendigkeit: string | null
+  rechtsgrundlage: string | null
+  versicherung: string | null
+  raw: string
+}
+
+function parseCarlAnalysis(text: string): CarlSections {
+  const extract = (patterns: string[]): string | null => {
+    for (const pattern of patterns) {
+      const regex = new RegExp(`(?:\\*\\*)?${pattern}(?:\\*\\*)?:?\\s*([\\s\\S]*?)(?=\\n\\*\\*[A-ZÜÄÖ]|\\n\\d+\\.|$)`, 'i')
+      const m = text.match(regex)
+      if (m?.[1]?.trim()) return m[1].replace(/\*\*/g, '').trim()
+    }
+    return null
+  }
+  return {
+    verantwortlich: extract(['VERANTWORTLICH', 'Verantwortlich']),
+    begruendung: extract(['BEGRÜNDUNG', 'Begründung', 'BEGRUENDUNG']),
+    empfehlung: extract(['EMPFEHLUNG', 'Empfehlung']),
+    dringlichkeit: extract(['DRINGLICHKEIT', 'Dringlichkeit']),
+    hinweis: extract(['HINWEIS', 'Hinweis']),
+    zustaendigkeit: extract(['Zustaendigkeit', 'Zuständigkeit', '1\\. \\*\\*Zustaendigkeit']),
+    rechtsgrundlage: extract(['Rechtsgrundlage', '2\\. \\*\\*Rechtsgrundlage']),
+    versicherung: extract(['Versicherungsrelevanz', 'Versicherung', '3\\. \\*\\*Versicherungsrelevanz']),
+    raw: text,
+  }
+}
+
+function CarlAnalysisDisplay({ text, leaseFound, insuranceFound, photoCount }: {
+  text: string
+  leaseFound: boolean | null
+  insuranceFound?: boolean
+  photoCount?: number
+}) {
+  const s = parseCarlAnalysis(text)
+
+  const verantwortlichLower = (s.verantwortlich || '').toLowerCase()
+  const isHV = verantwortlichLower.includes('hausverwaltung') || verantwortlichLower.includes('vermieter')
+  const isMieter = verantwortlichLower.includes('mieter') && !isHV
+  const isUnklar = !isHV && !isMieter
+
+  const dringLower = (s.dringlichkeit || '').toLowerCase()
+  const isNotfall = dringLower.includes('notfall')
+  const isDringend = dringLower.includes('dringend')
+
+  const responsibleLabel = isHV ? 'Hausverwaltung' : isMieter ? 'Mieter' : 'Unklar'
+  const responsibleBg = isHV ? 'bg-green-50 border-green-200' : isMieter ? 'bg-red-50 border-red-200' : 'bg-amber-50 border-amber-200'
+  const responsibleText = isHV ? 'text-green-800' : isMieter ? 'text-red-800' : 'text-amber-800'
+  const responsibleIcon = isHV ? '✓' : isMieter ? '✗' : '?'
+
+  const urgencyBg = isNotfall ? 'bg-red-600 text-white' : isDringend ? 'bg-orange-500 text-white' : 'bg-blue-100 text-blue-800'
+  const urgencyLabel = isNotfall ? '⚡ NOTFALL — Sofort handeln' : isDringend ? '⏰ DRINGEND — Innerhalb 48h' : '✓ NORMAL — Innerhalb 2 Wochen'
+
+  // If parsing didn't extract sections, show formatted raw text
+  const hasStructure = !!(s.verantwortlich || s.zustaendigkeit)
+
+  if (!hasStructure) {
+    return (
+      <div className="rounded-lg bg-purple-50 border border-purple-200 p-4 text-sm whitespace-pre-wrap text-purple-900">
+        {text}
+      </div>
+    )
+  }
+
+  return (
+    <div className="space-y-3">
+      {/* Dringlichkeit — oben prominent */}
+      <div className={`rounded-lg px-4 py-3 font-bold text-sm ${urgencyBg}`}>
+        {urgencyLabel}
+      </div>
+
+      {/* Verantwortlichkeit — die wichtigste Aussage */}
+      <div className={`rounded-lg border-2 p-4 ${responsibleBg}`}>
+        <div className="flex items-center gap-2 mb-2">
+          <span className={`text-lg font-bold ${responsibleText}`}>{responsibleIcon}</span>
+          <span className={`font-bold text-base ${responsibleText}`}>Verantwortlich: {responsibleLabel}</span>
+        </div>
+        {(s.begruendung || s.zustaendigkeit) && (
+          <p className={`text-sm ${responsibleText} opacity-90`}>
+            {s.begruendung || s.zustaendigkeit}
+          </p>
+        )}
+      </div>
+
+      {/* Empfehlung */}
+      {s.empfehlung && (
+        <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
+          <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1.5">Empfohlener nächster Schritt</p>
+          <p className="text-sm text-slate-800 font-medium">{s.empfehlung}</p>
+        </div>
+      )}
+
+      {/* Rechtsgrundlage + Versicherung nebeneinander */}
+      {(s.rechtsgrundlage || s.versicherung) && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {s.rechtsgrundlage && (
+            <div className="rounded-lg border border-slate-100 bg-white p-3">
+              <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1">Rechtsgrundlage</p>
+              <p className="text-xs text-slate-700">{s.rechtsgrundlage}</p>
+            </div>
+          )}
+          {s.versicherung && (
+            <div className="rounded-lg border border-slate-100 bg-white p-3">
+              <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1">Versicherung</p>
+              <p className="text-xs text-slate-700">{s.versicherung}</p>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Hinweis */}
+      {s.hinweis && (
+        <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2">
+          <p className="text-xs text-amber-700">{s.hinweis}</p>
+        </div>
+      )}
+
+      {/* Datenquellen */}
+      <div className="flex flex-wrap gap-2 pt-1">
+        <span className={`inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full border ${leaseFound ? 'bg-green-50 border-green-200 text-green-700' : 'bg-gray-50 border-gray-200 text-gray-400'}`}>
+          {leaseFound ? '✓' : '✗'} Mietvertrag
+        </span>
+        {insuranceFound !== undefined && (
+          <span className={`inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full border ${insuranceFound ? 'bg-green-50 border-green-200 text-green-700' : 'bg-gray-50 border-gray-200 text-gray-400'}`}>
+            {insuranceFound ? '✓' : '✗'} Versicherungspolice
+          </span>
+        )}
+        {photoCount !== undefined && photoCount > 0 && (
+          <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full border bg-blue-50 border-blue-200 text-blue-700">
+            📷 {photoCount} Foto{photoCount > 1 ? 's' : ''} analysiert
+          </span>
+        )}
+      </div>
+    </div>
+  )
+}
+
 // ── Helpers ──
 
 function getUrgencyConfig(urgency: string) {
@@ -253,6 +398,8 @@ export default function CaseDetailPage({
   // KI-Analyse state
   const [kiResult, setKiResult] = useState<string | null>(null)
   const [kiLeaseFound, setKiLeaseFound] = useState<boolean | null>(null)
+  const [kiInsuranceFound, setKiInsuranceFound] = useState<boolean | undefined>(undefined)
+  const [kiPhotoCount, setKiPhotoCount] = useState<number>(0)
   const [isRunningKi, setIsRunningKi] = useState(false)
   const [kiError, setKiError] = useState<string | null>(null)
 
@@ -340,6 +487,8 @@ export default function CaseDetailPage({
       if (!res.ok) throw new Error(data.error)
       setKiResult(data.result)
       setKiLeaseFound(data.lease_found ?? false)
+      setKiInsuranceFound(data.insurance_found ?? false)
+      setKiPhotoCount(data.photo_count ?? 0)
     } catch (err) {
       setKiError(err instanceof Error ? err.message : 'Fehler')
     } finally {
@@ -1542,29 +1691,26 @@ export default function CaseDetailPage({
             </CardContent>
           </Card>
 
-          {/* KI-Analyse */}
-          <Card>
+          {/* CARL-Analyse */}
+          <Card className={kiResult ? 'border-purple-200' : ''}>
             <CardHeader>
               <CardTitle className="text-base flex items-center gap-2">
                 <Sparkles className="h-4 w-4 text-purple-500" />
-                KI-Analyse
+                CARL-Analyse
               </CardTitle>
               <p className="text-xs text-muted-foreground">
-                Mietrecht & Verantwortlichkeit automatisch prüfen
+                Verantwortlichkeit · Mietrecht · Dringlichkeit · Empfehlung
               </p>
             </CardHeader>
             <CardContent className="space-y-3">
               {kiResult ? (
                 <div className="space-y-3">
-                  <div className="rounded-lg bg-purple-50 border border-purple-200 p-3 text-sm whitespace-pre-wrap text-purple-900 max-h-64 overflow-y-auto">
-                    {kiResult}
-                  </div>
-                  {kiLeaseFound === false && (
-                    <p className="text-xs text-amber-600 flex items-center gap-1">
-                      <FileSearch className="h-3.5 w-3.5" />
-                      Kein Mietvertrag hinterlegt — Analyse nach MRG
-                    </p>
-                  )}
+                  <CarlAnalysisDisplay
+                    text={kiResult}
+                    leaseFound={kiLeaseFound}
+                    insuranceFound={kiInsuranceFound}
+                    photoCount={kiPhotoCount || caseData.photos?.length || 0}
+                  />
                   <Button
                     variant="outline"
                     size="sm"
@@ -1582,24 +1728,24 @@ export default function CaseDetailPage({
                     <p className="text-xs text-destructive">{kiError}</p>
                   )}
                   <Button
-                    className="w-full"
+                    className="w-full bg-purple-600 hover:bg-purple-700"
                     disabled={isRunningKi}
                     onClick={runKiAnalysis}
                   >
                     {isRunningKi ? (
                       <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Analysiere...
+                        CARL analysiert...
                       </>
                     ) : (
                       <>
                         <Sparkles className="mr-2 h-4 w-4" />
-                        KI-Analyse starten
+                        CARL-Analyse starten
                       </>
                     )}
                   </Button>
                   <p className="text-[11px] text-muted-foreground text-center">
-                    Prüft Mietvertrag & österreichisches MRG
+                    Prüft Mietvertrag, Versicherung & Fotos — {caseData.photos?.length > 0 ? `${caseData.photos.length} Foto(s) werden analysiert` : 'österreichisches MRG'}
                   </p>
                 </div>
               )}

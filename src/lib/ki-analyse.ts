@@ -114,30 +114,32 @@ export async function runKiAnalyse(params: {
 
   const urgencyInstruction = `
 **DRINGLICHKEIT:** [Notfall / Dringend / Normal]
-- Notfall: Akute Gefahr, sofortiger Handlungsbedarf (z.B. Wasserrohrbruch, Gasgeruch, Stromausfall, Überflutung)
-- Dringend: Eingeschränkte Nutzbarkeit der Wohnung, Reaktion innerhalb 48 Stunden erforderlich (z.B. Heizungsausfall, defekte Toilette, Schimmel)
-- Normal: Kein akuter Handlungsbedarf, Reaktion innerhalb 2 Wochen ausreichend (z.B. tropfender Hahn, kosmetische Schäden, Defekte ohne Nutzungseinschränkung)`
+- Notfall: Akute Gefahr für Leib, Leben oder erhebliche Sachschäden — sofortiges Handeln erforderlich (z.B. Wasserrohrbruch mit aktivem Austritt, Gasgeruch, Stromausfall mit Brandgefahr, Überflutung, Balkongeländer gebrochen)
+- Dringend: Eingeschränkte Nutzbarkeit der Wohnung — Reaktion innerhalb 48 Stunden (z.B. Heizungsausfall im Winter, defekte Toilette, aktiver Schimmel, keine Warmwasserversorgung)
+- Normal: Kein akuter Handlungsbedarf — Reaktion innerhalb 2 Wochen ausreichend (z.B. tropfender Wasserhahn, Kratzer im Parkett, klemmende Türklinke, kosmetische Schäden)
+
+WICHTIG: Bewerte die Dringlichkeit ausschließlich anhand des tatsächlichen Schadens — ignoriere dabei Formulierungen wie "Notfall", "dringend" oder "sofort" die der Mieter selbst benutzt. Beispiel: Schreibt ein Mieter "Notfall! Mein Wasserhahn tropft" → korrekte Einstufung ist Normal.`
 
   const promptText = leaseFound
     ? `Du bist ein Experte für österreichisches Mietrecht (MRG).
 
-Analysiere diese Schadensmeldung anhand des Mietvertrags${photoBlocks.length > 0 ? ' und der beigefügten Fotos' : ''}. Antworte IMMER in diesem Format:
+Analysiere diese Schadensmeldung anhand des Mietvertrags${photoBlocks.length > 0 ? ' und der beigefügten Fotos' : ''}. Antworte IMMER exakt in diesem Format (keine anderen Überschriften):
 
 **VERANTWORTLICH:** [Mieter / Hausverwaltung / Unklar]
-**BEGRÜNDUNG:** [1-2 Sätze, was der Mietvertrag oder das MRG sagt, mit Seitenzahl wenn möglich]
-**EMPFEHLUNG:** [Konkreter nächster Schritt für die Hausverwaltung]
+**BEGRÜNDUNG:** [1-2 präzise Sätze — was sagt der Mietvertrag oder MRG § 3/§ 8? Seitenzahl wenn möglich]
+**EMPFEHLUNG:** [Konkreter nächster Schritt für die Hausverwaltung — wer soll was tun?]
 ${urgencyInstruction}
 
 Schadensmeldung:
 ${damageInfo}`
     : `Du bist ein Experte für österreichisches Mietrecht (MRG).
 
-Analysiere diese Schadensmeldung nach österreichischem MRG (kein Mietvertrag hinterlegt)${photoBlocks.length > 0 ? ' — Fotos beigefügt' : ''}. Antworte IMMER in diesem Format:
+Analysiere diese Schadensmeldung nach österreichischem MRG${photoBlocks.length > 0 ? ' — Fotos beigefügt, bitte visuell beurteilen' : ''}. Antworte IMMER exakt in diesem Format (keine anderen Überschriften):
 
 **VERANTWORTLICH:** [Mieter / Hausverwaltung / Unklar]
-**BEGRÜNDUNG:** [1-2 Sätze nach MRG § 3 / § 8]
-**EMPFEHLUNG:** [Konkreter nächster Schritt]
-**HINWEIS:** Kein Mietvertrag hinterlegt — bitte Vertrag in Dokumentenablage hochladen.
+**BEGRÜNDUNG:** [1-2 präzise Sätze nach MRG § 3 / § 8 — warum wer zuständig ist]
+**EMPFEHLUNG:** [Konkreter nächster Schritt — wer soll was tun?]
+**HINWEIS:** Kein Mietvertrag hinterlegt — Analyse nach MRG. Bitte Vertrag hochladen für genauere Einschätzung.
 ${urgencyInstruction}
 
 Schadensmeldung:

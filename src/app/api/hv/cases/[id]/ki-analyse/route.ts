@@ -390,8 +390,9 @@ export async function POST(
     return NextResponse.json({
       result: analysisText,
       lease_found: leaseFound,
-      insurance_found: insuranceFound,
+      insurance_found: insuranceFound || unitInsuranceFound,
       unit_insurance_found: unitInsuranceFound,
+      photo_count: photoBlocks.length,
       unit_name: unit?.name || null,
       country,
     })

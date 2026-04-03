@@ -1,8 +1,8 @@
 # PROJ-12: KI-Mietvertragsanalyse (Claude API)
 
-## Status: Planned
+## Status: Deployed
 **Created:** 2026-03-07
-**Last Updated:** 2026-03-07
+**Last Updated:** 2026-03-27
 
 ## Dependencies
 - Requires: PROJ-11 (Dokumentenablage) — Mietverträge müssen hochgeladen sein
