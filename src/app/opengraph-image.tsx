@@ -14,7 +14,7 @@ export default async function Image() {
     (
       <div style={{ width: '100%', height: '100%', display: 'flex', position: 'relative' }}>
         <img src={base64} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
-        <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.82)', display: 'flex' }} />
+        <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.93)', display: 'flex' }} />
         <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: 8, background: '#C74229', display: 'flex' }} />
 
         <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '60px 80px' }}>
