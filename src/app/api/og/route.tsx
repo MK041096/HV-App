@@ -1,12 +1,14 @@
 import { ImageResponse } from 'next/og'
 import { NextRequest } from 'next/server'
+import fs from 'fs'
+import path from 'path'
 
 export const runtime = 'nodejs'
 
 export async function GET(req: NextRequest) {
-  const res = await fetch('https://www.smartcarl.com/wien_blutgasse_a.jpg', { cache: 'no-store' })
-  const buf = await res.arrayBuffer()
-  const base64 = `data:image/jpeg;base64,${Buffer.from(buf).toString('base64')}`
+  const imgPath = path.join(process.cwd(), 'public', 'wien_blutgasse_a.jpg')
+  const buf = fs.readFileSync(imgPath)
+  const base64 = `data:image/jpeg;base64,${buf.toString('base64')}`
 
   return new ImageResponse(
     (
