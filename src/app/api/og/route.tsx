@@ -1,13 +1,10 @@
 import { ImageResponse } from 'next/og'
+import { NextRequest } from 'next/server'
 
 export const runtime = 'nodejs'
-export const revalidate = 0
-export const alt = 'SMARTCARL – Schadensmeldungen für Hausverwaltungen'
-export const size = { width: 1200, height: 630 }
-export const contentType = 'image/png'
 
-export default async function Image() {
-  const res = await fetch('https://www.smartcarl.com/wien_blutgasse_a.jpg')
+export async function GET(req: NextRequest) {
+  const res = await fetch('https://www.smartcarl.com/wien_blutgasse_a.jpg', { cache: 'no-store' })
   const buf = await res.arrayBuffer()
   const base64 = `data:image/jpeg;base64,${Buffer.from(buf).toString('base64')}`
 
@@ -15,7 +12,8 @@ export default async function Image() {
     (
       <div style={{ width: '100%', height: '100%', display: 'flex', position: 'relative' }}>
         <img src={base64} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
-        <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.97)', display: 'flex' }} />
+        {/* Overlay genau wie auf der Landingpage: rgba(7,7,7,0.74) */}
+        <div style={{ position: 'absolute', inset: 0, background: 'rgba(7,7,7,0.74)', display: 'flex' }} />
         <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: 8, background: '#C74229', display: 'flex' }} />
 
         <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '60px 80px' }}>
@@ -33,6 +31,12 @@ export default async function Image() {
         </div>
       </div>
     ),
-    { ...size }
+    {
+      width: 1200,
+      height: 630,
+      headers: {
+        'Cache-Control': 'no-store',
+      },
+    }
   )
 }

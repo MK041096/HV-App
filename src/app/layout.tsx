@@ -41,7 +41,7 @@ export const metadata: Metadata = {
     description: "Effiziente, mandantenfähige Plattform zur automatisierten Schadensabwicklung.",
     images: [
       {
-        url: "https://www.smartcarl.com/opengraph-image",
+        url: "https://www.smartcarl.com/api/og",
         width: 1200,
         height: 630,
         alt: "SMARTCARL – Schadensmeldungen für Hausverwaltungen",
