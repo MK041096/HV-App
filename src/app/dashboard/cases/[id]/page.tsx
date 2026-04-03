@@ -282,6 +282,10 @@ export default function CaseDetailPage({
   const [isSavingInsurance, setIsSavingInsurance] = useState(false)
   const [insuranceSuccess, setInsuranceSuccess] = useState<string | null>(null)
 
+  // Urgency edit state
+  const [urgencyEdit, setUrgencyEdit] = useState<string>("")
+  const [isSavingUrgency, setIsSavingUrgency] = useState(false)
+
   // Fetch case
   async function fetchCase() {
     setIsLoading(true)
@@ -407,6 +411,27 @@ export default function CaseDetailPage({
       })
     } finally {
       setIsUpdatingStatus(false)
+    }
+  }
+
+  async function handleUrgencyUpdate() {
+    if (!urgencyEdit) return
+    setIsSavingUrgency(true)
+    try {
+      const res = await fetch(`/api/hv/cases/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ urgency: urgencyEdit }),
+      })
+      const json = await res.json()
+      if (!res.ok) throw new Error(json.error || "Fehler")
+      setStatusMessage({ type: "success", text: "Dringlichkeit aktualisiert" })
+      setUrgencyEdit("")
+      await fetchCase()
+    } catch (err) {
+      setStatusMessage({ type: "error", text: err instanceof Error ? err.message : "Fehler" })
+    } finally {
+      setIsSavingUrgency(false)
     }
   }
 
@@ -1389,6 +1414,46 @@ export default function CaseDetailPage({
                   <Save className="mr-2 h-4 w-4" />
                 )}
                 Status speichern
+              </Button>
+            </CardContent>
+          </Card>
+
+          {/* Urgency Edit */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base flex items-center gap-2">
+                <AlertTriangle className="h-4 w-4" />
+                Dringlichkeit anpassen
+              </CardTitle>
+              <CardDescription>
+                Aktuell: <span className={urgencyConfig.className.split(' ').filter(c => c.startsWith('text-')).join(' ')}>{urgencyConfig.label}</span>
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <Select value={urgencyEdit} onValueChange={setUrgencyEdit}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Neue Dringlichkeit..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {(['notfall', 'dringend', 'normal'] as const).filter(u => u !== caseData.urgency).map(u => (
+                    <SelectItem key={u} value={u}>
+                      {u === 'notfall' ? 'Notfall (sofort)' : u === 'dringend' ? 'Dringend (48h)' : 'Normal'}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Button
+                className="w-full"
+                disabled={!urgencyEdit || isSavingUrgency}
+                onClick={handleUrgencyUpdate}
+                variant="outline"
+              >
+                {isSavingUrgency ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <Save className="mr-2 h-4 w-4" />
+                )}
+                Dringlichkeit speichern
               </Button>
             </CardContent>
           </Card>

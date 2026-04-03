@@ -264,7 +264,40 @@ export async function POST(
       'Antworte auf Deutsch, klar strukturiert, max. 300 Woerter.',
     ].join('\n')
 
-    type ContentBlock = Anthropic.DocumentBlockParam | Anthropic.TextBlockParam
+    // Load photos for this damage report (max 5)
+    const photoBlocks: Anthropic.ImageBlockParam[] = []
+    const { data: reportPhotos } = await supabase
+      .from('damage_report_photos')
+      .select('id, storage_path, mime_type')
+      .eq('damage_report_id', id)
+      .eq('organization_id', profile.organization_id)
+      .order('sort_order', { ascending: true })
+      .limit(5)
+
+    if (reportPhotos && reportPhotos.length > 0) {
+      for (const photo of reportPhotos) {
+        try {
+          const { data: fileData } = await supabase.storage
+            .from('damage-photos')
+            .download(photo.storage_path)
+          if (fileData) {
+            const arrayBuffer = await fileData.arrayBuffer()
+            const base64 = Buffer.from(arrayBuffer).toString('base64')
+            const mediaType = (['image/jpeg', 'image/png', 'image/gif', 'image/webp'].includes(photo.mime_type)
+              ? photo.mime_type
+              : 'image/jpeg') as 'image/jpeg' | 'image/png' | 'image/gif' | 'image/webp'
+            photoBlocks.push({
+              type: 'image',
+              source: { type: 'base64', media_type: mediaType, data: base64 },
+            })
+          }
+        } catch {
+          // Skip photos that can't be loaded
+        }
+      }
+    }
+
+    type ContentBlock = Anthropic.DocumentBlockParam | Anthropic.ImageBlockParam | Anthropic.TextBlockParam
     const userContentBlocks: ContentBlock[] = []
 
     if (leaseFound && leaseContent) {
@@ -291,10 +324,14 @@ export async function POST(
       } as Anthropic.DocumentBlockParam)
     }
 
+    // Add photo blocks after documents
+    userContentBlocks.push(...photoBlocks)
+
     const contextInfo = [
       leaseFound ? 'Mietvertrag: vorhanden und analysiert' : 'Mietvertrag: NICHT hinterlegt (Analyse nur nach Gesetz)',
       insuranceFound ? 'Liegenschafts-Versicherungspolice: vorhanden und analysiert' : 'Liegenschafts-Versicherungspolice: NICHT hinterlegt',
       unitInsuranceFound ? 'Einheits-Versicherungspolice: vorhanden und analysiert' : null,
+      photoBlocks.length > 0 ? `Fotos: ${photoBlocks.length} Foto(s) beigefügt und analysiert` : 'Fotos: keine vorhanden',
     ].filter(Boolean).join('\n')
 
     userContentBlocks.push({

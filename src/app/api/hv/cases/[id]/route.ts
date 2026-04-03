@@ -571,8 +571,40 @@ export async function PATCH(
       })
     }
 
+    // ── URGENCY UPDATE ──
+    if ('urgency' in body) {
+      const urgency = body.urgency
+      if (!['notfall', 'dringend', 'normal'].includes(urgency as string)) {
+        return NextResponse.json({ error: 'Ungültige Dringlichkeit' }, { status: 400 })
+      }
+
+      const { data: updated, error: updateError } = await supabase
+        .from('damage_reports')
+        .update({ urgency, updated_at: new Date().toISOString() })
+        .eq('id', id)
+        .eq('organization_id', profile.organization_id)
+        .select('id, urgency, updated_at')
+        .single()
+
+      if (updateError) {
+        console.error('Error updating urgency:', updateError)
+        return NextResponse.json({ error: 'Fehler beim Aktualisieren der Dringlichkeit' }, { status: 500 })
+      }
+
+      await supabase.from('audit_logs').insert({
+        user_id: user.id,
+        organization_id: profile.organization_id,
+        action: 'damage_report_urgency_updated',
+        entity_type: 'damage_report',
+        entity_id: id,
+        details: { urgency },
+      })
+
+      return NextResponse.json({ data: updated, message: 'Dringlichkeit aktualisiert' })
+    }
+
     return NextResponse.json(
-      { error: 'Ungültige Anfrage. Erwartet: new_status, assigned_to_name, clear, scheduled_appointment oder is_insurance_damage.' },
+      { error: 'Ungültige Anfrage. Erwartet: new_status, assigned_to_name, clear, scheduled_appointment, is_insurance_damage oder urgency.' },
       { status: 400 }
     )
   } catch (err) {

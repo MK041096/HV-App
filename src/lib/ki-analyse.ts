@@ -69,6 +69,39 @@ export async function runKiAnalyse(params: {
     }
   }
 
+  // Load photos for this damage report (max 5)
+  const photoBlocks: Anthropic.ImageBlockParam[] = []
+  const { data: photos } = await supabase
+    .from('damage_report_photos')
+    .select('id, storage_path, mime_type')
+    .eq('damage_report_id', reportId)
+    .eq('organization_id', organizationId)
+    .order('sort_order', { ascending: true })
+    .limit(5)
+
+  if (photos && photos.length > 0) {
+    for (const photo of photos) {
+      try {
+        const { data: fileData } = await supabase.storage
+          .from('damage-photos')
+          .download(photo.storage_path)
+        if (fileData) {
+          const arrayBuffer = await fileData.arrayBuffer()
+          const base64 = Buffer.from(arrayBuffer).toString('base64')
+          const mediaType = (['image/jpeg', 'image/png', 'image/gif', 'image/webp'].includes(photo.mime_type)
+            ? photo.mime_type
+            : 'image/jpeg') as 'image/jpeg' | 'image/png' | 'image/gif' | 'image/webp'
+          photoBlocks.push({
+            type: 'image',
+            source: { type: 'base64', media_type: mediaType, data: base64 },
+          })
+        }
+      } catch {
+        // Skip photos that can't be loaded
+      }
+    }
+  }
+
   const damageInfo = [
     `Titel: ${title}`,
     `Kategorie: ${CATEGORY_LABELS[category] || category}`,
@@ -76,6 +109,7 @@ export async function runKiAnalyse(params: {
     room ? `Raum: ${room}` : null,
     description ? `Beschreibung: ${description}` : null,
     unitName ? `Wohneinheit: ${unitName}${unitAddress ? `, ${unitAddress}` : ''}` : null,
+    photoBlocks.length > 0 ? `Fotos: ${photoBlocks.length} Foto(s) beigefügt — bitte in der Dringlichkeitsbewertung berücksichtigen` : null,
   ].filter(Boolean).join('\n')
 
   const urgencyInstruction = `
@@ -84,21 +118,10 @@ export async function runKiAnalyse(params: {
 - Dringend: Eingeschränkte Nutzbarkeit der Wohnung, Reaktion innerhalb 48 Stunden erforderlich (z.B. Heizungsausfall, defekte Toilette, Schimmel)
 - Normal: Kein akuter Handlungsbedarf, Reaktion innerhalb 2 Wochen ausreichend (z.B. tropfender Hahn, kosmetische Schäden, Defekte ohne Nutzungseinschränkung)`
 
-  let messages: Anthropic.MessageParam[]
+  const promptText = leaseFound
+    ? `Du bist ein Experte für österreichisches Mietrecht (MRG).
 
-  if (leaseFound && leaseContent) {
-    messages = [{
-      role: 'user',
-      content: [
-        {
-          type: 'document',
-          source: { type: 'base64', media_type: 'application/pdf', data: leaseContent },
-        } as Anthropic.DocumentBlockParam,
-        {
-          type: 'text',
-          text: `Du bist ein Experte für österreichisches Mietrecht (MRG).
-
-Analysiere diese Schadensmeldung anhand des Mietvertrags. Antworte IMMER in diesem Format:
+Analysiere diese Schadensmeldung anhand des Mietvertrags${photoBlocks.length > 0 ? ' und der beigefügten Fotos' : ''}. Antworte IMMER in diesem Format:
 
 **VERANTWORTLICH:** [Mieter / Hausverwaltung / Unklar]
 **BEGRÜNDUNG:** [1-2 Sätze, was der Mietvertrag oder das MRG sagt, mit Seitenzahl wenn möglich]
@@ -106,16 +129,10 @@ Analysiere diese Schadensmeldung anhand des Mietvertrags. Antworte IMMER in dies
 ${urgencyInstruction}
 
 Schadensmeldung:
-${damageInfo}`,
-        },
-      ],
-    }]
-  } else {
-    messages = [{
-      role: 'user',
-      content: `Du bist ein Experte für österreichisches Mietrecht (MRG).
+${damageInfo}`
+    : `Du bist ein Experte für österreichisches Mietrecht (MRG).
 
-Analysiere diese Schadensmeldung nach österreichischem MRG (kein Mietvertrag hinterlegt). Antworte IMMER in diesem Format:
+Analysiere diese Schadensmeldung nach österreichischem MRG (kein Mietvertrag hinterlegt)${photoBlocks.length > 0 ? ' — Fotos beigefügt' : ''}. Antworte IMMER in diesem Format:
 
 **VERANTWORTLICH:** [Mieter / Hausverwaltung / Unklar]
 **BEGRÜNDUNG:** [1-2 Sätze nach MRG § 3 / § 8]
@@ -124,9 +141,22 @@ Analysiere diese Schadensmeldung nach österreichischem MRG (kein Mietvertrag hi
 ${urgencyInstruction}
 
 Schadensmeldung:
-${damageInfo}`,
-    }]
+${damageInfo}`
+
+  const userContent: (Anthropic.DocumentBlockParam | Anthropic.ImageBlockParam | Anthropic.TextBlockParam)[] = []
+  if (leaseFound && leaseContent) {
+    userContent.push({
+      type: 'document',
+      source: { type: 'base64', media_type: 'application/pdf', data: leaseContent },
+    } as Anthropic.DocumentBlockParam)
   }
+  userContent.push(...photoBlocks)
+  userContent.push({ type: 'text', text: promptText })
+
+  const messages: Anthropic.MessageParam[] = [{
+    role: 'user',
+    content: userContent,
+  }]
 
   const response = await anthropic.messages.create({
     model: 'claude-haiku-4-5-20251001',
