@@ -135,7 +135,7 @@ export default function ProcessSection() {
                         borderRadius: 7,
                       }}>
                         <p style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 14, lineHeight: 1.65, color: '#FFFFFF', margin: 0, fontWeight: 500 }}>
-                          💡 Was Ihre Mitarbeiterin früher <strong>2–3 Stunden</strong> an Telefonaten, E-Mails und Unterlagensuche gekostet hat — liegt jetzt in Sekunden fertig vor ihr.
+                          💡 Was Ihre Mitarbeiterin früher <strong>viele Stunden</strong> an Telefonaten, E-Mails und Unterlagensuche gekostet hat — liegt jetzt in Sekunden fertig vor ihr.
                         </p>
                       </div>
                     </div>
