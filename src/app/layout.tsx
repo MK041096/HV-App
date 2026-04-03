@@ -41,7 +41,7 @@ export const metadata: Metadata = {
     description: "Effiziente, mandantenfähige Plattform zur automatisierten Schadensabwicklung.",
     images: [
       {
-        url: "https://smartcarl.com/wien_blutgasse_a.jpg",
+        url: "https://smartcarl.com/opengraph-image",
         width: 1200,
         height: 630,
       },
