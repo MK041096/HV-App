@@ -80,7 +80,7 @@ export default function ProcessSection() {
                   </div>
                   {/* Connector line — only between steps, never after last */}
                   {!isLast && (
-                    <div style={{ width: 1, flex: 1, background: 'var(--border)', marginTop: 6, minHeight: 32 }} />
+                    <div style={{ width: 1, flex: 1, background: 'var(--border)', minHeight: 32 }} />
                   )}
                 </div>
 
