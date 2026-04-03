@@ -66,7 +66,7 @@ export default function ProcessSection() {
           {steps.map((s, i) => {
             const isLast = i === steps.length - 1
             return (
-              <div key={s.num} style={{ display: 'flex', gap: 28, paddingBottom: isLast ? 0 : 48 }}>
+              <div key={s.num} style={{ display: 'flex', gap: 28 }}>
                 {/* Left: circle + connector line */}
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flexShrink: 0 }}>
                   <div style={{
@@ -85,7 +85,7 @@ export default function ProcessSection() {
                 </div>
 
                 {/* Right: content */}
-                <div style={{ paddingTop: 8, flex: 1, minWidth: 0 }}>
+                <div style={{ paddingTop: 8, flex: 1, minWidth: 0, paddingBottom: isLast ? 0 : 48 }}>
                   <p style={{
                     fontFamily: 'var(--font-dm-sans, sans-serif)',
                     fontSize: s.highlight ? 18 : 16,
