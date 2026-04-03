@@ -370,7 +370,7 @@ export default function VersicherungsblattPage({
 
         {/* Footer */}
         <div className="pt-8 border-t text-xs text-muted-foreground space-y-1 print:border-gray-300">
-          <p>Erstellt mit SMARTCARL · zerodamage.de</p>
+          <p>Erstellt mit SMARTCARL · smartcarl.com</p>
           <p>Dokument-ID: {report.id} · Fall: {report.case_number}</p>
         </div>
       </div>

@@ -33,19 +33,19 @@ export const metadata: Metadata = {
     type: "website",
     locale: "de_DE",
     siteName: "SMARTCARL",
-    url: "https://zerodamage.de",
+    url: "https://smartcarl.com",
     title: "SMARTCARL - Digitale Schadensmeldung für Hausverwaltungen",
     description: "Effiziente, mandantenfähige Plattform zur automatisierten Schadensabwicklung.",
     images: [
       {
-        url: "https://zerodamage.de/og-image.jpg",
+        url: "https://smartcarl.com/og-image.jpg",
         width: 1200,
         height: 630,
       },
     ],
   },
   alternates: {
-    canonical: "https://zerodamage.de/",
+    canonical: "https://smartcarl.com/",
   },
 };
 
@@ -65,11 +65,11 @@ export default function RootLayout({
               "@context": "https://schema.org",
               "@type": "Organization",
               name: "SMARTCARL",
-              url: "https://zerodamage.de",
-              logo: "https://zerodamage.de/logo.png",
+              url: "https://smartcarl.com",
+              logo: "https://smartcarl.com/logo.png",
               sameAs: [
-                "https://www.linkedin.com/company/zerodamage",
-                "https://twitter.com/zerodamage"
+                "https://www.linkedin.com/company/smartcarl",
+                "https://twitter.com/smartcarl"
               ]
             }),
           }}

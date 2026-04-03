@@ -1,7 +1,7 @@
 import { Resend } from 'resend'
 
 const resend = new Resend(process.env.RESEND_API_KEY)
-const FROM_EMAIL = 'SMARTCARL <noreply@zerodamage.de>'
+const FROM_EMAIL = 'SMARTCARL <noreply@smartcarl.com>'
 
 const STATUS_LABELS: Record<string, string> = {
   in_bearbeitung: 'In Bearbeitung',
@@ -58,7 +58,7 @@ function baseTemplate(content: string, orgName: string): string {
           <tr>
             <td style="padding:20px 0;text-align:center;">
               <p style="color:#a1a1aa;font-size:12px;margin:0;">
-                SMARTCARL · zerodamage.de<br>
+                SMARTCARL · smartcarl.com<br>
                 Diese E-Mail wurde automatisch generiert.
               </p>
             </td>
@@ -108,7 +108,7 @@ export async function sendStatusChangeEmail(params: {
     </div>
     ` : ''}
 
-    <a href="https://zerodamage.de/mein-bereich/meldungen"
+    <a href="https://smartcarl.com/mein-bereich/meldungen"
        style="display:inline-block;background-color:#18181b;color:#ffffff;text-decoration:none;padding:12px 24px;border-radius:8px;font-size:14px;font-weight:600;">
       Meldung ansehen →
     </a>
@@ -142,7 +142,7 @@ export async function sendTenantInviteEmail(params: {
     month: '2-digit',
     year: 'numeric',
   })
-  const registerUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'https://zerodamage.de'}/register`
+  const registerUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'https://smartcarl.com'}/register`
 
   const emailContent = `
     <h2 style="color:#18181b;font-size:22px;font-weight:700;margin:0 0 16px 0;">
@@ -219,7 +219,7 @@ export async function sendDamageReportNotificationEmail(params: {
   const urgencyColor: Record<string, string> = { notfall: '#ef4444', dringend: '#f59e0b', normal: '#22c55e', hoch: '#ef4444', mittel: '#f59e0b', niedrig: '#22c55e' }
   const urg = urgencyLabel[urgency] || urgency
   const urgColor = urgencyColor[urgency] || '#18181b'
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://zerodamage.de'
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://smartcarl.com'
   const caseUrl = reportId ? appUrl + '/dashboard/cases/' + reportId : appUrl + '/dashboard/cases'
 
   // Extract VERANTWORTLICH line for email badge
@@ -288,7 +288,7 @@ export async function sendTerminVereinbartEmail(params: {
   orgName: string
 }): Promise<void> {
   const { to, tenantName, caseNumber, caseTitle, scheduledAppointment, orgName } = params
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://zerodamage.de'
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://smartcarl.com'
 
   let appointmentHtml = ''
   if (scheduledAppointment) {
@@ -367,7 +367,7 @@ export async function sendAblehnungEmail(params: {
     </p>
     ${orgPhone ? `<p style="color:#18181b;font-size:16px;font-weight:700;margin:0 0 24px 0;">&#128222; ${orgPhone}</p>` : `<p style="color:#52525b;font-size:14px;margin:0 0 24px 0;">Bitte kontaktieren Sie <strong>${orgName}</strong> direkt.</p>`}
 
-    <a href="https://zerodamage.de/mein-bereich/meldungen"
+    <a href="https://smartcarl.com/mein-bereich/meldungen"
        style="display:inline-block;background-color:#18181b;color:#ffffff;text-decoration:none;padding:12px 24px;border-radius:8px;font-size:14px;font-weight:600;">
       Meldung ansehen &rarr;
     </a>
@@ -417,7 +417,7 @@ export async function sendWeiterleitungTenantEmail(params: {
       Die Werkstatt wurde über Ihren Wunschtermin informiert. Sobald der Termin bestätigt wird, erhalten Sie eine weitere Benachrichtigung.
     </p>
 
-    <a href="https://zerodamage.de/mein-bereich/meldungen"
+    <a href="https://smartcarl.com/mein-bereich/meldungen"
        style="display:inline-block;background-color:#18181b;color:#ffffff;text-decoration:none;padding:12px 24px;border-radius:8px;font-size:14px;font-weight:600;">
       Status verfolgen &rarr;
     </a>
@@ -497,7 +497,7 @@ export async function sendContractorEmail(params: {
     ${orgPhone ? `<p style="color:#71717a;font-size:13px;margin:0;">Rückfragen: ${orgName} &mdash; ${orgPhone}</p>` : `<p style="color:#71717a;font-size:13px;margin:0;">Rückfragen direkt an ${orgName}.</p>`}
   `
   await resend.emails.send({
-    from: `${orgName} via SMARTCARL <noreply@zerodamage.de>`,
+    from: `${orgName} via SMARTCARL <noreply@smartcarl.com>`,
     to,
     subject: `[Auftrag ${caseNumber}] ${caseTitle} – ${unitAddress}`,
     html: baseTemplate(content, orgName),
@@ -514,7 +514,7 @@ export async function sendTerminBestaetigungMieter(params: {
   orgName: string
 }): Promise<void> {
   const { to, tenantName, caseNumber, caseTitle, contractorCompany, confirmedDate, orgName } = params
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://zerodamage.de'
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://smartcarl.com'
 
   const content = `
     <h2 style="color:#18181b;font-size:22px;font-weight:700;margin:0 0 8px 0;">
@@ -560,7 +560,7 @@ export async function sendTerminBestaetigung(params: {
   orgName: string
 }): Promise<void> {
   const { hvEmails, tenantEmail, tenantName, caseNumber, caseTitle, contractorCompany, contractorPhone, confirmedDate, isRescheduled, isPhone, orgName } = params
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://zerodamage.de'
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://smartcarl.com'
 
   const hvHeading = isPhone
     ? 'Werkstatt kann Wunschtermin nicht wahrnehmen'
@@ -633,7 +633,7 @@ export async function sendTerminBestaetigung(params: {
         ${tenantText}
       </p>
 
-      <a href="https://zerodamage.de/mein-bereich/meldungen"
+      <a href="https://smartcarl.com/mein-bereich/meldungen"
          style="display:inline-block;background-color:#18181b;color:#ffffff;text-decoration:none;padding:12px 24px;border-radius:8px;font-size:14px;font-weight:600;">
         Meldung ansehen &rarr;
       </a>
@@ -677,7 +677,7 @@ export async function sendNewCommentEmail(params: {
       <p style="color:#18181b;font-size:14px;line-height:1.6;margin:0;">${comment}</p>
     </div>
 
-    <a href="https://zerodamage.de/mein-bereich/meldungen"
+    <a href="https://smartcarl.com/mein-bereich/meldungen"
        style="display:inline-block;background-color:#18181b;color:#ffffff;text-decoration:none;padding:12px 24px;border-radius:8px;font-size:14px;font-weight:600;">
       Antworten / Meldung ansehen →
     </a>
@@ -703,7 +703,7 @@ export async function sendWerkstattErinnerung(params: {
   orgName: string
 }): Promise<void> {
   const { hvEmails, tenantEmail, tenantName, caseNumber, caseTitle, contractorCompany, contractorPhone, reportId, orgName } = params
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://zerodamage.de'
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://smartcarl.com'
   const caseUrl = appUrl + '/dashboard/cases/' + reportId
 
   // E-Mail an HV
@@ -764,7 +764,7 @@ export async function sendWerkstattErinnerung(params: {
       </p>
       ` : '<div style="margin-bottom:24px;"></div>'}
 
-      <a href="https://zerodamage.de/mein-bereich/meldungen"
+      <a href="https://smartcarl.com/mein-bereich/meldungen"
          style="display:inline-block;background-color:#18181b;color:#ffffff;text-decoration:none;padding:12px 24px;border-radius:8px;font-size:14px;font-weight:600;">
         Status verfolgen &rarr;
       </a>
@@ -785,7 +785,7 @@ export async function sendWerkstattWillkommensmail(params: {
   orgPhone?: string
 }): Promise<void> {
   const { to, contractorName, orgName, orgPhone } = params
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://zerodamage.de'
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://smartcarl.com'
 
   const content = `
     <h2 style="color:#18181b;font-size:22px;font-weight:700;margin:0 0 8px 0;">
@@ -821,7 +821,7 @@ export async function sendWerkstattWillkommensmail(params: {
   `
 
   await resend.emails.send({
-    from: `${orgName} via SMARTCARL <noreply@zerodamage.de>`,
+    from: `${orgName} via SMARTCARL <noreply@smartcarl.com>`,
     to,
     subject: `${orgName} nutzt jetzt SMARTCARL – so funktioniert die Auftragsabwicklung`,
     html: baseTemplate(content, orgName),

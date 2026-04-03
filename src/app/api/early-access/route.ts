@@ -28,7 +28,7 @@ export async function POST(req: Request) {
     // Send confirmation email to lead
     const resend = new Resend(process.env.RESEND_API_KEY!)
     await resend.emails.send({
-      from: 'zerodamage.de <noreply@zerodamage.de>',
+      from: 'smartcarl.com <noreply@smartcarl.com>',
       to: data.email,
       subject: 'Ihre Anfrage ist bei uns eingegangen',
       html: `
@@ -36,14 +36,14 @@ export async function POST(req: Request) {
           <h2 style="color:#09090f">Vielen Dank, ${data.name}!</h2>
           <p>Ihre Anfrage für das April-Angebot ist bei uns eingegangen.</p>
           <p>Wir melden uns innerhalb von <strong>24 Stunden</strong> bei Ihnen unter dieser E-Mail-Adresse.</p>
-          <p style="color:#888;font-size:13px;margin-top:32px">zerodamage.de · Mathias Kracher · Oberwart, Österreich</p>
+          <p style="color:#888;font-size:13px;margin-top:32px">smartcarl.com · Mathias Kracher · Oberwart, Österreich</p>
         </div>
       `,
     })
 
     // Notify owner
     await resend.emails.send({
-      from: 'zerodamage.de <noreply@zerodamage.de>',
+      from: 'smartcarl.com <noreply@smartcarl.com>',
       to: 'Kracherdigital@gmail.com',
       subject: `Neuer Lead: ${data.name} (${data.company})`,
       html: `

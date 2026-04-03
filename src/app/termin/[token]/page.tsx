@@ -297,7 +297,7 @@ export default function TerminPage({ params }: { params: Promise<{ token: string
         </Card>
 
         <p className="text-center text-xs text-muted-foreground">
-          SMARTCARL · zerodamage.de · Dieser Link ist 7 Tage gültig
+          SMARTCARL · smartcarl.com · Dieser Link ist 7 Tage gültig
         </p>
       </div>
     </div>

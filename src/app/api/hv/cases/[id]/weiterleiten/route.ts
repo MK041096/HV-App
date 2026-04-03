@@ -99,7 +99,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       ...(contractor_id ? { contractor_id } : {}),
     }).select('token').single()
 
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://zerodamage.de'
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://smartcarl.com'
     const tokenUrl = `${appUrl}/termin/${tokenData?.token}`
 
     // Fire-and-forget: emails

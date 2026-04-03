@@ -78,12 +78,12 @@ export async function POST(
     // Send activation email
     if (hvAdminEmail) {
       try {
-        const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://zerodamage.de'
+        const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://smartcarl.com'
         const loginUrl = `${appUrl}/login`
         const resend = new Resend(process.env.RESEND_API_KEY)
 
         const { error: emailError } = await resend.emails.send({
-          from: 'SMARTCARL <no-reply@zerodamage.de>',
+          from: 'SMARTCARL <no-reply@smartcarl.com>',
           to: hvAdminEmail,
           subject: 'Ihr SMARTCARL-Zugang ist jetzt aktiv',
           html: `<!DOCTYPE html>
@@ -144,7 +144,7 @@ export async function POST(
     <!-- Footer -->
     <div style="background:#f9fafb;border-top:1px solid #e5e7eb;padding:20px 40px;text-align:center">
       <p style="margin:0;color:#9ca3af;font-size:12px">
-        © 2026 SMARTCARL · zerodamage.de
+        © 2026 SMARTCARL · smartcarl.com
       </p>
     </div>
   </div>

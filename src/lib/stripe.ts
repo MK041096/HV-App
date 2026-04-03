@@ -17,4 +17,4 @@ export const STRIPE_PRICES = {
   setupFee: process.env.STRIPE_PRICE_SETUP_FEE!,             // 349 € (Gründer) or 699 €
 }
 
-export const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://zerodamage.de'
+export const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://smartcarl.com'
