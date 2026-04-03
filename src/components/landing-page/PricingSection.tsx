@@ -132,23 +132,20 @@ export default function PricingSection() {
             Wie viele Einheiten verwalten Sie?
           </p>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 8 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 24 }}>
             <input
-              type="range"
-              min={10}
-              max={500}
-              step={10}
+              type="number"
+              min={1}
               value={units}
-              onChange={e => setUnits(Number(e.target.value))}
-              style={{ flex: 1, accentColor: '#C74229', height: 4, cursor: 'pointer' }}
+              onChange={e => setUnits(Math.max(1, Number(e.target.value) || 1))}
+              style={{
+                fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 22, fontWeight: 700,
+                color: '#000', border: '2px solid #C74229', borderRadius: 8, padding: '10px 16px',
+                width: 120, textAlign: 'center', outline: 'none',
+              }}
             />
-            <div style={{ display: 'flex', alignItems: 'center', border: '1px solid #E0E0E0', borderRadius: 6, overflow: 'hidden' }}>
-              <button onClick={() => setUnits(u => Math.max(10, u - 10))} style={{ width: 36, height: 36, background: '#F5F5F5', border: 'none', cursor: 'pointer', fontSize: 18, color: '#333' }}>−</button>
-              <span style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 15, fontWeight: 600, color: '#000', padding: '0 12px', minWidth: 52, textAlign: 'center' }}>{units}</span>
-              <button onClick={() => setUnits(u => Math.min(500, u + 10))} style={{ width: 36, height: 36, background: '#F5F5F5', border: 'none', cursor: 'pointer', fontSize: 18, color: '#333' }}>+</button>
-            </div>
+            <span style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 15, color: '#555' }}>Einheiten</span>
           </div>
-          <p style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 12, color: '#999', margin: '0 0 24px' }}>10 – 500 Einheiten</p>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16 }}>
             <div style={{ background: '#F9F9F9', borderRadius: 8, padding: '16px 20px' }}>
