@@ -415,6 +415,12 @@ export default function CaseDetailPage({
   // Contractor picker (Werkstatt-Liste)
   const [showContractorPicker, setShowContractorPicker] = useState(false)
 
+  // Manual contractor fallback (wenn keine Werkstatt hinterlegt)
+  const [manualContractorName, setManualContractorName] = useState('')
+  const [manualContractorEmail, setManualContractorEmail] = useState('')
+  const [manualContractorPhone, setManualContractorPhone] = useState('')
+  const [useManualContractor, setUseManualContractor] = useState(false)
+
   // Delete state
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const [isDeletingCase, setIsDeletingCase] = useState(false)
@@ -1840,30 +1846,96 @@ export default function CaseDetailPage({
                     </div>
                   ) : (
                     <div className="space-y-3">
-                      <div className="space-y-1.5">
-                        <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Werkstatt</label>
-                        <Select value={selectedContractorId} onValueChange={setSelectedContractorId}>
-                          <SelectTrigger className="text-sm">
-                            <SelectValue placeholder="Werkstatt wählen..." />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {matchingContractors.length > 0 && (
-                              <>
-                                <div className="px-2 py-1 text-xs text-muted-foreground font-medium">Passend zur Kategorie</div>
-                                {matchingContractors.map(c => (
-                                  <SelectItem key={c.id} value={c.id}>{c.company} ({c.name})</SelectItem>
-                                ))}
-                                {contractors.filter(c => !c.specialties.includes(caseData.category)).length > 0 && (
-                                  <div className="px-2 py-1 text-xs text-muted-foreground font-medium mt-1">Alle anderen</div>
-                                )}
-                              </>
+                      {/* No contractors at all */}
+                      {contractors.length === 0 && (
+                        <div className="rounded-md bg-amber-50 border border-amber-200 px-3 py-2.5 text-sm text-amber-800 flex items-start gap-2">
+                          <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5 text-amber-600" />
+                          <div>
+                            <p className="font-medium">Noch keine Werkstätten hinterlegt</p>
+                            <p className="text-xs mt-0.5">Sie können eine Werkstatt manuell eingeben oder zuerst Ihre <Link href="/dashboard/werkstaetten" className="underline font-medium">Werkstatt-Liste anlegen</Link>.</p>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* No matching contractor for this category */}
+                      {contractors.length > 0 && matchingContractors.length === 0 && !useManualContractor && (
+                        <div className="rounded-md bg-amber-50 border border-amber-200 px-3 py-2.5 text-sm text-amber-800 flex items-start gap-2">
+                          <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5 text-amber-600" />
+                          <div>
+                            <p className="font-medium">Keine Werkstatt für „{CATEGORY_LABELS[caseData.category as keyof typeof CATEGORY_LABELS] || caseData.category}" hinterlegt</p>
+                            <p className="text-xs mt-0.5">Andere Werkstätten können trotzdem gewählt werden, oder geben Sie eine neue Werkstatt manuell ein.</p>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Toggle: List or Manual */}
+                      {!useManualContractor && contractors.length > 0 ? (
+                        <div className="space-y-1.5">
+                          <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Werkstatt</label>
+                          <Select value={selectedContractorId} onValueChange={setSelectedContractorId}>
+                            <SelectTrigger className="text-sm">
+                              <SelectValue placeholder="Werkstatt wählen..." />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {matchingContractors.length > 0 && (
+                                <>
+                                  <div className="px-2 py-1 text-xs text-muted-foreground font-medium">Passend zur Kategorie</div>
+                                  {matchingContractors.map(c => (
+                                    <SelectItem key={c.id} value={c.id}>{c.company} ({c.name})</SelectItem>
+                                  ))}
+                                  {contractors.filter(c => !c.specialties.includes(caseData.category)).length > 0 && (
+                                    <div className="px-2 py-1 text-xs text-muted-foreground font-medium mt-1">Alle anderen</div>
+                                  )}
+                                </>
+                              )}
+                              {contractors.filter(c => !c.specialties.includes(caseData.category)).map(c => (
+                                <SelectItem key={c.id} value={c.id}>{c.company} ({c.name})</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <button
+                            type="button"
+                            onClick={() => { setUseManualContractor(true); setSelectedContractorId('') }}
+                            className="text-xs text-primary underline underline-offset-2 hover:no-underline"
+                          >
+                            Werkstatt manuell eingeben
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between">
+                            <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Werkstatt (manuelle Eingabe)</label>
+                            {contractors.length > 0 && (
+                              <button
+                                type="button"
+                                onClick={() => { setUseManualContractor(false); setManualContractorName(''); setManualContractorEmail(''); setManualContractorPhone('') }}
+                                className="text-xs text-primary underline underline-offset-2 hover:no-underline"
+                              >
+                                Aus Liste wählen
+                              </button>
                             )}
-                            {contractors.filter(c => !c.specialties.includes(caseData.category)).map(c => (
-                              <SelectItem key={c.id} value={c.id}>{c.company} ({c.name})</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
+                          </div>
+                          <Input
+                            placeholder="Firmenname *"
+                            value={manualContractorName}
+                            onChange={e => setManualContractorName(e.target.value)}
+                            className="text-sm"
+                          />
+                          <Input
+                            placeholder="E-Mail-Adresse *"
+                            type="email"
+                            value={manualContractorEmail}
+                            onChange={e => setManualContractorEmail(e.target.value)}
+                            className="text-sm"
+                          />
+                          <Input
+                            placeholder="Telefon (optional)"
+                            value={manualContractorPhone}
+                            onChange={e => setManualContractorPhone(e.target.value)}
+                            className="text-sm"
+                          />
+                        </div>
+                      )}
 
                       {caseData.preferred_appointment && (
                         <div className="rounded-md bg-blue-50 border border-blue-200 px-3 py-2 text-sm">
@@ -1875,18 +1947,33 @@ export default function CaseDetailPage({
 
                       <Button
                         className="w-full bg-green-700 hover:bg-green-800 text-white"
-                        disabled={isSendingWeiterleitung || !selectedContractorId}
+                        disabled={
+                          isSendingWeiterleitung ||
+                          (useManualContractor || contractors.length === 0
+                            ? !manualContractorName.trim() || !manualContractorEmail.trim()
+                            : !selectedContractorId)
+                        }
                         onClick={async () => {
                           setIsSendingWeiterleitung(true)
                           setAktionError(null)
                           try {
+                            const body = useManualContractor || contractors.length === 0
+                              ? {
+                                  manual_contractor: {
+                                    name: manualContractorName.trim(),
+                                    email: manualContractorEmail.trim(),
+                                    phone: manualContractorPhone.trim() || null,
+                                  },
+                                  scheduled_appointment: caseData.preferred_appointment,
+                                }
+                              : {
+                                  contractor_id: selectedContractorId,
+                                  scheduled_appointment: caseData.preferred_appointment,
+                                }
                             const res = await fetch(`/api/hv/cases/${id}/weiterleiten`, {
                               method: 'POST',
                               headers: { 'Content-Type': 'application/json' },
-                              body: JSON.stringify({
-                                contractor_id: selectedContractorId,
-                                scheduled_appointment: caseData.preferred_appointment,
-                              }),
+                              body: JSON.stringify(body),
                             })
                             if (!res.ok) throw new Error((await res.json()).error)
                             setAktionSuccess('Weiterleitung gesendet — Mieter & Werkstatt wurden per E-Mail informiert')

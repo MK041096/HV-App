@@ -30,23 +30,26 @@ export default function PricingSection() {
               <span style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 11, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#fff' }}>Nur noch 3 Plätze für April</span>
             </div>
 
-            <p style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 13, fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#C74229', margin: '0 0 20px' }}>April-Aktion</p>
+            <p style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 13, fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#C74229', margin: '0 0 20px' }}>Gründer-Angebot</p>
 
             <div style={{ marginBottom: 24 }}>
-              <span style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 14, color: '#888', textDecoration: 'line-through', display: 'block', marginBottom: 4 }}>699 €</span>
+              <span style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 14, color: '#888', textDecoration: 'line-through', display: 'block', marginBottom: 4 }}>699 € Onboarding</span>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
                 <span style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 44, fontWeight: 700, color: '#000', lineHeight: 1 }}>349 €</span>
                 <span style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 13, color: '#C74229' }}>einmalig</span>
               </div>
-              <span style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 14, color: '#555', display: 'block', marginTop: 8 }}>Einmaliges Onboarding</span>
+              <span style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 14, color: '#555', display: 'block', marginTop: 8 }}>
+                danach <strong style={{ color: '#000' }}>0,50 € / Einheit / Monat</strong> im 1. Jahr
+              </span>
             </div>
 
             <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 36px', display: 'flex', flexDirection: 'column', gap: 12, flex: 1 }}>
               {[
-                'Vollständiges Onboarding',
-                'Alle Funktionen freigeschaltet',
-                'Persönliche Einführung',
-                'Abo individuell je Einheit, monatlich oder jährlich',
+                'Vollständiges Onboarding inklusive',
+                'Alle Funktionen sofort freigeschaltet',
+                'Persönliche Einführung für Ihr Team',
+                'CARL-KI-Analyse, Werkstatt-Kommunikation, Mieter-Portal',
+                'Abo jederzeit monatlich oder jährlich kündbar',
               ].map((item) => (
                 <li key={item} style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
                   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#C74229" strokeWidth="2.2" style={{ flexShrink: 0, marginTop: 2 }}>

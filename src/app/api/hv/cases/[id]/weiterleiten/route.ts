@@ -10,9 +10,11 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     if (!user) return NextResponse.json({ error: 'Nicht authentifiziert' }, { status: 401 })
 
     const body = await request.json()
-    const { contractor_id, scheduled_appointment } = body
-    if (!contractor_id) {
-      return NextResponse.json({ error: 'Werkstatt ist erforderlich' }, { status: 400 })
+    const { contractor_id, manual_contractor, scheduled_appointment } = body
+
+    // Either contractor_id (from list) or manual_contractor (name + email) must be provided
+    if (!contractor_id && (!manual_contractor?.name || !manual_contractor?.email)) {
+      return NextResponse.json({ error: 'Werkstatt oder manuelle Eingabe ist erforderlich' }, { status: 400 })
     }
 
     const { data: profile } = await supabase
@@ -28,25 +30,34 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
     const adminClient = createAdminClient()
 
-    // Load case + contractor in parallel
-    const [{ data: report }, { data: contractor }] = await Promise.all([
-      adminClient.from('damage_reports')
-        .select('id, case_number, title, description, category, urgency, reporter_id, unit_id, preferred_appointment, preferred_appointment_2')
-        .eq('id', id)
-        .eq('organization_id', profile.organization_id)
-        .single(),
-      adminClient.from('contractors')
-        .select('id, name, company, email, phone')
-        .eq('id', contractor_id)
-        .eq('organization_id', profile.organization_id)
-        .single(),
-    ])
+    // Load case + (optionally) contractor from DB
+    const reportPromise = adminClient.from('damage_reports')
+      .select('id, case_number, title, description, category, urgency, reporter_id, unit_id, preferred_appointment, preferred_appointment_2')
+      .eq('id', id)
+      .eq('organization_id', profile.organization_id)
+      .single()
+
+    const contractorPromise = contractor_id
+      ? adminClient.from('contractors')
+          .select('id, name, company, email, phone')
+          .eq('id', contractor_id)
+          .eq('organization_id', profile.organization_id)
+          .single()
+      : Promise.resolve({ data: null, error: null })
+
+    const [{ data: report }, { data: contractorFromDb }] = await Promise.all([reportPromise, contractorPromise])
 
     if (!report) return NextResponse.json({ error: 'Fall nicht gefunden' }, { status: 404 })
+
+    // Build contractor object: from DB or from manual input
+    const contractor = contractor_id
+      ? contractorFromDb
+      : { id: null, name: manual_contractor.name, company: manual_contractor.name, email: manual_contractor.email, phone: manual_contractor.phone || null }
+
     if (!contractor) return NextResponse.json({ error: 'Werkstatt nicht gefunden' }, { status: 404 })
     if (!contractor.email) {
       return NextResponse.json(
-        { error: 'Diese Werkstatt hat keine E-Mail-Adresse hinterlegt. Bitte zuerst in der Werkstatt-Verwaltung eine E-Mail ergänzen.' },
+        { error: 'Diese Werkstatt hat keine E-Mail-Adresse hinterlegt.' },
         { status: 400 }
       )
     }
@@ -81,11 +92,11 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       changed_by: user.id,
     })
 
-    // Create appointment token
+    // Create appointment token (contractor_id may be null for manual contractors)
     const { data: tokenData } = await adminClient.from('appointment_tokens').insert({
       damage_report_id: id,
       organization_id: profile.organization_id,
-      contractor_id,
+      ...(contractor_id ? { contractor_id } : {}),
     }).select('token').single()
 
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://zerodamage.de'

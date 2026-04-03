@@ -213,9 +213,9 @@ export default function HeroSection() {
 
           {/* Text – volle Breite */}
           <div style={{ maxWidth: 720, paddingTop: 100, paddingBottom: 60, opacity: ready ? 1 : 0, transform: ready ? 'none' : 'translateY(20px)', transition: 'opacity 0.65s ease, transform 0.65s ease' }}>
-            <h1 style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 'clamp(2.4rem, 5vw, 4rem)', lineHeight: 1.08, color: '#FFFFFF', margin: '0 0 28px', fontWeight: 700, letterSpacing: '-0.02em' }}>
-              Schadensmeldungen, die sich mit nur<br />
-              einem Klick von selbst erledigen.
+            <h1 className="hero-h1" style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 'clamp(1.9rem, 5vw, 4rem)', lineHeight: 1.1, color: '#FFFFFF', margin: '0 0 28px', fontWeight: 700, letterSpacing: '-0.02em' }}>
+              Schadensmeldungen,{' '}
+              <span className="hero-br">die sich mit nur einem Klick von selbst erledigen.</span>
             </h1>
             <p style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 18, lineHeight: 1.75, color: 'rgba(255,255,255,0.75)', margin: '0 0 40px', maxWidth: 560 }}>
               Mieter meldet den Schaden digital. CARL analysiert, klärt die Zuständigkeit
@@ -253,6 +253,7 @@ export default function HeroSection() {
         @media (max-width: 768px) {
           .hero-grid { grid-template-columns: 1fr !important; gap: 36px !important; padding-top: 88px !important; }
           .hero-mockup { order: -1; }
+          .hero-h1 { font-size: 1.9rem !important; line-height: 1.15 !important; }
         }
         html { scroll-behavior: smooth; }
       `}</style>
