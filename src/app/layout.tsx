@@ -29,6 +29,9 @@ const dmSans = DM_Sans({
 export const metadata: Metadata = {
   title: "SMARTCARL – Schadensmeldungen für Hausverwaltungen",
   description: "SMARTCARL digitalisiert Schadensmeldungen für Hausverwaltungen. Von der strukturierten Erfassung bis zur vollständigen Dokumentation.",
+  verification: {
+    google: "8kXnls5PFdXCfnnUloruvufIQNgCjfTFuHsqqLF6Rds",
+  },
   openGraph: {
     type: "website",
     locale: "de_DE",
