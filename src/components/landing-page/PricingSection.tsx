@@ -18,6 +18,7 @@ const FEATURES = [
 
 export default function PricingSection() {
   const [showModal, setShowModal] = useState(false)
+  const [units, setUnits] = useState(50)
 
   return (
     <section id="preise" style={{ background: 'var(--bg-card)', padding: '120px 24px', borderTop: '1px solid var(--border)' }}>
@@ -120,6 +121,52 @@ export default function PricingSection() {
             </button>
           </div>
 
+        </div>
+
+        {/* Einheitenrechner */}
+        <div style={{ maxWidth: 860, margin: '32px auto 0', background: '#FFFFFF', border: '1px solid #E0E0E0', borderRadius: 10, padding: '28px 32px' }}>
+          <p style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 15, fontWeight: 600, color: '#000', margin: '0 0 6px' }}>
+            Ihr persönlicher Preis
+          </p>
+          <p style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 14, color: '#555', margin: '0 0 24px' }}>
+            Wie viele Einheiten verwalten Sie?
+          </p>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 8 }}>
+            <input
+              type="range"
+              min={10}
+              max={500}
+              step={10}
+              value={units}
+              onChange={e => setUnits(Number(e.target.value))}
+              style={{ flex: 1, accentColor: '#C74229', height: 4, cursor: 'pointer' }}
+            />
+            <div style={{ display: 'flex', alignItems: 'center', border: '1px solid #E0E0E0', borderRadius: 6, overflow: 'hidden' }}>
+              <button onClick={() => setUnits(u => Math.max(10, u - 10))} style={{ width: 36, height: 36, background: '#F5F5F5', border: 'none', cursor: 'pointer', fontSize: 18, color: '#333' }}>−</button>
+              <span style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 15, fontWeight: 600, color: '#000', padding: '0 12px', minWidth: 52, textAlign: 'center' }}>{units}</span>
+              <button onClick={() => setUnits(u => Math.min(500, u + 10))} style={{ width: 36, height: 36, background: '#F5F5F5', border: 'none', cursor: 'pointer', fontSize: 18, color: '#333' }}>+</button>
+            </div>
+          </div>
+          <p style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 12, color: '#999', margin: '0 0 24px' }}>10 – 500 Einheiten</p>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16 }}>
+            <div style={{ background: '#F9F9F9', borderRadius: 8, padding: '16px 20px' }}>
+              <p style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 12, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#888', margin: '0 0 8px' }}>Monatlich</p>
+              <p style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 28, fontWeight: 700, color: '#000', margin: '0 0 2px' }}>{(units * 0.5).toFixed(2).replace('.', ',')} €</p>
+              <p style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 13, color: '#555', margin: 0 }}>pro Monat im 1. Jahr</p>
+            </div>
+            <div style={{ background: '#FFF5F3', border: '1px solid rgba(199,66,41,0.2)', borderRadius: 8, padding: '16px 20px' }}>
+              <p style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 12, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#C74229', margin: '0 0 8px' }}>Jährlich (empfohlen)</p>
+              <p style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 28, fontWeight: 700, color: '#000', margin: '0 0 2px' }}>{(units * 0.43).toFixed(2).replace('.', ',')} €</p>
+              <p style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 13, color: '#555', margin: 0 }}>pro Monat im 1. Jahr</p>
+            </div>
+            <div style={{ background: '#F9F9F9', borderRadius: 8, padding: '16px 20px' }}>
+              <p style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 12, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#888', margin: '0 0 8px' }}>Onboarding</p>
+              <p style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 28, fontWeight: 700, color: '#000', margin: '0 0 2px' }}>349,00 €</p>
+              <p style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 13, color: '#555', margin: 0 }}>einmalig</p>
+            </div>
+          </div>
         </div>
 
         {/* Abo-Erklärung */}
