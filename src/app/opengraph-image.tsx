@@ -22,9 +22,9 @@ export default async function Image() {
             <span style={{ color: '#C74229', fontSize: 22, fontWeight: 700, letterSpacing: '0.08em', display: 'flex' }}>SMARTCARL</span>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column' }}>
-            <span style={{ color: '#FFFFFF', fontSize: 58, fontWeight: 700, lineHeight: 1.1, display: 'flex' }}>Schadensmeldungen,</span>
-            <span style={{ color: '#FFFFFF', fontSize: 58, fontWeight: 700, lineHeight: 1.1, display: 'flex' }}>die sich mit nur einem</span>
-            <span style={{ color: '#FFFFFF', fontSize: 58, fontWeight: 700, lineHeight: 1.1, display: 'flex' }}>Klick von selbst erledigen.</span>
+            <span style={{ color: '#FFFFFF', fontSize: 48, fontWeight: 700, lineHeight: 1.15, display: 'flex' }}>Schadensmeldungen, die sich</span>
+            <span style={{ color: '#FFFFFF', fontSize: 48, fontWeight: 700, lineHeight: 1.15, display: 'flex' }}>mit nur einem Klick von</span>
+            <span style={{ color: '#FFFFFF', fontSize: 48, fontWeight: 700, lineHeight: 1.15, display: 'flex' }}>selbst erledigen.</span>
           </div>
           <div style={{ display: 'flex', marginTop: 28 }}>
             <span style={{ color: 'rgba(255,255,255,0.45)', fontSize: 18, display: 'flex' }}>smartcarl.com</span>
