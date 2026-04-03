@@ -131,15 +131,37 @@ export async function GET(request: NextRequest) {
       dataQuery = dataQuery.lte('created_at', date_to)
     }
 
-    // Search: case_number, title (using ilike for simplicity at MVP scale)
-    // For search we also need to search reporter name and unit name,
-    // which requires a different approach since they're in joined tables.
-    // We use textSearch on the main table fields and OR conditions.
+    // Search: case_number, title, reporter name, unit address/name
     if (search) {
       const searchTerm = `%${search}%`
-      // Search across case_number and title on main table
-      countQuery = countQuery.or(`case_number.ilike.${searchTerm},title.ilike.${searchTerm}`)
-      dataQuery = dataQuery.or(`case_number.ilike.${searchTerm},title.ilike.${searchTerm}`)
+
+      // Find matching reporter IDs from profiles
+      const { data: matchingProfiles } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('organization_id', profile.organization_id)
+        .or(`first_name.ilike.${searchTerm},last_name.ilike.${searchTerm}`)
+        .limit(100)
+
+      // Find matching unit IDs from units
+      const { data: matchingUnits } = await supabase
+        .from('units')
+        .select('id')
+        .eq('organization_id', profile.organization_id)
+        .or(`name.ilike.${searchTerm},address.ilike.${searchTerm}`)
+        .limit(100)
+
+      const reporterIds = (matchingProfiles || []).map(p => p.id)
+      const unitIds = (matchingUnits || []).map(u => u.id)
+
+      // Build OR filter: case_number, title, reporter_id IN [...], unit_id IN [...]
+      let orParts = [`case_number.ilike.${searchTerm}`, `title.ilike.${searchTerm}`]
+      if (reporterIds.length > 0) orParts.push(`reporter_id.in.(${reporterIds.join(',')})`)
+      if (unitIds.length > 0) orParts.push(`unit_id.in.(${unitIds.join(',')})`)
+
+      const orFilter = orParts.join(',')
+      countQuery = countQuery.or(orFilter)
+      dataQuery = dataQuery.or(orFilter)
     }
 
     // Sorting

@@ -151,10 +151,10 @@ export default function ImportPage() {
             Zurück zu Einheiten
           </Link>
         </Button>
-        <h1 className="text-2xl font-bold tracking-tight">Excel-Massenimport</h1>
+        <h1 className="text-2xl font-bold tracking-tight">Einheiten importieren</h1>
         <p className="text-muted-foreground mt-1">
-          Importieren Sie bis zu 1.000 Einheiten auf einmal. Für jede Einheit wird automatisch
-          ein Aktivierungscode generiert und die Einladung direkt an den Mieter versendet.
+          Importieren Sie bis zu 1.000 Einheiten auf einmal — aus Excel (.xlsx) oder CSV (.csv).
+          Für jede Einheit wird automatisch ein Aktivierungscode generiert und die Einladung direkt an den Mieter versendet.
         </p>
       </div>
 

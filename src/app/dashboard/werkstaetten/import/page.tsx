@@ -96,7 +96,7 @@ export default function WerkstaettenImportPage() {
         </Button>
         <h1 className="text-2xl font-bold tracking-tight">Werkstätten importieren</h1>
         <p className="text-muted-foreground mt-1">
-          Importieren Sie Ihre Handwerker und Dienstleister aus einer Excel-Datei.
+          Importieren Sie Ihre Handwerker und Dienstleister aus Excel (.xlsx) oder CSV (.csv).
           Das System schlägt bei einer Schadensmeldung automatisch die passende Werkstatt vor.
         </p>
       </div>

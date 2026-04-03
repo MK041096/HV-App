@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import * as XLSX from 'xlsx'
 import { createServerSupabaseClient, createAdminClient } from '@/lib/supabase-server'
+import { sendWerkstattWillkommensmail } from '@/lib/email'
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024
 
@@ -48,6 +49,14 @@ export async function POST(request: NextRequest) {
     }
 
     const orgId = profile.organization_id
+
+    const { data: org } = await supabase
+      .from('organizations')
+      .select('name, phone')
+      .eq('id', orgId)
+      .single()
+    const orgName = org?.name || 'Ihre Hausverwaltung'
+    const orgPhone = org?.phone || undefined
 
     const formData = await request.formData()
     const file = formData.get('file') as File | null
@@ -152,6 +161,14 @@ export async function POST(request: NextRequest) {
 
       result.contractors_created++
       existingKeys.add(key)
+
+      // Send welcome email (non-blocking — errors don't fail the import)
+      sendWerkstattWillkommensmail({
+        to: email,
+        contractorName: company,
+        orgName,
+        orgPhone,
+      }).catch(() => { /* silent */ })
     }
 
     return NextResponse.json({ data: result }, { status: 200 })

@@ -7,7 +7,6 @@ import {
   Building2,
   LayoutDashboard,
   ClipboardList,
-  Settings,
   LogOut,
   Loader2,
   Menu,
@@ -41,11 +40,6 @@ const NAV_ITEMS = [
     label: "Meine Meldungen",
     href: "/mein-bereich/meldungen",
     icon: ClipboardList,
-  },
-  {
-    label: "Einstellungen",
-    href: "/mein-bereich/einstellungen",
-    icon: Settings,
   },
 ]
 

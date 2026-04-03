@@ -497,9 +497,9 @@ export async function sendContractorEmail(params: {
     ${orgPhone ? `<p style="color:#71717a;font-size:13px;margin:0;">Rückfragen: ${orgName} &mdash; ${orgPhone}</p>` : `<p style="color:#71717a;font-size:13px;margin:0;">Rückfragen direkt an ${orgName}.</p>`}
   `
   await resend.emails.send({
-    from: FROM_EMAIL,
+    from: `${orgName} via SMARTCARL <noreply@zerodamage.de>`,
     to,
-    subject: `[${caseNumber}] Reparaturauftrag – ${caseTitle}`,
+    subject: `[Auftrag ${caseNumber}] ${caseTitle} – ${unitAddress}`,
     html: baseTemplate(content, orgName),
   })
 }
@@ -776,4 +776,54 @@ export async function sendWerkstattErinnerung(params: {
       html: baseTemplate(tenantContent, orgName),
     })
   }
+}
+
+export async function sendWerkstattWillkommensmail(params: {
+  to: string
+  contractorName: string
+  orgName: string
+  orgPhone?: string
+}): Promise<void> {
+  const { to, contractorName, orgName, orgPhone } = params
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://zerodamage.de'
+
+  const content = `
+    <h2 style="color:#18181b;font-size:22px;font-weight:700;margin:0 0 8px 0;">
+      Herzlich willkommen als Partnerwerkstatt
+    </h2>
+    <p style="color:#71717a;font-size:14px;margin:0 0 24px 0;">Guten Tag ${contractorName},</p>
+
+    <p style="color:#52525b;font-size:14px;line-height:1.6;margin:0 0 16px 0;">
+      <strong>${orgName}</strong> nutzt ab sofort <strong>SMARTCARL</strong> für die digitale Abwicklung von Schadensmeldungen.
+      Als eingetragene Partnerwerkstatt werden Sie bei passenden Aufträgen automatisch per E-Mail kontaktiert.
+    </p>
+
+    <div style="background-color:#f4f4f5;border-radius:8px;padding:16px 20px;margin-bottom:24px;">
+      <p style="color:#71717a;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;margin:0 0 8px 0;">So läuft es ab</p>
+      <p style="color:#52525b;font-size:14px;line-height:1.8;margin:0;">
+        1. Mieter meldet einen Schaden online<br/>
+        2. SMARTCARL analysiert den Schaden und wählt passende Werkstatt<br/>
+        3. Sie erhalten eine E-Mail mit allen Details: Adresse, Schadensbeschreibung, Terminwünsche<br/>
+        4. Per Klick bestätigen Sie einen der vorgeschlagenen Termine — fertig
+      </p>
+    </div>
+
+    <p style="color:#52525b;font-size:14px;line-height:1.6;margin:0 0 24px 0;">
+      Kein Login erforderlich. Kein neues System einlernen. Einfach auf den Link in der E-Mail klicken und Termin bestätigen.
+    </p>
+
+    ${orgPhone ? `<p style="color:#71717a;font-size:13px;margin:0 0 24px 0;">Bei Rückfragen erreichen Sie <strong>${orgName}</strong> unter: <strong>${orgPhone}</strong></p>` : `<p style="color:#71717a;font-size:13px;margin:0 0 24px 0;">Bei Rückfragen wenden Sie sich direkt an <strong>${orgName}</strong>.</p>`}
+
+    <a href="${appUrl}"
+       style="display:inline-block;background-color:#18181b;color:#ffffff;text-decoration:none;padding:12px 24px;border-radius:8px;font-size:14px;font-weight:600;">
+      Mehr über SMARTCARL &rarr;
+    </a>
+  `
+
+  await resend.emails.send({
+    from: `${orgName} via SMARTCARL <noreply@zerodamage.de>`,
+    to,
+    subject: `${orgName} nutzt jetzt SMARTCARL – so funktioniert die Auftragsabwicklung`,
+    html: baseTemplate(content, orgName),
+  })
 }

@@ -303,7 +303,7 @@ export default function CasesListPage() {
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Fallnummer, Titel oder Mietername suchen..."
+                placeholder="Fallnummer, Titel, Mietername oder Adresse suchen..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-9"

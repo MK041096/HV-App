@@ -1,5 +1,6 @@
 'use client'
 
+import DokumenteTabsHeader from '@/components/dashboard/DokumenteTabsHeader'
 import { useState, useEffect, useRef } from 'react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -468,6 +469,8 @@ export default function VersicherungenPage() {
   const einheitenMitPolice = einheiten.filter(e => e.docs.length > 0)
 
   return (
+    <div>
+      <DokumenteTabsHeader />
     <div className="max-w-4xl mx-auto space-y-6 p-6">
       {/* Header */}
       <div className="flex items-center justify-between">
@@ -1188,6 +1191,7 @@ export default function VersicherungenPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+    </div>
     </div>
   )
 }

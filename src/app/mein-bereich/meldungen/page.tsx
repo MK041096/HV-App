@@ -71,11 +71,14 @@ const STATUS_BADGE_CONFIG: Record<
   "In Bearbeitung": {
     className: "bg-amber-100 text-amber-700 border-amber-200",
   },
-  "Warte auf Handwerker": {
-    className: "bg-amber-100 text-amber-700 border-amber-200",
+  "Werkstatt wurde kontaktiert": {
+    className: "bg-purple-100 text-purple-700 border-purple-200",
   },
   "Termin vereinbart": {
     className: "bg-purple-100 text-purple-700 border-purple-200",
+  },
+  "Werkstatt meldet sich bei Ihnen": {
+    className: "bg-teal-100 text-teal-700 border-teal-200",
   },
   Abgeschlossen: {
     className: "bg-green-100 text-green-700 border-green-200",
@@ -83,9 +86,9 @@ const STATUS_BADGE_CONFIG: Record<
   Abgelehnt: {
     className: "bg-red-100 text-red-700 border-red-200",
   },
-  // Raw DB status fallbacks (in case display_status is not mapped)
+  // Raw DB status fallbacks
   warte_auf_handwerker: {
-    className: "bg-amber-100 text-amber-700 border-amber-200",
+    className: "bg-purple-100 text-purple-700 border-purple-200",
   },
   abgelehnt: {
     className: "bg-red-100 text-red-700 border-red-200",

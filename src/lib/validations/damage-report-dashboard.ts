@@ -4,11 +4,11 @@ import { z } from 'zod'
 export const STATUS_DISPLAY_MAP = {
   neu: 'Eingegangen',
   in_bearbeitung: 'In Bearbeitung',
-  warte_auf_handwerker: 'In Bearbeitung',
+  warte_auf_handwerker: 'Werkstatt wurde kontaktiert',
   termin_vereinbart: 'Termin vereinbart',
   termin_telefonisch: 'Werkstatt meldet sich bei Ihnen',
   erledigt: 'Abgeschlossen',
-  abgelehnt: 'Abgeschlossen',
+  abgelehnt: 'Abgelehnt',
 } as const
 
 // Filter groups for the dashboard (maps display status to DB statuses)

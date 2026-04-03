@@ -16,7 +16,7 @@ import {
   Menu,
   X,
   Wrench,
-  ShieldCheck,
+  CreditCard,
 } from "lucide-react"
 
 import { supabase } from "@/lib/supabase"
@@ -39,46 +39,14 @@ interface Organization {
 }
 
 const NAV_ITEMS = [
-  {
-    label: "Übersicht",
-    href: "/dashboard",
-    icon: LayoutDashboard,
-  },
-  {
-    label: "Fälle",
-    href: "/dashboard/cases",
-    icon: ClipboardList,
-  },
-  {
-    label: "Einheiten",
-    href: "/dashboard/units",
-    icon: Home,
-  },
-  {
-    label: "Mieter",
-    href: "/dashboard/tenants",
-    icon: Users,
-  },
-  {
-    label: "Aktivierungscodes",
-    href: "/dashboard/codes",
-    icon: KeyRound,
-  },
-  {
-    label: "Werkstätten",
-    href: "/dashboard/werkstaetten",
-    icon: Wrench,
-  },
-  {
-    label: "Versicherungen",
-    href: "/dashboard/versicherungen",
-    icon: ShieldCheck,
-  },
-  {
-    label: "Mietverträge",
-    href: "/dashboard/dokumente",
-    icon: FolderOpen,
-  },
+  { label: "Übersicht", href: "/dashboard", icon: LayoutDashboard, dividerAfter: false },
+  { label: "Fälle", href: "/dashboard/cases", icon: ClipboardList, dividerAfter: true },
+  { label: "Einheiten", href: "/dashboard/units", icon: Home, dividerAfter: false },
+  { label: "Mieter", href: "/dashboard/tenants", icon: Users, dividerAfter: false },
+  { label: "Aktivierungscodes", href: "/dashboard/codes", icon: KeyRound, dividerAfter: false },
+  { label: "Werkstätten", href: "/dashboard/werkstaetten", icon: Wrench, dividerAfter: true },
+  { label: "Dokumente", href: "/dashboard/dokumente", icon: FolderOpen, dividerAfter: true },
+  { label: "Abonnement", href: "/dashboard/billing", icon: CreditCard, dividerAfter: false },
 ]
 
 function SidebarContent({
@@ -120,19 +88,21 @@ function SidebarContent({
               : pathname.startsWith(item.href)
 
           return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={cn(
-                "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
-                isActive
-                  ? "bg-primary text-primary-foreground"
-                  : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
-              )}
-            >
-              <item.icon className="h-4 w-4 shrink-0" />
-              {item.label}
-            </Link>
+            <div key={item.href}>
+              <Link
+                href={item.href}
+                className={cn(
+                  "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
+                  isActive
+                    ? "bg-primary text-primary-foreground"
+                    : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                )}
+              >
+                <item.icon className="h-4 w-4 shrink-0" />
+                {item.label}
+              </Link>
+              {item.dividerAfter && <div className="my-2 border-t border-border/50" />}
+            </div>
           )
         })}
       </nav>

@@ -1,5 +1,6 @@
 'use client'
 
+import DokumenteTabsHeader from '@/components/dashboard/DokumenteTabsHeader'
 import { useState, useEffect, useRef } from 'react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -370,6 +371,8 @@ export default function DokumentePage() {
   }
 
   return (
+    <div>
+      <DokumenteTabsHeader />
     <div className="max-w-4xl mx-auto space-y-6 p-6">
       <div className="flex items-center justify-between">
         <div>
@@ -718,6 +721,7 @@ export default function DokumentePage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+    </div>
     </div>
   )
 }
