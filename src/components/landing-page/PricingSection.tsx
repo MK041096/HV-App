@@ -25,12 +25,7 @@ export default function PricingSection() {
 
           {/* April-Aktion */}
           <div style={{ background: '#FFFFFF', border: '2px solid #C74229', borderRadius: 10, padding: '40px 36px', position: 'relative', display: 'flex', flexDirection: 'column', width: '100%', maxWidth: 420 }}>
-            {/* Badge */}
-            <div style={{ position: 'absolute', top: -13, left: 32, background: '#C74229', borderRadius: 4, padding: '4px 12px' }}>
-              <span style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 11, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#fff' }}>Nur noch 3 Plätze für April</span>
-            </div>
-
-            <p style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 13, fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#C74229', margin: '0 0 20px' }}>Gründer-Angebot</p>
+            <p style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 13, fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#C74229', margin: '0 0 20px' }}>April-Aktion</p>
 
             <div style={{ marginBottom: 24 }}>
               <span style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 14, color: '#888', textDecoration: 'line-through', display: 'block', marginBottom: 4 }}>699 € Onboarding</span>
