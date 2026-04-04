@@ -9,7 +9,7 @@ export default function DatenschutzPage() {
   return (
     <main className="max-w-3xl mx-auto p-8">
       <h1 className="text-2xl font-bold mb-2">Datenschutzerklärung</h1>
-      <p className="text-sm text-gray-500 mb-8">Stand: März 2026</p>
+      <p className="text-sm text-gray-500 mb-8">Stand: April 2026</p>
 
       {/* 1. Verantwortlicher */}
       <section className="mb-8">
@@ -41,6 +41,17 @@ export default function DatenschutzPage() {
           Mieter können Schäden melden. Dabei werden Beschreibung, Fotos und Standortangaben
           (Wohneinheit) gespeichert. Rechtsgrundlage: Art. 6 Abs. 1 lit. b DSGVO
           (Vertragserfüllung im Rahmen des Mietverhältnisses).
+        </p>
+
+        <h3 className="font-semibold mt-4 mb-1">e) Automatische KI-Analyse von Schadensmeldungen</h3>
+        <p>
+          Zur automatischen Vorprüfung und Klassifizierung von Schadensmeldungen setzt SMARTCARL
+          einen KI-Dienst ein (Anthropic PBC, USA). Dabei werden Meldungsinhalte (Beschreibung,
+          Kategorie, Fotos sowie ggf. relevante Vertragsdaten) zur Analyse übermittelt.
+          Die Verarbeitung erfolgt auf Basis von Standardvertragsklauseln gemäß Art. 46 Abs. 2
+          lit. c DSGVO sowie des EU-US Data Privacy Framework. Anthropic verarbeitet
+          diese Daten ausschließlich zur Erbringung des Dienstes und nicht zu eigenen Zwecken.
+          Rechtsgrundlage: Art. 6 Abs. 1 lit. b DSGVO (Vertragserfüllung) i.V.m. Art. 46 DSGVO.
         </p>
 
         <h3 className="font-semibold mt-4 mb-1">c) Kommunikation</h3>
@@ -89,6 +100,18 @@ export default function DatenschutzPage() {
             Serverstandort: EU. DPA:{" "}
             <a href="https://vercel.com/legal/dpa" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
               vercel.com/legal/dpa
+            </a>
+          </li>
+          <li>
+            <strong>Resend Inc.</strong> (E-Mail-Versand) –
+            Serverstandort: USA. Übermittlung auf Basis von Standardvertragsklauseln (Art. 46 DSGVO).
+          </li>
+          <li>
+            <strong>Anthropic PBC</strong> (KI-Analyse von Schadensmeldungen) –
+            Serverstandort: USA. Übermittlung auf Basis von Standardvertragsklauseln und
+            EU-US Data Privacy Framework (Art. 46 DSGVO). DPA:{" "}
+            <a href="https://www.anthropic.com/legal/privacy" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+              anthropic.com/legal/privacy
             </a>
           </li>
         </ul>

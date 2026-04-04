@@ -29,7 +29,7 @@ export default function AvvPage() {
           <p className="text-muted-foreground">
             gemäß Art. 28 Abs. 3 DSGVO i.V.m. § 62 DSG (Österreich)
           </p>
-          <p className="text-sm text-muted-foreground">Stand: März 2026</p>
+          <p className="text-sm text-muted-foreground">Stand: April 2026</p>
         </div>
 
         <div className="prose prose-slate max-w-none space-y-8 text-sm leading-relaxed">
@@ -211,6 +211,11 @@ export default function AvvPage() {
                     <td className="p-3 font-medium">Resend Inc.</td>
                     <td className="p-3 text-muted-foreground">E-Mail-Versand (Benachrichtigungen)</td>
                     <td className="p-3 text-muted-foreground">USA (SCCs vorhanden)</td>
+                  </tr>
+                  <tr>
+                    <td className="p-3 font-medium">Anthropic PBC</td>
+                    <td className="p-3 text-muted-foreground">KI-gestützte Analyse von Schadensmeldungen (automatische Vorprüfung und Klassifizierung)</td>
+                    <td className="p-3 text-muted-foreground">USA (SCCs + EU-US Data Privacy Framework)</td>
                   </tr>
                 </tbody>
               </table>
