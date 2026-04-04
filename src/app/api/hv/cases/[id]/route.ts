@@ -8,7 +8,7 @@ import {
 } from '@/lib/validations/hv-case-management'
 import { CATEGORY_LABELS, URGENCY_LABELS } from '@/lib/validations/damage-report'
 import { STATUS_DISPLAY_MAP } from '@/lib/validations/damage-report-dashboard'
-import { sendStatusChangeEmail, sendTerminVereinbartEmail, NOTIFICATION_STATUSES } from '@/lib/email'
+import { sendStatusChangeEmail, sendTerminVereinbartEmail, sendBestaetigungEmail, NOTIFICATION_STATUSES } from '@/lib/email'
 
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
@@ -334,6 +334,37 @@ export async function PATCH(
             }
           } catch (err) {
             console.error('Termin email notification error:', err)
+          }
+        })()
+      }
+
+      // Send email when HV confirms report (in_bearbeitung = first action on case)
+      if (new_status === 'in_bearbeitung' && existingReport.reporter_id) {
+        ;(async () => {
+          try {
+            const adminClient = createAdminClient()
+            const [reporterResult, orgResult, reporterProfileResult] = await Promise.all([
+              adminClient.auth.admin.getUserById(existingReport.reporter_id!),
+              supabase.from('organizations').select('name').eq('id', profile.organization_id).single(),
+              supabase.from('profiles').select('first_name, last_name').eq('id', existingReport.reporter_id!).single(),
+            ])
+            const email = reporterResult.data?.user?.email
+            const name = reporterProfileResult.data
+              ? `${reporterProfileResult.data.first_name || ''} ${reporterProfileResult.data.last_name || ''}`.trim() || 'Mieter'
+              : 'Mieter'
+            const org = orgResult.data?.name || 'Hausverwaltung'
+            if (email) {
+              await sendBestaetigungEmail({
+                to: email,
+                tenantName: name,
+                caseNumber: existingReport.case_number,
+                caseTitle: existingReport.title,
+                reportId: id,
+                orgName: org,
+              })
+            }
+          } catch (err) {
+            console.error('Bestätigung email notification error:', err)
           }
         })()
       }

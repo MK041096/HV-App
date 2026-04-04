@@ -76,6 +76,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
             caseNumber: report.case_number,
             caseTitle: report.title,
             begruendung: begruendung.trim(),
+            reportId: id,
             orgName: org?.name || 'Hausverwaltung',
             orgPhone: (org as any)?.phone,
           })

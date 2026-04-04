@@ -341,10 +341,11 @@ export async function sendAblehnungEmail(params: {
   caseNumber: string
   caseTitle: string
   begruendung: string
+  reportId: string
   orgName: string
   orgPhone?: string
 }): Promise<void> {
-  const { to, tenantName, caseNumber, caseTitle, begruendung, orgName, orgPhone } = params
+  const { to, tenantName, caseNumber, caseTitle, begruendung, reportId, orgName, orgPhone } = params
   const content = `
     <h2 style="color:#18181b;font-size:22px;font-weight:700;margin:0 0 8px 0;">
       Ergebnis Ihrer Schadensmeldung
@@ -367,7 +368,7 @@ export async function sendAblehnungEmail(params: {
     </p>
     ${orgPhone ? `<p style="color:#18181b;font-size:16px;font-weight:700;margin:0 0 24px 0;">&#128222; ${orgPhone}</p>` : `<p style="color:#52525b;font-size:14px;margin:0 0 24px 0;">Bitte kontaktieren Sie <strong>${orgName}</strong> direkt.</p>`}
 
-    <a href="https://smartcarl.com/mein-bereich/meldungen"
+    <a href="${process.env.NEXT_PUBLIC_APP_URL || 'https://smartcarl.com'}/mein-bereich/meldungen/${reportId}"
        style="display:inline-block;background-color:#18181b;color:#ffffff;text-decoration:none;padding:12px 24px;border-radius:8px;font-size:14px;font-weight:600;">
       Meldung ansehen &rarr;
     </a>
@@ -376,6 +377,52 @@ export async function sendAblehnungEmail(params: {
     from: FROM_EMAIL,
     to,
     subject: `[${caseNumber}] Ergebnis Ihrer Schadensmeldung – ${orgName}`,
+    html: baseTemplate(content, orgName),
+  })
+}
+
+export async function sendBestaetigungEmail(params: {
+  to: string
+  tenantName: string
+  caseNumber: string
+  caseTitle: string
+  reportId: string
+  orgName: string
+}): Promise<void> {
+  const { to, tenantName, caseNumber, caseTitle, reportId, orgName } = params
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://smartcarl.com'
+  const content = `
+    <h2 style="color:#18181b;font-size:22px;font-weight:700;margin:0 0 8px 0;">
+      Update zu Ihrer Schadensmeldung
+    </h2>
+    <p style="color:#71717a;font-size:14px;margin:0 0 24px 0;">Hallo ${tenantName},</p>
+
+    <div style="background-color:#f4f4f5;border-radius:8px;padding:16px 20px;margin-bottom:24px;">
+      <p style="color:#71717a;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;margin:0 0 4px 0;">Meldung</p>
+      <p style="color:#18181b;font-size:15px;font-weight:600;margin:0 0 4px 0;">${caseTitle}</p>
+      <p style="color:#71717a;font-size:13px;margin:0;">Fall-Nr. ${caseNumber}</p>
+    </div>
+
+    <p style="color:#52525b;font-size:14px;line-height:1.6;margin:0 0 16px 0;">
+      Ihre Hausverwaltung hat Ihre Schadensmeldung bestätigt und eine Werkstatt wurde informiert.
+    </p>
+
+    <div style="background-color:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:14px 18px;margin-bottom:24px;">
+      <p style="color:#166534;font-size:13px;font-weight:600;margin:0 0 4px 0;">Was passiert als nächstes?</p>
+      <p style="color:#15803d;font-size:13px;line-height:1.6;margin:0;">
+        Die Werkstatt wird Ihren Wunschtermin entweder per E-Mail bestätigen oder Sie direkt telefonisch kontaktieren.
+      </p>
+    </div>
+
+    <a href="${appUrl}/mein-bereich/meldungen/${reportId}"
+       style="display:inline-block;background-color:#18181b;color:#ffffff;text-decoration:none;padding:12px 24px;border-radius:8px;font-size:14px;font-weight:600;">
+      Meldung ansehen &rarr;
+    </a>
+  `
+  await resend.emails.send({
+    from: FROM_EMAIL,
+    to,
+    subject: `[${caseNumber}] Update zu Ihrer Schadensmeldung – ${orgName}`,
     html: baseTemplate(content, orgName),
   })
 }
