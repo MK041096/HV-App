@@ -11,6 +11,7 @@ import {
   Loader2,
   Menu,
   X,
+  Settings,
 } from "lucide-react"
 
 import { supabase } from "@/lib/supabase"
@@ -91,7 +92,7 @@ function SidebarContent({
 
       <Separator />
 
-      {/* User Info & Logout */}
+      {/* User Info, Settings & Logout */}
       <div className="px-4 py-4 space-y-3">
         {adminUser && (
           <div className="flex flex-col min-w-0">
@@ -101,6 +102,18 @@ function SidebarContent({
             <span className="text-xs text-primary font-medium">Platform Admin</span>
           </div>
         )}
+        <Link
+          href="/admin/einstellungen"
+          className={cn(
+            "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+            pathname.startsWith("/admin/einstellungen")
+              ? "bg-primary text-primary-foreground"
+              : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+          )}
+        >
+          <Settings className="h-4 w-4 shrink-0" />
+          Einstellungen
+        </Link>
         <Button
           variant="ghost"
           size="sm"
