@@ -132,6 +132,12 @@ export default function AdminLayout({
   const [mobileOpen, setMobileOpen] = useState(false)
 
   useEffect(() => {
+    // Admin login page needs no auth check
+    if (pathname === "/admin/login") {
+      setIsLoading(false)
+      return
+    }
+
     async function loadAdminUser() {
       try {
         const {
@@ -178,6 +184,11 @@ export default function AdminLayout({
     } catch {
       window.location.href = "/admin/login"
     }
+  }
+
+  // Login page renders without sidebar
+  if (pathname === "/admin/login") {
+    return <>{children}</>
   }
 
   if (isLoading) {
