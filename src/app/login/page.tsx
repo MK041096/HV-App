@@ -82,12 +82,24 @@ export default function LoginPage() {
         return
       }
 
-      // Use window.location.href for reliable redirect after auth (as per frontend rules)
-      // Validate redirectTo to prevent open redirect to external URLs
+      // Determine redirect based on role — never let a HV/Admin end up in Mieter portal
+      const role = json.data?.user?.role
+      const isHV = role && ['hv_admin', 'hv_mitarbeiter', 'platform_admin'].includes(role)
+      const isMieter = role === 'mieter'
+
       const params = new URLSearchParams(window.location.search)
       const rawRedirect = params.get("redirectTo") || ""
       const isSafeRedirect = rawRedirect.startsWith("/") && !rawRedirect.startsWith("//")
-      const redirectTo = isSafeRedirect ? rawRedirect : (json.data?.redirectTo || "/dashboard")
+
+      let redirectTo = json.data?.redirectTo || "/dashboard"
+      if (isSafeRedirect) {
+        // Validate that redirect destination matches the user's role
+        const isHVDestination = rawRedirect.startsWith("/dashboard") || rawRedirect.startsWith("/admin")
+        const isMieterDestination = rawRedirect.startsWith("/mein-bereich")
+        if (isHV && !isMieterDestination) redirectTo = rawRedirect
+        else if (isMieter && !isHVDestination) redirectTo = rawRedirect
+      }
+
       window.location.href = redirectTo
     } catch {
       setError(
