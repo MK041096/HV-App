@@ -12,7 +12,7 @@ export async function GET() {
     if (profile?.role !== 'platform_admin') return NextResponse.json({ error: 'Kein Zugriff' }, { status: 403 })
 
     const admin = createAdminClient()
-    const PLATFORM_ORG_ID = 'aaaaaaaa-0000-0000-0000-000000000001'
+    const PLATFORM_ORG_ID = 'bbbbbbbb-0000-0000-0000-000000000000'
 
     // Base counts
     const [orgsResult, usersResult, casesResult, unitsResult] = await Promise.all([
