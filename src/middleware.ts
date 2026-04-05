@@ -5,7 +5,7 @@ import { NextResponse, type NextRequest } from 'next/server'
 const PROTECTED_PREFIXES = ['/dashboard', '/mein-bereich', '/admin']
 
 // Routes that should redirect if already authenticated
-const AUTH_ROUTES = ['/login', '/auth/reset-password']
+const AUTH_ROUTES = ['/login', '/auth/reset-password', '/admin/login']
 
 export async function middleware(request: NextRequest) {
   let supabaseResponse = NextResponse.next({

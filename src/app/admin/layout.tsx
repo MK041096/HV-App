@@ -139,7 +139,7 @@ export default function AdminLayout({
         } = await supabase.auth.getUser()
 
         if (!user) {
-          window.location.href = "/login"
+          window.location.href = "/admin/login"
           return
         }
 
@@ -150,7 +150,7 @@ export default function AdminLayout({
           .single()
 
         if (profile?.role !== "platform_admin") {
-          window.location.href = "/"
+          window.location.href = "/admin/login"
           return
         }
 
@@ -174,9 +174,9 @@ export default function AdminLayout({
     setIsLoggingOut(true)
     try {
       await supabase.auth.signOut()
-      window.location.href = "/login"
+      window.location.href = "/admin/login"
     } catch {
-      window.location.href = "/login"
+      window.location.href = "/admin/login"
     }
   }
 
