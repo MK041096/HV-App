@@ -4,6 +4,9 @@ import { NextResponse, type NextRequest } from 'next/server'
 // Routes that require authentication
 const PROTECTED_PREFIXES = ['/dashboard', '/mein-bereich', '/admin']
 
+// Routes that are excluded from protection (public even though they start with a protected prefix)
+const PROTECTED_EXCEPTIONS = ['/admin/login']
+
 // Routes that should redirect if already authenticated
 const AUTH_ROUTES = ['/login', '/auth/reset-password', '/admin/login']
 
@@ -41,9 +44,9 @@ export async function middleware(request: NextRequest) {
 
   const pathname = request.nextUrl.pathname
 
-  const isProtectedRoute = PROTECTED_PREFIXES.some((prefix) =>
-    pathname.startsWith(prefix)
-  )
+  const isProtectedRoute =
+    PROTECTED_PREFIXES.some((prefix) => pathname.startsWith(prefix)) &&
+    !PROTECTED_EXCEPTIONS.includes(pathname)
 
   const isAuthRoute = AUTH_ROUTES.some((route) => pathname.startsWith(route))
 
