@@ -590,16 +590,27 @@ export default function UnitsListPage() {
                     <span className="flex items-center gap-1 text-xs text-muted-foreground">
                       <ClipboardList className="h-3 w-3" />{unit.damage_report_count} Meldungen
                     </span>
-                    {unit.tenant_status !== "occupied" && (
-                      unit.pending_code ? (
-                        <div className="flex items-center gap-1">
-                          <code className="text-xs font-mono bg-muted px-1.5 py-0.5 rounded tracking-wider">{unit.pending_code.code}</code>
-                          <CopyCodeButton code={unit.pending_code.code} />
-                        </div>
-                      ) : (
-                        <Button variant="outline" size="sm" className="h-7 text-xs" onClick={(e) => { e.stopPropagation(); setInviteUnit(unit); setInviteOpen(true) }}>Einladen</Button>
-                      )
-                    )}
+                    <div className="flex items-center gap-1">
+                      {unit.tenant_status !== "occupied" && (
+                        unit.pending_code ? (
+                          <div className="space-y-0.5 text-right">
+                            <div className="flex items-center gap-1">
+                              <code className="text-xs font-mono bg-muted px-1.5 py-0.5 rounded tracking-wider">{unit.pending_code.code}</code>
+                              <CopyCodeButton code={unit.pending_code.code} />
+                            </div>
+                            <p className="text-[10px] text-muted-foreground">
+                              bis {new Date(unit.pending_code.expires_at).toLocaleDateString("de-AT", { day: "2-digit", month: "2-digit", year: "numeric" })}
+                              {new Date(unit.pending_code.expires_at) < new Date() && <span className="ml-1 text-red-600 font-medium">· Abgelaufen</span>}
+                            </p>
+                          </div>
+                        ) : (
+                          <Button variant="outline" size="sm" className="h-7 text-xs" onClick={(e) => { e.stopPropagation(); setInviteUnit(unit); setInviteOpen(true) }}>Einladen</Button>
+                        )
+                      )}
+                      <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:bg-destructive/10" onClick={(e) => { e.stopPropagation(); setDeleteUnitTarget(unit); setDeleteUnitError(null); setDeleteUnitOpen(true) }} title="Einheit löschen">
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
                   </div>
                 </div>
               </CardContent>
