@@ -44,10 +44,10 @@ const NAV_ITEMS = [
   { label: "Fälle", href: "/dashboard/cases", icon: ClipboardList, dividerAfter: true },
   { label: "Einheiten", href: "/dashboard/units", icon: Home, dividerAfter: false },
   { label: "Mieter", href: "/dashboard/tenants", icon: Users, dividerAfter: false },
-  { label: "Aktivierungscodes", href: "/dashboard/codes", icon: KeyRound, dividerAfter: false },
+  { label: "Dokumente", href: "/dashboard/dokumente", icon: FolderOpen, dividerAfter: false },
   { label: "Werkstätten", href: "/dashboard/werkstaetten", icon: Wrench, dividerAfter: true },
-  { label: "Dokumente", href: "/dashboard/dokumente", icon: FolderOpen, dividerAfter: true },
   { label: "Abonnement", href: "/dashboard/billing", icon: CreditCard, dividerAfter: false },
+  { label: "Aktivierungscodes", href: "/dashboard/codes", icon: KeyRound, dividerAfter: false },
 ]
 
 function SidebarContent({
