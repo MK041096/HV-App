@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import TwoFactorSection from '@/components/settings/TwoFactorSection'
+import EmailChangeSection from '@/components/settings/EmailChangeSection'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -230,9 +231,6 @@ export default function HVEinstellungenPage() {
           <div className="space-y-1.5">
             <Label>E-Mail-Adresse</Label>
             <Input value={email} disabled className="text-muted-foreground" />
-            <p className="text-xs text-muted-foreground">
-              E-Mail-Änderungen bitte an support@smartcarl.com.
-            </p>
           </div>
           {profileError && <p className="text-sm text-destructive">{profileError}</p>}
           {profileSuccess && (
@@ -246,6 +244,10 @@ export default function HVEinstellungenPage() {
           </Button>
 
           <Separator className="mt-6" />
+
+          <EmailChangeSection currentEmail={email} />
+
+          <Separator />
 
           <div className="pt-2">
             <h2 className="text-base font-semibold">Rolle</h2>

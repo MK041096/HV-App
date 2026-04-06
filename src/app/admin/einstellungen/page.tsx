@@ -5,9 +5,11 @@ import { supabase } from '@/lib/supabase'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Separator } from '@/components/ui/separator'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Loader2, CheckCircle2, KeyRound, User, Shield } from 'lucide-react'
 import TwoFactorSection from '@/components/settings/TwoFactorSection'
+import EmailChangeSection from '@/components/settings/EmailChangeSection'
 
 export default function AdminEinstellungenPage() {
   const [email, setEmail] = useState('')
@@ -86,19 +88,18 @@ export default function AdminEinstellungenPage() {
         </TabsList>
 
         {/* ── PROFIL ── */}
-        <TabsContent value="profil" className="space-y-4">
-          <h2 className="text-base font-semibold">Account-Informationen</h2>
-          <div className="space-y-1.5 max-w-sm">
-            <Label>E-Mail-Adresse</Label>
-            <Input value={email} disabled className="text-muted-foreground" />
+        <TabsContent value="profil" className="space-y-6">
+          <div className="space-y-4">
+            <h2 className="text-base font-semibold">Account-Informationen</h2>
+            <div className="space-y-1.5 max-w-sm">
+              <Label>Rolle</Label>
+              <Input value="Platform Administrator" disabled className="text-muted-foreground" />
+            </div>
           </div>
-          <div className="space-y-1.5 max-w-sm">
-            <Label>Rolle</Label>
-            <Input value="Platform Administrator" disabled className="text-muted-foreground" />
-          </div>
-          <p className="text-xs text-muted-foreground">
-            E-Mail-Änderungen direkt über Supabase Dashboard vornehmen.
-          </p>
+
+          <Separator />
+
+          <EmailChangeSection currentEmail={email} />
         </TabsContent>
 
         {/* ── SICHERHEIT ── */}

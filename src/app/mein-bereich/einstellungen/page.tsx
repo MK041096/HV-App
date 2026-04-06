@@ -12,6 +12,7 @@ import {
   KeyRound, User, Shield,
 } from 'lucide-react'
 import TwoFactorSection from '@/components/settings/TwoFactorSection'
+import EmailChangeSection from '@/components/settings/EmailChangeSection'
 
 interface Profile {
   id: string
@@ -226,9 +227,6 @@ export default function EinstellungenPage() {
             <div className="space-y-1.5">
               <Label>E-Mail-Adresse</Label>
               <Input value={email} disabled className="text-muted-foreground" />
-              <p className="text-xs text-muted-foreground">
-                E-Mail-Änderungen bitte bei Ihrer Hausverwaltung beantragen.
-              </p>
             </div>
             {saveError && <p className="text-sm text-destructive">{saveError}</p>}
             {saveSuccess && (
@@ -241,6 +239,10 @@ export default function EinstellungenPage() {
               Speichern
             </Button>
           </section>
+
+          <Separator />
+
+          <EmailChangeSection currentEmail={email} />
 
           <Separator />
 
