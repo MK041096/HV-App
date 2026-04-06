@@ -5,13 +5,11 @@ import { useRouter } from "next/navigation"
 import Link from "next/link"
 import {
   Search,
-  Filter,
   ArrowUpDown,
   ArrowUp,
   ArrowDown,
   ChevronLeft,
   ChevronRight,
-  Loader2,
   Users,
   X,
   Eye,
@@ -45,12 +43,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible"
-import { Separator } from "@/components/ui/separator"
 import { Skeleton } from "@/components/ui/skeleton"
 
 // ── Types ──
@@ -107,8 +99,6 @@ export default function TenantsListPage() {
   const [sortBy, setSortBy] = useState<SortField>("name")
   const [sortOrder, setSortOrder] = useState<SortOrder>("asc")
   const [page, setPage] = useState(1)
-  const [filtersOpen, setFiltersOpen] = useState(false)
-
   // Debounced search
   const [debouncedSearch, setDebouncedSearch] = useState(searchQuery)
 
@@ -190,22 +180,23 @@ export default function TenantsListPage() {
   return (
     <div className="p-4 sm:p-6 lg:p-8 space-y-4">
       {/* Page Header */}
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">Mieter</h1>
-        <p className="text-muted-foreground mt-1">
-          Alle registrierten Mieter Ihrer Organisation
-          {pagination && (
-            <span className="ml-1">
-              ({totalCount} gesamt)
-            </span>
-          )}
-        </p>
+      <div className="flex items-start justify-between gap-2">
+        <div>
+          <div className="flex items-center gap-2">
+            <h1 className="text-2xl font-bold tracking-tight">Mieter</h1>
+            {totalCount > 0 && (
+              <Badge variant="secondary" className="text-xs">{totalCount}</Badge>
+            )}
+          </div>
+          <p className="text-muted-foreground mt-1">
+            Übersicht aller Mieter, die sich per Aktivierungscode registriert haben
+          </p>
+        </div>
       </div>
 
       {/* Search & Filter Bar */}
       <Card>
         <CardContent className="pt-4 pb-3 space-y-3">
-          {/* Search Row */}
           <div className="flex flex-col sm:flex-row gap-2">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -225,60 +216,31 @@ export default function TenantsListPage() {
                 </button>
               )}
             </div>
-
-            <Collapsible open={filtersOpen} onOpenChange={setFiltersOpen}>
-              <CollapsibleTrigger asChild>
-                <Button variant="outline" className="shrink-0">
-                  <Filter className="mr-2 h-4 w-4" />
-                  Filter
-                  {activeFilters > 0 && (
-                    <Badge variant="secondary" className="ml-2 h-5 w-5 p-0 flex items-center justify-center text-[10px]">
-                      {activeFilters}
-                    </Badge>
-                  )}
-                </Button>
-              </CollapsibleTrigger>
-            </Collapsible>
+            <div className="w-full sm:w-48">
+              <Select
+                value={statusFilter || "alle"}
+                onValueChange={(v) => {
+                  setStatusFilter(v === "alle" ? "" : v)
+                  setPage(1)
+                }}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Alle Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="alle">Alle Status</SelectItem>
+                  <SelectItem value="active">Aktiv</SelectItem>
+                  <SelectItem value="inactive">Deaktiviert</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            {activeFilters > 0 && (
+              <Button variant="ghost" size="sm" onClick={clearFilters} className="shrink-0">
+                <X className="mr-1 h-3.5 w-3.5" />
+                Zurücksetzen
+              </Button>
+            )}
           </div>
-
-          {/* Filter Row (collapsible) */}
-          <Collapsible open={filtersOpen} onOpenChange={setFiltersOpen}>
-            <CollapsibleContent>
-              <Separator className="my-2" />
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="text-xs font-medium text-muted-foreground mb-1 block">
-                    Status
-                  </label>
-                  <Select
-                    value={statusFilter || "alle"}
-                    onValueChange={(v) => {
-                      setStatusFilter(v === "alle" ? "" : v)
-                      setPage(1)
-                    }}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Alle Status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="alle">Alle Status</SelectItem>
-                      <SelectItem value="active">Aktiv</SelectItem>
-                      <SelectItem value="inactive">Deaktiviert</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              {activeFilters > 0 && (
-                <div className="mt-3 flex justify-end">
-                  <Button variant="ghost" size="sm" onClick={clearFilters}>
-                    <X className="mr-1 h-3.5 w-3.5" />
-                    Alle Filter zurücksetzen
-                  </Button>
-                </div>
-              )}
-            </CollapsibleContent>
-          </Collapsible>
         </CardContent>
       </Card>
 
@@ -349,11 +311,15 @@ export default function TenantsListPage() {
                     <TableCell colSpan={6} className="h-40 text-center">
                       <div className="flex flex-col items-center gap-2 text-muted-foreground">
                         <Users className="h-10 w-10 opacity-50" />
-                        <p>Keine Mieter gefunden</p>
-                        {(debouncedSearch || activeFilters > 0) && (
-                          <Button variant="ghost" size="sm" onClick={clearFilters}>
-                            Filter zurücksetzen
-                          </Button>
+                        {(debouncedSearch || activeFilters > 0) ? (
+                          <>
+                            <p>Keine Mieter gefunden</p>
+                            <Button variant="ghost" size="sm" onClick={clearFilters}>
+                              Filter zurücksetzen
+                            </Button>
+                          </>
+                        ) : (
+                          <p className="max-w-xs text-sm">Noch kein Mieter registriert. Sobald ein Mieter einen Aktivierungscode verwendet, erscheint er hier automatisch.</p>
                         )}
                       </div>
                     </TableCell>
@@ -407,10 +373,14 @@ export default function TenantsListPage() {
                         )}
                       </TableCell>
                       <TableCell>
-                        <div className="flex items-center gap-1.5">
-                          <ClipboardList className="h-3.5 w-3.5 text-muted-foreground" />
-                          <span className="text-sm">{tenant.damage_report_count}</span>
-                        </div>
+                        {tenant.damage_report_count > 0 ? (
+                          <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/30 dark:text-blue-400">
+                            <ClipboardList className="mr-1 h-3 w-3" />
+                            {tenant.damage_report_count}
+                          </Badge>
+                        ) : (
+                          <span className="text-xs text-muted-foreground">Keine</span>
+                        )}
                       </TableCell>
                       <TableCell className="text-sm text-muted-foreground">
                         {formatDate(tenant.created_at)}
@@ -458,11 +428,15 @@ export default function TenantsListPage() {
           <Card>
             <CardContent className="py-10 text-center">
               <Users className="h-10 w-10 mx-auto mb-3 text-muted-foreground opacity-50" />
-              <p className="text-muted-foreground">Keine Mieter gefunden</p>
-              {(debouncedSearch || activeFilters > 0) && (
-                <Button variant="ghost" size="sm" className="mt-2" onClick={clearFilters}>
-                  Filter zurücksetzen
-                </Button>
+              {(debouncedSearch || activeFilters > 0) ? (
+                <>
+                  <p className="text-muted-foreground">Keine Mieter gefunden</p>
+                  <Button variant="ghost" size="sm" className="mt-2" onClick={clearFilters}>
+                    Filter zurücksetzen
+                  </Button>
+                </>
+              ) : (
+                <p className="text-sm text-muted-foreground max-w-xs mx-auto">Noch kein Mieter registriert. Sobald ein Mieter einen Aktivierungscode verwendet, erscheint er hier automatisch.</p>
               )}
             </CardContent>
           </Card>
