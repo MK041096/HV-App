@@ -703,19 +703,21 @@ function Step3Details({
       </div>
 
       {/* Schnell-Chips */}
-      <div className="space-y-2">
-        <p className="text-xs text-muted-foreground flex items-center gap-1">
-          <Lightbulb className="h-3 w-3" /> Schnell hinzufügen — tippen Sie auf einen Begriff:
-        </p>
-        <div className="flex flex-wrap gap-2">
-          {tips.chips.map((chip) => (
-            <button key={chip} type="button" onClick={() => appendChip(chip)}
-              className="text-xs rounded-full border px-3 py-1.5 bg-background hover:bg-accent transition-colors text-foreground">
-              + {chip}
-            </button>
-          ))}
+      {tips.chips.length > 0 && (
+        <div className="space-y-2">
+          <p className="text-xs text-muted-foreground flex items-center gap-1">
+            <Lightbulb className="h-3 w-3" /> Schnell hinzufügen — tippen Sie auf einen Begriff:
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {tips.chips.map((chip) => (
+              <button key={chip} type="button" onClick={() => appendChip(chip)}
+                className="text-xs rounded-full border px-3 py-1.5 bg-background hover:bg-accent transition-colors text-foreground">
+                + {chip}
+              </button>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Textarea */}
       <div className="space-y-2">

@@ -16,6 +16,8 @@ import {
   Upload,
   Headset,
   FileSpreadsheet,
+  Wrench,
+  FileText,
 } from "lucide-react"
 
 import {
@@ -35,7 +37,11 @@ import {
 } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Separator } from "@/components/ui/separator"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 interface UserRow {
   id: string
@@ -108,14 +114,26 @@ export default function AdminOrganizationDetailPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  // Support upload state
-  const fileInputRef = useRef<HTMLInputElement>(null)
-  const [isImporting, setIsImporting] = useState(false)
-  const [importResult, setImportResult] = useState<{
-    units_created: number; units_skipped: number; codes_generated: number; emails_sent: number
-    errors: { row: number; message: string }[]
-  } | null>(null)
-  const [importError, setImportError] = useState<string | null>(null)
+  // Support: Einheiten
+  const unitFileRef = useRef<HTMLInputElement>(null)
+  const [isImportingUnits, setIsImportingUnits] = useState(false)
+  const [unitResult, setUnitResult] = useState<{ units_created: number; units_skipped: number; codes_generated: number; emails_sent: number; errors: { row: number; message: string }[] } | null>(null)
+  const [unitError, setUnitError] = useState<string | null>(null)
+
+  // Support: Werkstätten
+  const contractorFileRef = useRef<HTMLInputElement>(null)
+  const [isImportingContractors, setIsImportingContractors] = useState(false)
+  const [contractorResult, setContractorResult] = useState<{ contractors_created: number; contractors_skipped: number; errors: { row: number; message: string }[] } | null>(null)
+  const [contractorError, setContractorError] = useState<string | null>(null)
+
+  // Support: Dokument hochladen
+  const docFileRef = useRef<HTMLInputElement>(null)
+  const [isUploadingDoc, setIsUploadingDoc] = useState(false)
+  const [docResult, setDocResult] = useState<string | null>(null)
+  const [docError, setDocError] = useState<string | null>(null)
+  const [docName, setDocName] = useState('')
+  const [docType, setDocType] = useState('sonstiges')
+  const [docLiegenschaft, setDocLiegenschaft] = useState('')
 
   useEffect(() => {
     if (!id) return
@@ -139,28 +157,53 @@ export default function AdminOrganizationDetailPage() {
     loadOrg()
   }, [id])
 
-  async function handleImportFile(e: React.ChangeEvent<HTMLInputElement>) {
+  async function handleImportUnits(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (!file || !id) return
-    setIsImporting(true)
-    setImportResult(null)
-    setImportError(null)
+    setIsImportingUnits(true); setUnitResult(null); setUnitError(null)
+    try {
+      const fd = new FormData(); fd.append('file', file)
+      const res = await fetch(`/api/admin/organizations/${id}/import-units`, { method: 'POST', body: fd })
+      const json = await res.json()
+      if (!res.ok) { setUnitError(json.error || 'Import fehlgeschlagen'); return }
+      setUnitResult(json.data)
+      const orgRes = await fetch(`/api/admin/organizations/${id}`)
+      if (orgRes.ok) { const orgJson = await orgRes.json(); setOrg(orgJson.data) }
+    } catch { setUnitError('Netzwerkfehler') }
+    finally { setIsImportingUnits(false); if (unitFileRef.current) unitFileRef.current.value = '' }
+  }
+
+  async function handleImportContractors(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file || !id) return
+    setIsImportingContractors(true); setContractorResult(null); setContractorError(null)
+    try {
+      const fd = new FormData(); fd.append('file', file)
+      const res = await fetch(`/api/admin/organizations/${id}/import-contractors`, { method: 'POST', body: fd })
+      const json = await res.json()
+      if (!res.ok) { setContractorError(json.error || 'Import fehlgeschlagen'); return }
+      setContractorResult(json.data)
+    } catch { setContractorError('Netzwerkfehler') }
+    finally { setIsImportingContractors(false); if (contractorFileRef.current) contractorFileRef.current.value = '' }
+  }
+
+  async function handleUploadDoc(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file || !id) return
+    setIsUploadingDoc(true); setDocResult(null); setDocError(null)
     try {
       const fd = new FormData()
       fd.append('file', file)
-      const res = await fetch(`/api/admin/organizations/${id}/import-units`, { method: 'POST', body: fd })
+      fd.append('name', docName || file.name)
+      fd.append('document_type', docType)
+      if (docLiegenschaft.trim()) fd.append('liegenschaft', docLiegenschaft.trim())
+      const res = await fetch(`/api/admin/organizations/${id}/upload-document`, { method: 'POST', body: fd })
       const json = await res.json()
-      if (!res.ok) { setImportError(json.error || 'Import fehlgeschlagen'); return }
-      setImportResult(json.data)
-      // Refresh org stats
-      const orgRes = await fetch(`/api/admin/organizations/${id}`)
-      if (orgRes.ok) { const orgJson = await orgRes.json(); setOrg(orgJson.data) }
-    } catch {
-      setImportError('Netzwerkfehler beim Import')
-    } finally {
-      setIsImporting(false)
-      if (fileInputRef.current) fileInputRef.current.value = ''
-    }
+      if (!res.ok) { setDocError(json.error || 'Upload fehlgeschlagen'); return }
+      setDocResult(json.data?.name || 'Dokument')
+      setDocName(''); setDocLiegenschaft('')
+    } catch { setDocError('Netzwerkfehler') }
+    finally { setIsUploadingDoc(false); if (docFileRef.current) docFileRef.current.value = '' }
   }
 
   if (isLoading) {
@@ -428,70 +471,65 @@ export default function AdminOrganizationDetailPage() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
+          <Tabs defaultValue="einheiten">
+            <TabsList className="w-full">
+              <TabsTrigger value="einheiten" className="flex items-center gap-1.5 flex-1">
+                <FileSpreadsheet className="h-4 w-4" />
+                Einheiten
+              </TabsTrigger>
+              <TabsTrigger value="werkstaetten" className="flex items-center gap-1.5 flex-1">
+                <Wrench className="h-4 w-4" />
+                Werkstätten
+              </TabsTrigger>
+              <TabsTrigger value="dokumente" className="flex items-center gap-1.5 flex-1">
+                <FileText className="h-4 w-4" />
+                Dokumente
+              </TabsTrigger>
+            </TabsList>
 
-          {/* Einheiten-Upload */}
-          <div className="space-y-3">
-            <div className="flex items-start gap-3">
-              <FileSpreadsheet className="h-5 w-5 text-muted-foreground mt-0.5 shrink-0" />
-              <div>
-                <p className="text-sm font-medium">Einheiten für diese HV importieren</p>
-                <p className="text-sm text-muted-foreground mt-0.5">
-                  Falls die HV Probleme mit dem Excel-Upload hat, können Sie die Datei hier direkt hochladen.
-                  Einheiten, Aktivierungscodes und Einladungsemails werden automatisch erstellt — genau wie
-                  wenn die HV es selbst machen würde.
-                </p>
-              </div>
-            </div>
-
-            <div className="ml-8 space-y-3">
+            {/* TAB: Einheiten */}
+            <TabsContent value="einheiten" className="mt-4 space-y-3">
+              <p className="text-sm text-muted-foreground">
+                Falls die HV Probleme mit dem Excel-Upload hat, können Sie die Datei hier direkt hochladen.
+                Einheiten, Aktivierungscodes und Einladungsemails werden automatisch erstellt.
+              </p>
               <input
-                ref={fileInputRef}
+                ref={unitFileRef}
                 type="file"
                 accept=".xlsx,.xls,.csv"
                 className="sr-only"
                 id="admin-unit-import"
-                onChange={handleImportFile}
-                disabled={isImporting}
+                onChange={handleImportUnits}
+                disabled={isImportingUnits}
               />
               <label htmlFor="admin-unit-import">
-                <Button
-                  asChild
-                  variant="outline"
-                  size="sm"
-                  disabled={isImporting}
-                  className="cursor-pointer"
-                >
+                <Button asChild variant="outline" size="sm" disabled={isImportingUnits} className="cursor-pointer">
                   <span>
-                    {isImporting
+                    {isImportingUnits
                       ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Wird importiert...</>
                       : <><Upload className="mr-2 h-4 w-4" />Excel / CSV hochladen</>
                     }
                   </span>
                 </Button>
               </label>
-              <p className="text-xs text-muted-foreground">
-                .xlsx, .xls oder .csv · max. 5 MB · bis zu 1.000 Einheiten
-              </p>
+              <p className="text-xs text-muted-foreground">.xlsx, .xls oder .csv · max. 5 MB · bis zu 1.000 Einheiten</p>
 
-              {importError && (
+              {unitError && (
                 <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700 flex gap-2 items-start">
-                  <AlertTriangle className="h-4 w-4 mt-0.5 shrink-0" />
-                  {importError}
+                  <AlertTriangle className="h-4 w-4 mt-0.5 shrink-0" />{unitError}
                 </div>
               )}
-
-              {importResult && (
+              {unitResult && (
                 <div className="rounded-lg border border-green-200 bg-green-50 p-4 space-y-3">
                   <div className="flex items-center gap-2 text-green-700 font-medium text-sm">
-                    <CheckCircle2 className="h-4 w-4" />
-                    Import abgeschlossen
+                    <CheckCircle2 className="h-4 w-4" />Import abgeschlossen
                   </div>
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                     {[
-                      { label: 'Einheiten erstellt', value: importResult.units_created },
-                      { label: 'Übersprungen', value: importResult.units_skipped },
-                      { label: 'Codes generiert', value: importResult.codes_generated },
-                      { label: 'E-Mails gesendet', value: importResult.emails_sent },
+                      { label: 'Einheiten erstellt', value: unitResult.units_created },
+                      { label: 'Übersprungen', value: unitResult.units_skipped },
+                      { label: 'Codes generiert', value: unitResult.codes_generated },
+                      { label: 'E-Mails gesendet', value: unitResult.emails_sent },
                     ].map((s) => (
                       <div key={s.label} className="rounded bg-white border px-3 py-2 text-center">
                         <p className="text-lg font-bold text-green-700">{s.value}</p>
@@ -499,21 +537,168 @@ export default function AdminOrganizationDetailPage() {
                       </div>
                     ))}
                   </div>
-                  {importResult.errors.length > 0 && (
+                  {unitResult.errors.length > 0 && (
                     <div className="space-y-1">
-                      <p className="text-xs font-medium text-amber-700">{importResult.errors.length} Fehler:</p>
-                      {importResult.errors.slice(0, 5).map((e, i) => (
+                      <p className="text-xs font-medium text-amber-700">{unitResult.errors.length} Fehler:</p>
+                      {unitResult.errors.slice(0, 5).map((e, i) => (
                         <p key={i} className="text-xs text-amber-700">Zeile {e.row}: {e.message}</p>
                       ))}
-                      {importResult.errors.length > 5 && (
-                        <p className="text-xs text-amber-600">...und {importResult.errors.length - 5} weitere</p>
+                      {unitResult.errors.length > 5 && (
+                        <p className="text-xs text-amber-600">...und {unitResult.errors.length - 5} weitere</p>
                       )}
                     </div>
                   )}
                 </div>
               )}
-            </div>
-          </div>
+            </TabsContent>
+
+            {/* TAB: Werkstätten */}
+            <TabsContent value="werkstaetten" className="mt-4 space-y-3">
+              <p className="text-sm text-muted-foreground">
+                Werkstätten (Handwerker) für diese Hausverwaltung importieren. Jede Werkstatt erhält
+                automatisch eine Willkommens-E-Mail mit den Zugangsdaten.
+              </p>
+              <input
+                ref={contractorFileRef}
+                type="file"
+                accept=".xlsx,.xls,.csv"
+                className="sr-only"
+                id="admin-contractor-import"
+                onChange={handleImportContractors}
+                disabled={isImportingContractors}
+              />
+              <label htmlFor="admin-contractor-import">
+                <Button asChild variant="outline" size="sm" disabled={isImportingContractors} className="cursor-pointer">
+                  <span>
+                    {isImportingContractors
+                      ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Wird importiert...</>
+                      : <><Upload className="mr-2 h-4 w-4" />Excel / CSV hochladen</>
+                    }
+                  </span>
+                </Button>
+              </label>
+              <p className="text-xs text-muted-foreground">
+                .xlsx, .xls oder .csv · max. 5 MB · Pflichtfelder: Firmenname, Telefon, E-Mail, Tätigkeit
+              </p>
+
+              {contractorError && (
+                <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700 flex gap-2 items-start">
+                  <AlertTriangle className="h-4 w-4 mt-0.5 shrink-0" />{contractorError}
+                </div>
+              )}
+              {contractorResult && (
+                <div className="rounded-lg border border-green-200 bg-green-50 p-4 space-y-3">
+                  <div className="flex items-center gap-2 text-green-700 font-medium text-sm">
+                    <CheckCircle2 className="h-4 w-4" />Import abgeschlossen
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    {[
+                      { label: 'Werkstätten erstellt', value: contractorResult.contractors_created },
+                      { label: 'Übersprungen', value: contractorResult.contractors_skipped },
+                    ].map((s) => (
+                      <div key={s.label} className="rounded bg-white border px-3 py-2 text-center">
+                        <p className="text-lg font-bold text-green-700">{s.value}</p>
+                        <p className="text-xs text-muted-foreground">{s.label}</p>
+                      </div>
+                    ))}
+                  </div>
+                  {contractorResult.errors.length > 0 && (
+                    <div className="space-y-1">
+                      <p className="text-xs font-medium text-amber-700">{contractorResult.errors.length} Fehler:</p>
+                      {contractorResult.errors.slice(0, 5).map((e, i) => (
+                        <p key={i} className="text-xs text-amber-700">Zeile {e.row}: {e.message}</p>
+                      ))}
+                      {contractorResult.errors.length > 5 && (
+                        <p className="text-xs text-amber-600">...und {contractorResult.errors.length - 5} weitere</p>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+            </TabsContent>
+
+            {/* TAB: Dokumente */}
+            <TabsContent value="dokumente" className="mt-4 space-y-4">
+              <p className="text-sm text-muted-foreground">
+                Dokumente (Mietverträge, Versicherungspolicen, sonstige Unterlagen) für diese
+                Hausverwaltung hochladen — z.B. wenn die HV die Dateien per E-Mail zugeschickt hat.
+              </p>
+
+              <div className="space-y-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <Label htmlFor="doc-name" className="text-sm">Dokumentname (optional)</Label>
+                    <Input
+                      id="doc-name"
+                      value={docName}
+                      onChange={(e) => setDocName(e.target.value)}
+                      placeholder="z.B. Mietvertrag Müller"
+                      disabled={isUploadingDoc}
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="doc-type" className="text-sm">Dokumenttyp</Label>
+                    <Select value={docType} onValueChange={setDocType} disabled={isUploadingDoc}>
+                      <SelectTrigger id="doc-type">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="mietvertrag">Mietvertrag</SelectItem>
+                        <SelectItem value="versicherung">Versicherungspolice</SelectItem>
+                        <SelectItem value="rechnung">Rechnung</SelectItem>
+                        <SelectItem value="protokoll">Protokoll</SelectItem>
+                        <SelectItem value="sonstiges">Sonstiges</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label htmlFor="doc-liegenschaft" className="text-sm">Liegenschaft (optional)</Label>
+                  <Input
+                    id="doc-liegenschaft"
+                    value={docLiegenschaft}
+                    onChange={(e) => setDocLiegenschaft(e.target.value)}
+                    placeholder="z.B. Hauptstraße 12"
+                    disabled={isUploadingDoc}
+                  />
+                </div>
+
+                <input
+                  ref={docFileRef}
+                  type="file"
+                  accept=".pdf,.jpg,.jpeg,.png"
+                  className="sr-only"
+                  id="admin-doc-upload"
+                  onChange={handleUploadDoc}
+                  disabled={isUploadingDoc}
+                />
+                <label htmlFor="admin-doc-upload">
+                  <Button asChild variant="outline" size="sm" disabled={isUploadingDoc} className="cursor-pointer">
+                    <span>
+                      {isUploadingDoc
+                        ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Wird hochgeladen...</>
+                        : <><Upload className="mr-2 h-4 w-4" />Datei auswählen & hochladen</>
+                      }
+                    </span>
+                  </Button>
+                </label>
+                <p className="text-xs text-muted-foreground">PDF, JPG oder PNG · max. 20 MB</p>
+              </div>
+
+              {docError && (
+                <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700 flex gap-2 items-start">
+                  <AlertTriangle className="h-4 w-4 mt-0.5 shrink-0" />{docError}
+                </div>
+              )}
+              {docResult && (
+                <div className="rounded-lg border border-green-200 bg-green-50 px-3 py-2 flex items-center gap-2 text-sm text-green-700">
+                  <CheckCircle2 className="h-4 w-4 shrink-0" />
+                  <span>Dokument <strong>"{docResult}"</strong> wurde erfolgreich hochgeladen.</span>
+                </div>
+              )}
+            </TabsContent>
+          </Tabs>
 
           <Separator />
 
