@@ -83,55 +83,55 @@ const ONBOARDING_STEPS: OnboardingStep[] = [
     number: 1,
     title: "Einheiten anlegen",
     description:
-      "Tragen Sie alle Einheiten ein, die Sie in Ihrem Unternehmen verwalten, mit dem Excel-Import können Sie hunderte Einheiten auf einmal hochladen, kein manuelles Eintippen notwendig. Wichtig: Jede Einheit benötigt einen Namen, eine Adresse sowie eine E-Mail oder Telefonnummer des Mieters, nur so kann der Aktivierungscode automatisch an den Mieter gesendet werden.",
+      "Tragen Sie alle Einheiten ein, die Sie in Ihrer Hausverwaltung verwalten. Mit dem Excel- oder CSV-Import können Sie hunderte Einheiten auf einmal hochladen — kein manuelles Eintippen notwendig. Geben Sie beim Import die E-Mail-Adresse des Mieters an, und SMARTCARL sendet den Aktivierungscode automatisch.",
     whyBox:
-      "Ohne angelegte Einheiten kann kein Mieter eine Schadensmeldung abschicken. Sobald Sie beim Import eine Mieter-E-Mail angeben, verschickt die App den Aktivierungscode automatisch an den Mieter. Kein extra Schritt notwendig.",
+      "Ohne angelegte Einheiten kann kein Mieter eine Schadensmeldung abschicken. Sobald Sie beim Import eine Mieter-E-Mail angeben, verschickt SMARTCARL den Aktivierungscode automatisch. Kein extra Schritt notwendig.",
     href: "/dashboard/units",
     linkText: "Zu den Einheiten",
     icon: Home,
   },
   {
-    id: "hasWerkstaetten",
+    id: "hasMietvertraege",
     number: 2,
+    title: "Mietverträge hochladen",
+    description:
+      "Laden Sie die Mietverträge für Ihre Einheiten hoch. CARL analysiert automatisch wichtige Klauseln — z.B. wer ist für Kleinreparaturen zuständig, gibt es eine Glasklausel, welche Haustierhaltung ist erlaubt. Das spart bei jeder Meldung das Nachschlagen im Vertrag.",
+    whyBox:
+      "Wenn ein Mieter meldet \"Fensterscheibe kaputt\" sehen Sie sofort: Glasklausel vorhanden → Versicherungsfall. CARL erledigt das Nachschlagen für Sie — kein manuelles Suchen mehr.",
+    href: "/dashboard/dokumente",
+    linkText: "Mietverträge hochladen",
+    icon: FileText,
+  },
+  {
+    id: "hasWerkstaetten",
+    number: 3,
     title: "Handwerker / Werkstätten eintragen",
     description:
-      "Fügen Sie Ihre Handwerker ein, Elektriker, Installateur, Maler usw. Sie hinterlegen Name, Gewerk, Telefon und E-Mail. Die App schlägt Ihnen dann bei jeder Schadensmeldung automatisch den passenden Handwerker vor.",
+      "Fügen Sie Ihre Handwerker ein — Elektriker, Installateur, Maler usw. Sie hinterlegen Name, Gewerk, Telefon und E-Mail. SMARTCARL schlägt Ihnen dann bei jeder Schadensmeldung automatisch den passenden Handwerker vor.",
     whyBox:
-      "Nie wieder überlegen, welche Werkstatt für welchen Schaden zuständig ist. Die App wählt automatisch den passenden Handwerker aus und kontaktiert ihn direkt.",
+      "Nie wieder überlegen, welche Werkstatt für welchen Schaden zuständig ist. SMARTCARL wählt automatisch den passenden Handwerker aus und kontaktiert ihn direkt.",
     href: "/dashboard/werkstaetten",
     linkText: "Zu den Handwerkern",
     icon: Wrench,
   },
   {
     id: "hasVersicherung",
-    number: 3,
+    number: 4,
     title: "Versicherungspolice hochladen",
     description:
-      "Laden Sie die Versicherungspolice(n) Ihrer Liegenschaft hoch. Die App liest das Dokument automatisch aus und erkennt, was versichert ist — z.B. Glasbruch, Leitungswasser, Sturmschäden. Bei einer neuen Schadensmeldung zeigt die App dann direkt an: \"Dieser Schaden ist versichert.\"",
+      "Laden Sie die Versicherungspolice(n) Ihrer Liegenschaft hoch. CARL liest das Dokument automatisch aus und erkennt, was versichert ist — z.B. Glasbruch, Leitungswasser, Sturmschäden. Bei einer neuen Schadensmeldung zeigt SMARTCARL dann direkt an: \"Dieser Schaden ist versichert.\"",
     whyBox:
-      "Sie verlieren nie wieder Zeit damit, die Police zu suchen oder zu lesen. Die App sagt Ihnen sofort ob und was versichert ist.",
+      "Sie verlieren nie wieder Zeit damit, die Police zu suchen oder zu lesen. CARL sagt Ihnen sofort ob und was versichert ist.",
     href: "/dashboard/dokumente",
     linkText: "Dokumente hochladen",
     icon: ShieldCheck,
-  },
-  {
-    id: "hasMietvertraege",
-    number: 4,
-    title: "Mietverträge hochladen",
-    description:
-      "Laden Sie die Mietverträge für Ihre Einheiten hoch. Die App analysiert automatisch wichtige Klauseln — z.B. wer ist für Kleinreparaturen zuständig, gibt es eine Glasklausel, welche Haustierhaltung ist erlaubt. Das spart bei jeder Meldung das Nachschlagen im Vertrag.",
-    whyBox:
-      "Wenn ein Mieter meldet \"Fensterscheibe kaputt\" sehen Sie sofort: Glasklausel vorhanden → Versicherungsfall. Kein manuelles Suchen mehr.",
-    href: "/dashboard/dokumente",
-    linkText: "Mietverträge hochladen",
-    icon: FileText,
   },
   {
     id: "hasCases",
     number: 5,
     title: "Erste Schadensmeldung",
     description:
-      "Sobald ein Mieter registriert ist, kann er über sein Portal (mein-bereich) eine Schadensmeldung abschicken. Sie sehen die Meldung sofort in Ihrem Dashboard und können mit einem Klick: Status setzen, Handwerker zuweisen, Notizen hinzufügen und die Meldung abschließen.",
+      "Sobald ein Mieter registriert ist, kann er über sein Portal eine Schadensmeldung abschicken. Sie sehen die Meldung sofort in Ihrem Dashboard und können mit einem Klick: Status setzen, Handwerker zuweisen, Notizen hinzufügen und die Meldung abschließen.",
     whyBox:
       "Das Ziel: eine Schadensmeldung von Eingang bis Abschluss in unter 3 Minuten — statt wie bisher 20 Minuten mit Telefonaten, WhatsApp und Excel.",
     href: "/dashboard/cases",
@@ -435,12 +435,12 @@ export default function DashboardPage() {
             </div>
             {allDone && (
               <CardDescription className="text-green-700">
-                Ihre App ist vollständig eingerichtet. Alle Meldungen, Dokumente und Handwerker sind bereit.
+                SMARTCARL ist vollständig eingerichtet. Alle Meldungen, Dokumente und Handwerker sind bereit.
               </CardDescription>
             )}
             {!allDone && (
               <CardDescription>
-                Richten Sie die App einmalig ein — danach läuft alles automatisch. Klicken Sie auf einen Schritt für mehr Details.
+                Richten Sie SMARTCARL einmalig ein — danach läuft alles automatisch. Klicken Sie auf einen Schritt für mehr Details.
               </CardDescription>
             )}
           </CardHeader>
