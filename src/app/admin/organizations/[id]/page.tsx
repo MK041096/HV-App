@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, useRef } from "react"
 import { useParams } from "next/navigation"
 import Link from "next/link"
 import {
@@ -13,6 +13,9 @@ import {
   XCircle,
   Loader2,
   AlertTriangle,
+  Upload,
+  Headset,
+  FileSpreadsheet,
 } from "lucide-react"
 
 import {
@@ -32,6 +35,7 @@ import {
 } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { Separator } from "@/components/ui/separator"
 
 interface UserRow {
   id: string
@@ -104,6 +108,15 @@ export default function AdminOrganizationDetailPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
+  // Support upload state
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const [isImporting, setIsImporting] = useState(false)
+  const [importResult, setImportResult] = useState<{
+    units_created: number; units_skipped: number; codes_generated: number; emails_sent: number
+    errors: { row: number; message: string }[]
+  } | null>(null)
+  const [importError, setImportError] = useState<string | null>(null)
+
   useEffect(() => {
     if (!id) return
 
@@ -125,6 +138,30 @@ export default function AdminOrganizationDetailPage() {
 
     loadOrg()
   }, [id])
+
+  async function handleImportFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file || !id) return
+    setIsImporting(true)
+    setImportResult(null)
+    setImportError(null)
+    try {
+      const fd = new FormData()
+      fd.append('file', file)
+      const res = await fetch(`/api/admin/organizations/${id}/import-units`, { method: 'POST', body: fd })
+      const json = await res.json()
+      if (!res.ok) { setImportError(json.error || 'Import fehlgeschlagen'); return }
+      setImportResult(json.data)
+      // Refresh org stats
+      const orgRes = await fetch(`/api/admin/organizations/${id}`)
+      if (orgRes.ok) { const orgJson = await orgRes.json(); setOrg(orgJson.data) }
+    } catch {
+      setImportError('Netzwerkfehler beim Import')
+    } finally {
+      setIsImporting(false)
+      if (fileInputRef.current) fileInputRef.current.value = ''
+    }
+  }
 
   if (isLoading) {
     return (
@@ -379,19 +416,119 @@ export default function AdminOrganizationDetailPage() {
         </CardContent>
       </Card>
 
-      {/* Suspension warning */}
-      <div className="rounded-lg border border-amber-300 bg-amber-50 p-4">
-        <div className="flex items-start gap-3">
-          <AlertTriangle className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
-          <div>
-            <p className="text-sm font-medium text-amber-900">Konto sperren</p>
-            <p className="text-sm text-amber-700 mt-1">
-              Diese Funktion ist noch in Entwicklung. Das Sperren von Kundenkonten wird in
-              einer zukünftigen Version verfügbar sein.
-            </p>
+      {/* ── SUPPORT BEREICH ── */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base flex items-center gap-2">
+            <Headset className="h-4 w-4" />
+            Support-Tools
+          </CardTitle>
+          <CardDescription>
+            Direkte Hilfe für diese Hausverwaltung — nur für Platform-Admins sichtbar.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+
+          {/* Einheiten-Upload */}
+          <div className="space-y-3">
+            <div className="flex items-start gap-3">
+              <FileSpreadsheet className="h-5 w-5 text-muted-foreground mt-0.5 shrink-0" />
+              <div>
+                <p className="text-sm font-medium">Einheiten für diese HV importieren</p>
+                <p className="text-sm text-muted-foreground mt-0.5">
+                  Falls die HV Probleme mit dem Excel-Upload hat, können Sie die Datei hier direkt hochladen.
+                  Einheiten, Aktivierungscodes und Einladungsemails werden automatisch erstellt — genau wie
+                  wenn die HV es selbst machen würde.
+                </p>
+              </div>
+            </div>
+
+            <div className="ml-8 space-y-3">
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".xlsx,.xls,.csv"
+                className="sr-only"
+                id="admin-unit-import"
+                onChange={handleImportFile}
+                disabled={isImporting}
+              />
+              <label htmlFor="admin-unit-import">
+                <Button
+                  asChild
+                  variant="outline"
+                  size="sm"
+                  disabled={isImporting}
+                  className="cursor-pointer"
+                >
+                  <span>
+                    {isImporting
+                      ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Wird importiert...</>
+                      : <><Upload className="mr-2 h-4 w-4" />Excel / CSV hochladen</>
+                    }
+                  </span>
+                </Button>
+              </label>
+              <p className="text-xs text-muted-foreground">
+                .xlsx, .xls oder .csv · max. 5 MB · bis zu 1.000 Einheiten
+              </p>
+
+              {importError && (
+                <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700 flex gap-2 items-start">
+                  <AlertTriangle className="h-4 w-4 mt-0.5 shrink-0" />
+                  {importError}
+                </div>
+              )}
+
+              {importResult && (
+                <div className="rounded-lg border border-green-200 bg-green-50 p-4 space-y-3">
+                  <div className="flex items-center gap-2 text-green-700 font-medium text-sm">
+                    <CheckCircle2 className="h-4 w-4" />
+                    Import abgeschlossen
+                  </div>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    {[
+                      { label: 'Einheiten erstellt', value: importResult.units_created },
+                      { label: 'Übersprungen', value: importResult.units_skipped },
+                      { label: 'Codes generiert', value: importResult.codes_generated },
+                      { label: 'E-Mails gesendet', value: importResult.emails_sent },
+                    ].map((s) => (
+                      <div key={s.label} className="rounded bg-white border px-3 py-2 text-center">
+                        <p className="text-lg font-bold text-green-700">{s.value}</p>
+                        <p className="text-xs text-muted-foreground">{s.label}</p>
+                      </div>
+                    ))}
+                  </div>
+                  {importResult.errors.length > 0 && (
+                    <div className="space-y-1">
+                      <p className="text-xs font-medium text-amber-700">{importResult.errors.length} Fehler:</p>
+                      {importResult.errors.slice(0, 5).map((e, i) => (
+                        <p key={i} className="text-xs text-amber-700">Zeile {e.row}: {e.message}</p>
+                      ))}
+                      {importResult.errors.length > 5 && (
+                        <p className="text-xs text-amber-600">...und {importResult.errors.length - 5} weitere</p>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
-        </div>
-      </div>
+
+          <Separator />
+
+          {/* Hinweis Sperrung */}
+          <div className="flex items-start gap-3">
+            <AlertTriangle className="h-5 w-5 text-amber-500 mt-0.5 shrink-0" />
+            <div>
+              <p className="text-sm font-medium">Konto sperren / reaktivieren</p>
+              <p className="text-sm text-muted-foreground mt-0.5">
+                Diese Funktion wird in einer zukünftigen Version verfügbar sein.
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   )
 }
