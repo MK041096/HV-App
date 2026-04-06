@@ -15,6 +15,7 @@ import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Card, CardContent } from "@/components/ui/card"
+import { Checkbox } from "@/components/ui/checkbox"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
@@ -198,6 +199,12 @@ export default function UnitsListPage() {
   const [newUnitError, setNewUnitError] = useState<string | null>(null)
   const [newUnitForm, setNewUnitForm] = useState({ name: "", address: "", floor: "", first_name: "", last_name: "", email: "", phone: "" })
 
+  // Bulk selection state
+  const [selectedUnitIds, setSelectedUnitIds] = useState<Set<string>>(new Set())
+  const [bulkDeleteUnitsOpen, setBulkDeleteUnitsOpen] = useState(false)
+  const [isBulkDeletingUnits, setIsBulkDeletingUnits] = useState(false)
+  const [bulkDeleteErrors, setBulkDeleteErrors] = useState<string[]>([])
+
   useEffect(() => {
     const timer = setTimeout(() => { setDebouncedSearch(searchQuery); setPage(1) }, 400)
     return () => clearTimeout(timer)
@@ -286,6 +293,44 @@ export default function UnitsListPage() {
     } finally {
       setIsDeletingUnit(false)
     }
+  }
+
+  function toggleSelectUnit(id: string) {
+    setSelectedUnitIds(prev => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
+
+  function toggleSelectAllUnits() {
+    if (selectedUnitIds.size === units.length) {
+      setSelectedUnitIds(new Set())
+    } else {
+      setSelectedUnitIds(new Set(units.map(u => u.id)))
+    }
+  }
+
+  async function handleBulkDeleteUnits() {
+    setIsBulkDeletingUnits(true)
+    setBulkDeleteErrors([])
+    const errors: string[] = []
+    for (const id of selectedUnitIds) {
+      const unit = units.find(u => u.id === id)
+      const res = await fetch(`/api/hv/units/${id}`, { method: "DELETE" })
+      if (!res.ok) {
+        const json = await res.json().catch(() => ({}))
+        errors.push(`${unit?.name ?? id}: ${json.error ?? "Fehler"}`)
+      }
+    }
+    setBulkDeleteErrors(errors)
+    setIsBulkDeletingUnits(false)
+    if (errors.length === 0) {
+      setBulkDeleteUnitsOpen(false)
+      setSelectedUnitIds(new Set())
+    }
+    fetchUnits()
   }
 
   function handleInviteSuccess(unitId: string, code: string, expiresAt: string) {
@@ -419,6 +464,16 @@ export default function UnitsListPage() {
         </CardContent>
       </Card>
 
+      {/* Bulk Action Bar */}
+      {selectedUnitIds.size > 0 && (
+        <div className="flex items-center justify-between rounded-lg border bg-muted/50 px-4 py-2.5">
+          <span className="text-sm font-medium">{selectedUnitIds.size} ausgewählt</span>
+          <Button variant="destructive" size="sm" onClick={() => { setBulkDeleteErrors([]); setBulkDeleteUnitsOpen(true) }}>
+            <Trash2 className="mr-2 h-4 w-4" />Ausgewählte löschen
+          </Button>
+        </div>
+      )}
+
       {/* Error */}
       {error && (
         <Card className="border-destructive">
@@ -435,6 +490,9 @@ export default function UnitsListPage() {
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead className="w-10">
+                  <Checkbox checked={units.length > 0 && selectedUnitIds.size === units.length} onCheckedChange={toggleSelectAllUnits} aria-label="Alle auswählen" />
+                </TableHead>
                 <TableHead><button onClick={() => handleSort("name")} className="flex items-center gap-1 hover:text-foreground transition-colors">Einheit <SortIcon field="name" /></button></TableHead>
                 <TableHead><button onClick={() => handleSort("address")} className="flex items-center gap-1 hover:text-foreground transition-colors">Adresse <SortIcon field="address" /></button></TableHead>
                 <TableHead>Status</TableHead>
@@ -464,11 +522,14 @@ export default function UnitsListPage() {
                 return (
                   <TableRow
                     key={unit.id}
-                    className={`transition-colors ${unit.tenant ? "cursor-pointer hover:bg-accent/50" : "hover:bg-accent/50"}`}
+                    className={`transition-colors ${selectedUnitIds.has(unit.id) ? "bg-muted/40" : unit.tenant ? "cursor-pointer hover:bg-accent/50" : "hover:bg-accent/50"}`}
                     onClick={() => unit.tenant && router.push(`/dashboard/tenants/${unit.tenant.id}`)}
                     onMouseEnter={unit.tenant ? (e) => { (e.currentTarget as HTMLElement).style.outline = '2px solid rgba(0,0,0,0.7)'; (e.currentTarget as HTMLElement).style.outlineOffset = '-2px' } : undefined}
                     onMouseLeave={unit.tenant ? (e) => { (e.currentTarget as HTMLElement).style.outline = '' } : undefined}
                   >
+                    <TableCell onClick={(e) => e.stopPropagation()}>
+                      <Checkbox checked={selectedUnitIds.has(unit.id)} onCheckedChange={() => toggleSelectUnit(unit.id)} aria-label={`${unit.name} auswählen`} />
+                    </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">
                         <Home className="h-4 w-4 text-muted-foreground shrink-0" />
@@ -633,6 +694,30 @@ export default function UnitsListPage() {
           </div>
         </div>
       )}
+
+      {/* Bulk Delete Dialog */}
+      <Dialog open={bulkDeleteUnitsOpen} onOpenChange={(o) => { if (!o) { setBulkDeleteUnitsOpen(false); setBulkDeleteErrors([]) } }}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Einheiten löschen</DialogTitle>
+            <DialogDescription>
+              {selectedUnitIds.size} {selectedUnitIds.size === 1 ? "Einheit wird" : "Einheiten werden"} dauerhaft gelöscht. Einheiten mit offenen Schadensmeldungen können nicht gelöscht werden.
+            </DialogDescription>
+          </DialogHeader>
+          {bulkDeleteErrors.length > 0 && (
+            <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700 space-y-1">
+              <p className="font-medium">Folgende Einheiten konnten nicht gelöscht werden:</p>
+              {bulkDeleteErrors.map((e, i) => <p key={i} className="text-xs">{e}</p>)}
+            </div>
+          )}
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => { setBulkDeleteUnitsOpen(false); setBulkDeleteErrors([]) }} disabled={isBulkDeletingUnits}>Abbrechen</Button>
+            <Button variant="destructive" onClick={handleBulkDeleteUnits} disabled={isBulkDeletingUnits}>
+              {isBulkDeletingUnits ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Wird gelöscht...</> : <><Trash2 className="mr-2 h-4 w-4" />Löschen</>}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Einheit löschen Dialog */}
       <Dialog open={deleteUnitOpen} onOpenChange={(o) => { if (!o) { setDeleteUnitOpen(false); setDeleteUnitError(null) } }}>

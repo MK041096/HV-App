@@ -38,6 +38,7 @@ import {
   ChevronUp,
   Home,
 } from 'lucide-react'
+import { Checkbox } from '@/components/ui/checkbox'
 
 interface EinheitDoc {
   id: string
@@ -88,6 +89,27 @@ export default function DokumentePage() {
   const bulkInputRef = useRef<HTMLInputElement>(null)
   const [search, setSearch] = useState<string>('')
   const [expandedCards, setExpandedCards] = useState<Set<string>>(new Set())
+  const [selectedDocIds, setSelectedDocIds] = useState<Set<string>>(new Set())
+  const [isBulkDeletingDocs, setIsBulkDeletingDocs] = useState(false)
+
+  function toggleSelectDoc(docId: string) {
+    setSelectedDocIds(prev => {
+      const next = new Set(prev)
+      if (next.has(docId)) next.delete(docId)
+      else next.add(docId)
+      return next
+    })
+  }
+
+  async function handleBulkDeleteDocs() {
+    setIsBulkDeletingDocs(true)
+    for (const id of selectedDocIds) {
+      await fetch(`/api/documents/${id}`, { method: 'DELETE' })
+    }
+    setSelectedDocIds(new Set())
+    setIsBulkDeletingDocs(false)
+    await loadData()
+  }
 
   function toggleCard(unitId: string) {
     setExpandedCards(prev => {
@@ -589,6 +611,16 @@ export default function DokumentePage() {
         <Input placeholder="Einheit suchen…" value={search} onChange={e => setSearch(e.target.value)} className="pl-9" />
       </div>
 
+      {selectedDocIds.size > 0 && (
+        <div className="flex items-center justify-between rounded-lg border bg-muted/50 px-4 py-2.5">
+          <span className="text-sm font-medium">{selectedDocIds.size} Dokument{selectedDocIds.size !== 1 ? 'e' : ''} ausgewählt</span>
+          <Button variant="destructive" size="sm" disabled={isBulkDeletingDocs} onClick={handleBulkDeleteDocs}>
+            {isBulkDeletingDocs ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Trash2 className="mr-2 h-4 w-4" />}
+            Ausgewählte löschen
+          </Button>
+        </div>
+      )}
+
       {einheiten.length === 0 ? (
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-16 text-center">
@@ -666,8 +698,9 @@ export default function DokumentePage() {
                       ) : (
                         <div className="space-y-2">
                           {einheit.docs.map(doc => (
-                            <div key={doc.id} className="flex items-center justify-between py-2 px-3 rounded-md bg-muted/40">
+                            <div key={doc.id} className={`flex items-center justify-between py-2 px-3 rounded-md ${selectedDocIds.has(doc.id) ? 'bg-muted/70' : 'bg-muted/40'}`}>
                               <div className="flex items-center gap-2 flex-1 min-w-0">
+                                <Checkbox checked={selectedDocIds.has(doc.id)} onCheckedChange={() => toggleSelectDoc(doc.id)} aria-label={`${doc.name} auswählen`} />
                                 <File className="h-4 w-4 text-blue-700 shrink-0" />
                                 <div className="min-w-0">
                                   <p className="text-sm font-medium truncate">{doc.name}</p>

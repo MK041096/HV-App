@@ -17,6 +17,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
+import { Checkbox } from "@/components/ui/checkbox"
 import {
   Table,
   TableBody,
@@ -77,6 +78,11 @@ export default function WerkstaettenPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [pageError, setPageError] = useState<string | null>(null)
 
+  // Selection state
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
+  const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false)
+  const [isBulkDeleting, setIsBulkDeleting] = useState(false)
+
   // Dialog state
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editingContractor, setEditingContractor] = useState<Contractor | null>(null)
@@ -97,6 +103,7 @@ export default function WerkstaettenPage() {
       const json = await res.json()
       if (!res.ok) throw new Error(json.error || "Fehler beim Laden")
       setContractors(json.data || [])
+      setSelectedIds(new Set())
     } catch (err) {
       setPageError(err instanceof Error ? err.message : "Unbekannter Fehler")
     } finally {
@@ -107,6 +114,34 @@ export default function WerkstaettenPage() {
   useEffect(() => {
     loadContractors()
   }, [])
+
+  function toggleSelect(id: string) {
+    setSelectedIds(prev => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
+
+  function toggleSelectAll() {
+    if (selectedIds.size === contractors.length) {
+      setSelectedIds(new Set())
+    } else {
+      setSelectedIds(new Set(contractors.map(c => c.id)))
+    }
+  }
+
+  async function handleBulkDelete() {
+    setIsBulkDeleting(true)
+    for (const id of selectedIds) {
+      await fetch(`/api/hv/contractors/${id}`, { method: "DELETE" })
+    }
+    setSelectedIds(new Set())
+    setBulkDeleteOpen(false)
+    setIsBulkDeleting(false)
+    await loadContractors()
+  }
 
   function openAddDialog() {
     setEditingContractor(null)
@@ -136,22 +171,10 @@ export default function WerkstaettenPage() {
   }
 
   async function handleSave() {
-    if (!form.name.trim()) {
-      setFormError("Firmenname ist ein Pflichtfeld")
-      return
-    }
-    if (!form.phone.trim()) {
-      setFormError("Telefon ist ein Pflichtfeld")
-      return
-    }
-    if (!form.email.trim()) {
-      setFormError("E-Mail ist ein Pflichtfeld")
-      return
-    }
-    if (!form.taetigkeit.trim()) {
-      setFormError("Tätigkeit ist ein Pflichtfeld")
-      return
-    }
+    if (!form.name.trim()) { setFormError("Firmenname ist ein Pflichtfeld"); return }
+    if (!form.phone.trim()) { setFormError("Telefon ist ein Pflichtfeld"); return }
+    if (!form.email.trim()) { setFormError("E-Mail ist ein Pflichtfeld"); return }
+    if (!form.taetigkeit.trim()) { setFormError("Tätigkeit ist ein Pflichtfeld"); return }
 
     setIsSaving(true)
     setFormError(null)
@@ -214,6 +237,9 @@ export default function WerkstaettenPage() {
     }
   }
 
+  const allSelected = contractors.length > 0 && selectedIds.size === contractors.length
+  const someSelected = selectedIds.size > 0
+
   return (
     <div className="p-4 sm:p-6 lg:p-8 space-y-6">
       {/* Header */}
@@ -245,6 +271,21 @@ export default function WerkstaettenPage() {
         </Alert>
       )}
 
+      {/* Bulk Action Bar */}
+      {someSelected && (
+        <div className="flex items-center justify-between rounded-lg border bg-muted/50 px-4 py-2.5">
+          <span className="text-sm font-medium">{selectedIds.size} ausgewählt</span>
+          <Button
+            variant="destructive"
+            size="sm"
+            onClick={() => setBulkDeleteOpen(true)}
+          >
+            <Trash2 className="mr-2 h-4 w-4" />
+            Ausgewählte löschen
+          </Button>
+        </div>
+      )}
+
       {/* Content */}
       {isLoading ? (
         <div className="flex items-center justify-center py-20">
@@ -265,6 +306,13 @@ export default function WerkstaettenPage() {
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead className="w-10">
+                  <Checkbox
+                    checked={allSelected}
+                    onCheckedChange={toggleSelectAll}
+                    aria-label="Alle auswählen"
+                  />
+                </TableHead>
                 <TableHead>Firmenname</TableHead>
                 <TableHead className="hidden md:table-cell">Tätigkeit</TableHead>
                 <TableHead className="hidden sm:table-cell">Telefon</TableHead>
@@ -274,17 +322,21 @@ export default function WerkstaettenPage() {
             </TableHeader>
             <TableBody>
               {contractors.map((contractor) => (
-                <TableRow key={contractor.id}>
+                <TableRow key={contractor.id} className={selectedIds.has(contractor.id) ? "bg-muted/40" : ""}>
+                  <TableCell>
+                    <Checkbox
+                      checked={selectedIds.has(contractor.id)}
+                      onCheckedChange={() => toggleSelect(contractor.id)}
+                      aria-label={`${contractor.name} auswählen`}
+                    />
+                  </TableCell>
                   <TableCell className="font-medium">{contractor.name}</TableCell>
                   <TableCell className="hidden md:table-cell text-sm text-muted-foreground">
                     {extractTaetigkeit(contractor.notes) || "—"}
                   </TableCell>
                   <TableCell className="hidden sm:table-cell">
                     {contractor.phone ? (
-                      <a
-                        href={`tel:${contractor.phone}`}
-                        className="flex items-center gap-1 text-sm hover:underline"
-                      >
+                      <a href={`tel:${contractor.phone}`} className="flex items-center gap-1 text-sm hover:underline">
                         <Phone className="h-3.5 w-3.5 text-muted-foreground" />
                         {contractor.phone}
                       </a>
@@ -294,10 +346,7 @@ export default function WerkstaettenPage() {
                   </TableCell>
                   <TableCell className="hidden lg:table-cell">
                     {contractor.email ? (
-                      <a
-                        href={`mailto:${contractor.email}`}
-                        className="flex items-center gap-1 text-sm hover:underline"
-                      >
+                      <a href={`mailto:${contractor.email}`} className="flex items-center gap-1 text-sm hover:underline">
                         <Mail className="h-3.5 w-3.5 text-muted-foreground" />
                         {contractor.email}
                       </a>
@@ -307,28 +356,16 @@ export default function WerkstaettenPage() {
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex items-center justify-end gap-1">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8"
-                        onClick={() => openEditDialog(contractor)}
-                        title="Bearbeiten"
-                      >
+                      <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEditDialog(contractor)} title="Bearbeiten">
                         <Pencil className="h-4 w-4" />
                       </Button>
                       <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 text-destructive hover:text-destructive"
+                        variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive"
                         onClick={() => { setDeleteTarget(contractor); setDeleteOpen(true) }}
                         disabled={deletingId === contractor.id}
                         title="Löschen"
                       >
-                        {deletingId === contractor.id ? (
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                        ) : (
-                          <Trash2 className="h-4 w-4" />
-                        )}
+                        {deletingId === contractor.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
                       </Button>
                     </div>
                   </TableCell>
@@ -339,7 +376,26 @@ export default function WerkstaettenPage() {
         </div>
       )}
 
-      {/* Delete Confirmation Dialog */}
+      {/* Bulk Delete Dialog */}
+      <Dialog open={bulkDeleteOpen} onOpenChange={setBulkDeleteOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Werkstätten löschen</DialogTitle>
+            <DialogDescription>
+              {selectedIds.size} {selectedIds.size === 1 ? "Werkstatt wird" : "Werkstätten werden"} unwiderruflich gelöscht.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setBulkDeleteOpen(false)} disabled={isBulkDeleting}>Abbrechen</Button>
+            <Button variant="destructive" onClick={handleBulkDelete} disabled={isBulkDeleting}>
+              {isBulkDeleting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+              Löschen
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Single Delete Dialog */}
       <Dialog open={deleteOpen} onOpenChange={(o) => { if (!o) { setDeleteOpen(false); setDeleteTarget(null) } }}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
@@ -349,9 +405,7 @@ export default function WerkstaettenPage() {
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="gap-2">
-            <Button variant="outline" onClick={() => { setDeleteOpen(false); setDeleteTarget(null) }} disabled={!!deletingId}>
-              Abbrechen
-            </Button>
+            <Button variant="outline" onClick={() => { setDeleteOpen(false); setDeleteTarget(null) }} disabled={!!deletingId}>Abbrechen</Button>
             <Button variant="destructive" onClick={handleDelete} disabled={!!deletingId}>
               {deletingId ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
               Löschen
@@ -382,54 +436,24 @@ export default function WerkstaettenPage() {
             )}
 
             <div className="space-y-1.5">
-              <Label htmlFor="wk-name">
-                Firmenname <span className="text-destructive">*</span>
-              </Label>
-              <Input
-                id="wk-name"
-                placeholder="z.B. Huber Sanitär GmbH"
-                value={form.name}
-                onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-              />
+              <Label htmlFor="wk-name">Firmenname <span className="text-destructive">*</span></Label>
+              <Input id="wk-name" placeholder="z.B. Huber Sanitär GmbH" value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} />
             </div>
 
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
-                <Label htmlFor="wk-phone">
-                  Telefon <span className="text-destructive">*</span>
-                </Label>
-                <Input
-                  id="wk-phone"
-                  type="tel"
-                  placeholder="+43 664 ..."
-                  value={form.phone}
-                  onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))}
-                />
+                <Label htmlFor="wk-phone">Telefon <span className="text-destructive">*</span></Label>
+                <Input id="wk-phone" type="tel" placeholder="+43 664 ..." value={form.phone} onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))} />
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="wk-email">
-                  E-Mail <span className="text-destructive">*</span>
-                </Label>
-                <Input
-                  id="wk-email"
-                  type="email"
-                  placeholder="office@..."
-                  value={form.email}
-                  onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
-                />
+                <Label htmlFor="wk-email">E-Mail <span className="text-destructive">*</span></Label>
+                <Input id="wk-email" type="email" placeholder="office@..." value={form.email} onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))} />
               </div>
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor="wk-taetigkeit">
-                Tätigkeit <span className="text-destructive">*</span>
-              </Label>
-              <Input
-                id="wk-taetigkeit"
-                placeholder="z.B. Sanitär & Wasserschaden"
-                value={form.taetigkeit}
-                onChange={(e) => setForm((f) => ({ ...f, taetigkeit: e.target.value }))}
-              />
+              <Label htmlFor="wk-taetigkeit">Tätigkeit <span className="text-destructive">*</span></Label>
+              <Input id="wk-taetigkeit" placeholder="z.B. Sanitär & Wasserschaden" value={form.taetigkeit} onChange={(e) => setForm((f) => ({ ...f, taetigkeit: e.target.value }))} />
             </div>
 
             <div className="space-y-1.5">
@@ -442,22 +466,16 @@ export default function WerkstaettenPage() {
                 rows={3}
                 className="resize-none"
               />
+              <p className="text-xs text-muted-foreground">
+                Je detaillierter die Beschreibung, desto präziser findet CARL die passende Werkstatt bei einer Schadensmeldung.
+              </p>
             </div>
           </div>
 
           <DialogFooter>
-            <Button variant="outline" onClick={closeDialog} disabled={isSaving}>
-              Abbrechen
-            </Button>
+            <Button variant="outline" onClick={closeDialog} disabled={isSaving}>Abbrechen</Button>
             <Button onClick={handleSave} disabled={isSaving}>
-              {isSaving ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Speichert...
-                </>
-              ) : (
-                editingContractor ? "Speichern" : "Anlegen"
-              )}
+              {isSaving ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Speichert...</> : editingContractor ? "Speichern" : "Anlegen"}
             </Button>
           </DialogFooter>
         </DialogContent>
