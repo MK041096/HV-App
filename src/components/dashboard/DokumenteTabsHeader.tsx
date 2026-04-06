@@ -16,7 +16,8 @@ export default function DokumenteTabsHeader() {
   return (
     <div className="border-b bg-background">
       <div className="px-4 sm:px-6 lg:px-8 pt-6 pb-0">
-        <h1 className="text-2xl font-bold tracking-tight mb-4">Dokumente</h1>
+        <h1 className="text-2xl font-bold tracking-tight">Dokumente</h1>
+        <p className="text-muted-foreground text-sm mt-1 mb-4">Mietverträge und Versicherungspolicen aller Liegenschaften</p>
         <nav className="flex gap-1">
           {TABS.map((tab) => {
             const isActive = pathname === tab.href || pathname.startsWith(tab.href + "/")

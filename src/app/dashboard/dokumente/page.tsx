@@ -389,7 +389,7 @@ export default function DokumentePage() {
       <Card className="border-blue-200 bg-blue-50">
         <CardContent className="pt-4 pb-4">
           <p className="text-sm text-blue-800">
-            Hinterlegen Sie für jede Einheit den aktuellen Mietvertrag als PDF. So haben Sie auf alle Verträge jederzeit Zugriff.
+            Hinterlegen Sie die Mietverträge aller Einheiten als PDF — SMARTCARL ordnet sie beim Massenupload automatisch der richtigen Einheit zu.
           </p>
         </CardContent>
       </Card>
@@ -402,7 +402,7 @@ export default function DokumentePage() {
               Mietverträge importieren
             </CardTitle>
             <CardDescription>
-              Laden Sie mehrere Mietverträge auf einmal hoch. Das System versucht automatisch zu erkennen, zu welcher Einheit der Vertrag gehört.
+              Laden Sie mehrere Mietverträge auf einmal hoch. SMARTCARL erkennt automatisch, zu welcher Einheit der Vertrag gehört.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -595,7 +595,7 @@ export default function DokumentePage() {
             <Home className="h-12 w-12 text-muted-foreground/40 mb-4" />
             <p className="text-muted-foreground font-medium">Keine Einheiten gefunden</p>
             <p className="text-sm text-muted-foreground mt-1 max-w-sm">
-              Legen Sie zuerst Einheiten in der Mieterverwaltung an.
+              Legen Sie zuerst Einheiten unter <strong>Einheiten</strong> an.
             </p>
           </CardContent>
         </Card>
