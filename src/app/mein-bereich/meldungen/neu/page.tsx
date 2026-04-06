@@ -188,7 +188,7 @@ const CARL_TIPS: Record<DamageCategory, { placeholder: string; chips: string[] }
   },
   sonstiges: {
     placeholder: "z.B.: Beschreiben Sie den Schaden so genau wie möglich: Was genau ist defekt? Wo befindet es sich? Seit wann besteht das Problem? Ist es ein Sicherheitsrisiko?",
-    chips: ["Sicherheitsrisiko", "Schon länger bekannt", "Erstmals aufgetreten", "Betrifft mehrere Räume"],
+    chips: [],
   },
 }
 
@@ -412,9 +412,10 @@ export default function NeueMeldungPage() {
   // ─── Form ─────────────────────────────────────────────────────────────────
 
   // Calculate effective step for display (step 2 may be skipped visually)
-  const effectiveStepLabel = (currentStep === 3 && !hasUsefulSubcategories(formData.category))
-    ? `Schritt ${currentStep - 1} von ${TOTAL_STEPS - 1}`
-    : `Schritt ${currentStep} von ${TOTAL_STEPS}`
+  const skipStep2 = !hasUsefulSubcategories(formData.category)
+  const displayStep = skipStep2 && currentStep > 2 ? currentStep - 1 : currentStep
+  const displayTotal = skipStep2 ? TOTAL_STEPS - 1 : TOTAL_STEPS
+  const effectiveStepLabel = `Schritt ${displayStep} von ${displayTotal}`
 
   return (
     <div className="p-4 sm:p-6 lg:p-8 max-w-2xl mx-auto space-y-5">
@@ -426,15 +427,7 @@ export default function NeueMeldungPage() {
         <p className="text-muted-foreground mt-1 text-sm">{effectiveStepLabel}</p>
       </div>
 
-      <Progress value={(currentStep / TOTAL_STEPS) * 100} className="h-2" />
-
-      {/* Emergency Banner — always visible */}
-      <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-2.5 flex items-center gap-3">
-        <Phone className="h-4 w-4 text-red-600 shrink-0" />
-        <span className="text-sm text-red-700">
-          <strong>Notfall?</strong> Feuerwehr 122 · Rettung 144 · Polizei 133 · Euro-Notruf 112
-        </span>
-      </div>
+      <Progress value={(displayStep / displayTotal) * 100} className="h-2" />
 
       <Card>
         <CardContent className="pt-6">
@@ -794,7 +787,7 @@ function Step4PhotosAppointment({
         <div>
           <h2 className="text-lg font-semibold">Fotos hochladen</h2>
           <p className="text-sm text-muted-foreground mt-1">
-            Fotos helfen der Hausverwaltung und CARL enorm — bitte laden Sie wenn möglich Bilder hoch.
+            Fotos beschleunigen die Bearbeitung. Laden Sie wenn möglich Bilder des Schadens hoch.
           </p>
         </div>
 
@@ -980,10 +973,6 @@ function Step5Summary({ formData, onEditStep, hasSubcategoryStep }: { formData: 
         </div>
       </SummarySection>
 
-      <div className="rounded-lg border border-blue-100 bg-blue-50 px-4 py-3 text-sm text-blue-700 flex gap-2 items-start">
-        <Sparkles className="h-4 w-4 mt-0.5 shrink-0" />
-        <span>Nach dem Absenden analysiert CARL Ihre Meldung sofort und informiert die Hausverwaltung mit einer Einschätzung.</span>
-      </div>
     </div>
   )
 }
