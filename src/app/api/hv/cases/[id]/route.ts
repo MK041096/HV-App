@@ -602,6 +602,23 @@ export async function PATCH(
       })
     }
 
+    // ── DESCRIPTION UPDATE (manuell angelegte Fälle) ──
+    if ('description' in body) {
+      const description = typeof body.description === 'string' ? body.description.slice(0, 2000) : null
+
+      const { error: updateError } = await supabase
+        .from('damage_reports')
+        .update({ description, updated_at: new Date().toISOString() })
+        .eq('id', id)
+        .eq('organization_id', profile.organization_id)
+
+      if (updateError) {
+        return NextResponse.json({ error: 'Fehler beim Speichern der Beschreibung' }, { status: 500 })
+      }
+
+      return NextResponse.json({ message: 'Beschreibung gespeichert' })
+    }
+
     // ── URGENCY UPDATE ──
     if ('urgency' in body) {
       const urgency = body.urgency

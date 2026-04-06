@@ -145,6 +145,7 @@ interface CaseDetail {
   created_at: string
   updated_at: string
   closed_at: string | null
+  created_by_hv: boolean | null
   unit: { id: string; name: string; address: string | null; floor: string | null } | null
   reporter: { id: string; first_name: string | null; last_name: string | null; role: string } | null
   photos: Photo[]
@@ -439,6 +440,27 @@ export default function CaseDetailPage({
   const [urgencyEdit, setUrgencyEdit] = useState<string>("")
   const [isSavingUrgency, setIsSavingUrgency] = useState(false)
 
+  // HV-manuell: Beschreibung ergänzen vor CARL-Analyse
+  const [hvDescription, setHvDescription] = useState("")
+  const [isSavingHvDesc, setIsSavingHvDesc] = useState(false)
+  const [hvDescSaved, setHvDescSaved] = useState(false)
+
+  async function handleSaveHvDescription() {
+    if (!hvDescription.trim()) return
+    setIsSavingHvDesc(true)
+    try {
+      await fetch(`/api/hv/cases/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ description: hvDescription.trim() }),
+      })
+      setHvDescSaved(true)
+      await fetchCase()
+    } catch { /* ignore */ } finally {
+      setIsSavingHvDesc(false)
+    }
+  }
+
   // Fetch case
   async function fetchCase() {
     setIsLoading(true)
@@ -510,8 +532,10 @@ export default function CaseDetailPage({
   }, [id])
 
   // Auto-run KI when case first loads without existing analysis
+  // Aber NICHT bei manuell angelegten Fällen ohne Beschreibung — dort muss HV erst Infos eingeben
   useEffect(() => {
     if (!caseData || caseData.ki_analyse_result || isRunningKi || kiResult) return
+    if (caseData.created_by_hv && !caseData.description) return
     runKiAnalysis()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [caseData?.id])
@@ -935,6 +959,81 @@ export default function CaseDetailPage({
             </button>
           </AlertDescription>
         </Alert>
+      )}
+
+      {/* CARL-Karte für manuell angelegte Fälle */}
+      {caseData.created_by_hv && (
+        <Card className="border-primary/30 bg-primary/5">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base flex items-center gap-2">
+              <Sparkles className="h-4 w-4 text-primary" />
+              CARL-Analyse starten
+            </CardTitle>
+            <p className="text-sm text-muted-foreground">
+              Dieser Fall wurde manuell angelegt. Geben Sie CARL die wichtigsten Informationen aus dem gemeldeten Schaden —
+              CARL prüft dann Mietvertrag, Versicherungspolice und schlägt den passenden Handwerker vor.
+            </p>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {!caseData.description ? (
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Was wurde gemeldet?</label>
+                <Textarea
+                  placeholder="z.B. Mieter hat gemeldet, dass im Badezimmer Wasser durch die Decke tropft. Bereits seit gestern Abend. Kein Schimmel sichtbar."
+                  value={hvDescription}
+                  onChange={(e) => { setHvDescription(e.target.value); setHvDescSaved(false) }}
+                  rows={4}
+                />
+                <div className="flex items-center gap-2">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={handleSaveHvDescription}
+                    disabled={isSavingHvDesc || !hvDescription.trim()}
+                  >
+                    {isSavingHvDesc ? <><Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />Speichern...</> : <><Save className="mr-2 h-3.5 w-3.5" />Beschreibung speichern</>}
+                  </Button>
+                  {hvDescSaved && (
+                    <Button
+                      size="sm"
+                      onClick={runKiAnalysis}
+                      disabled={isRunningKi}
+                    >
+                      {isRunningKi ? <><Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />CARL analysiert...</> : <><Sparkles className="mr-2 h-3.5 w-3.5" />CARL analysieren lassen</>}
+                    </Button>
+                  )}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Tipp: Je mehr Details, desto genauer kann CARL den Mietvertrag und die Versicherungspolice prüfen.
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <div className="rounded-lg border bg-background px-3 py-2 text-sm text-muted-foreground">
+                  <p className="font-medium text-foreground text-xs mb-1">Gemeldeter Schaden:</p>
+                  {caseData.description}
+                </div>
+                {!kiResult && (
+                  <Button
+                    size="sm"
+                    onClick={runKiAnalysis}
+                    disabled={isRunningKi}
+                  >
+                    {isRunningKi ? <><Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />CARL analysiert...</> : <><Sparkles className="mr-2 h-3.5 w-3.5" />CARL analysieren lassen</>}
+                  </Button>
+                )}
+                {kiResult && (
+                  <p className="text-xs text-green-700 flex items-center gap-1">
+                    <span>✓</span> CARL-Analyse abgeschlossen — Ergebnis im Tab &ldquo;CARL Analyse&rdquo; unten
+                  </p>
+                )}
+              </div>
+            )}
+            {kiError && (
+              <p className="text-sm text-destructive">{kiError}</p>
+            )}
+          </CardContent>
+        </Card>
       )}
 
       {/* Main Content Grid */}
