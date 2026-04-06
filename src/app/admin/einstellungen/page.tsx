@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Loader2, CheckCircle2, KeyRound, User, Shield } from 'lucide-react'
+import TwoFactorSection from '@/components/settings/TwoFactorSection'
 
 export default function AdminEinstellungenPage() {
   const [email, setEmail] = useState('')
@@ -144,6 +145,10 @@ export default function AdminEinstellungenPage() {
               Passwort ändern
             </Button>
           </section>
+
+          <div className="border-t pt-6">
+            <TwoFactorSection />
+          </div>
         </TabsContent>
       </Tabs>
     </div>

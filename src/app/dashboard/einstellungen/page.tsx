@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
+import TwoFactorSection from '@/components/settings/TwoFactorSection'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -298,6 +299,10 @@ export default function HVEinstellungenPage() {
               Passwort ändern
             </Button>
           </section>
+
+          <div className="border-t pt-6">
+            <TwoFactorSection />
+          </div>
         </TabsContent>
 
         {/* ── ORGANISATION ── (hv_admin only) */}

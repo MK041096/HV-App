@@ -11,6 +11,7 @@ import {
   Loader2, Download, Trash2, Save, AlertTriangle, CheckCircle2,
   KeyRound, User, Shield,
 } from 'lucide-react'
+import TwoFactorSection from '@/components/settings/TwoFactorSection'
 
 interface Profile {
   id: string
@@ -354,6 +355,10 @@ export default function EinstellungenPage() {
               Passwort ändern
             </Button>
           </section>
+
+          <div className="border-t pt-6">
+            <TwoFactorSection />
+          </div>
         </TabsContent>
       </Tabs>
     </div>
