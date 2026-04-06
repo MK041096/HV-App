@@ -119,7 +119,7 @@ const ONBOARDING_STEPS: OnboardingStep[] = [
     number: 4,
     title: "Versicherungspolice hochladen",
     description:
-      "Laden Sie die Versicherungspolice(n) Ihrer Liegenschaft hoch. CARL liest das Dokument automatisch aus und erkennt, was versichert ist — z.B. Glasbruch, Leitungswasser, Sturmschäden. Bei einer neuen Schadensmeldung zeigt SMARTCARL dann direkt an: \"Dieser Schaden ist versichert.\"",
+      "Laden Sie die Versicherungspolicen aller Liegenschaften hoch. CARL liest das Dokument automatisch aus und erkennt, was versichert ist — z.B. Glasbruch, Wasserschäden, Sturmschäden. Bei einer neuen Schadensmeldung zeigt CARL dann direkt an: \"Dieser Schaden ist versichert.\"",
     whyBox:
       "Sie verlieren nie wieder Zeit damit, die Police zu suchen oder zu lesen. CARL sagt Ihnen sofort ob und was versichert ist.",
     href: "/dashboard/dokumente",
