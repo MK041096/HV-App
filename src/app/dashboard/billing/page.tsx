@@ -33,6 +33,7 @@ interface OrgBilling {
   current_period_end: string | null
   stripe_customer_id: string | null
   stripe_subscription_id: string | null
+  current_unit_count?: number
 }
 
 const STATUS_LABEL: Record<string, string> = {
@@ -98,7 +99,13 @@ export default function BillingPage() {
         .eq('id', profile.organization_id)
         .single()
       if (data) {
-        setOrg(data)
+        // Also fetch current real unit count
+        const { count: realCount } = await supabase
+          .from('units')
+          .select('id', { count: 'exact', head: true })
+          .eq('organization_id', profile.organization_id)
+          .eq('is_deleted', false)
+        setOrg({ ...data, current_unit_count: realCount ?? 0 })
         setUnitCount(Math.max(data.einheiten_anzahl || 1, 1))
       }
       setLoading(false)
@@ -195,9 +202,28 @@ export default function BillingPage() {
             </span>
           </div>
           <div className="flex items-center justify-between">
-            <span className="text-sm text-muted-foreground flex items-center gap-1"><Users className="h-3 w-3" /> Einheiten</span>
-            <span className="text-sm font-medium">{org?.einheiten_anzahl || 1}</span>
+            <span className="text-sm text-muted-foreground flex items-center gap-1"><Users className="h-3 w-3" /> Einheiten belegt</span>
+            <span className="text-sm font-medium">
+              {org?.current_unit_count ?? 0}
+              {(org?.einheiten_anzahl ?? 0) > 0 && ` / ${org?.einheiten_anzahl}`}
+            </span>
           </div>
+          {(org?.einheiten_anzahl ?? 0) > 0 && (
+            <div>
+              <div className="w-full bg-muted rounded-full h-1.5">
+                <div
+                  className={`h-1.5 rounded-full transition-all ${
+                    (org!.current_unit_count ?? 0) >= org!.einheiten_anzahl
+                      ? 'bg-red-500'
+                      : (org!.current_unit_count ?? 0) / org!.einheiten_anzahl > 0.8
+                      ? 'bg-yellow-500'
+                      : 'bg-primary'
+                  }`}
+                  style={{ width: `${Math.min(((org!.current_unit_count ?? 0) / org!.einheiten_anzahl) * 100, 100)}%` }}
+                />
+              </div>
+            </div>
+          )}
           {org?.current_period_end && (
             <div className="flex items-center justify-between">
               <span className="text-sm text-muted-foreground flex items-center gap-1"><Calendar className="h-3 w-3" /> Nächste Abbuchung</span>
@@ -271,7 +297,7 @@ export default function BillingPage() {
                     }}
                     className="w-40"
                   />
-                  <p className="text-xs text-muted-foreground">Anzahl der von Ihnen verwalteten Wohnungen</p>
+                  <p className="text-xs text-muted-foreground">Dieses Limit können Sie jederzeit per E-Mail anpassen lassen.</p>
                 </div>
 
                 {/* Plan-Auswahl */}
@@ -363,6 +389,24 @@ export default function BillingPage() {
                   </div>
                 </div>
 
+                <div className="rounded-lg bg-muted/50 p-4 space-y-2 text-sm">
+                  <p className="font-medium text-xs text-muted-foreground uppercase tracking-wide mb-2">Im Abonnement enthalten</p>
+                  {[
+                    'Unbegrenzte Schadensmeldungen',
+                    'CARL KI-Analyse pro Schadensfall',
+                    'Automatischer Werkstätten-Vorschlag',
+                    'Mietvertrag & Versicherungsverwaltung',
+                    'E-Mail-Benachrichtigungen für Mieter',
+                    'Mieter-Portal mit Foto-Upload',
+                    'Excel / CSV Import für Einheiten & Werkstätten',
+                  ].map((f) => (
+                    <div key={f} className="flex items-center gap-2">
+                      <Check className="h-3.5 w-3.5 text-green-600 shrink-0" />
+                      <span>{f}</span>
+                    </div>
+                  ))}
+                </div>
+
                 <p className="text-xs text-muted-foreground">
                   Akzeptiert: Kreditkarte · SEPA-Lastschrift · Apple Pay · Google Pay
                 </p>
@@ -399,11 +443,17 @@ export default function BillingPage() {
               </div>
             </div>
             <Button variant="outline" className="w-full" onClick={handlePortal} disabled={actionLoading}>
-              {actionLoading ? 'Weiterleitung...' : 'Stripe Kundenportal öffnen'}
+              {actionLoading ? 'Weiterleitung...' : 'Zahlung & Rechnungen verwalten'}
               <ExternalLink className="h-4 w-4 ml-2" />
             </Button>
-            <p className="text-xs text-muted-foreground mt-3 text-center">
-              Im Portal können Sie Zahlungsmethode, Rechnungen und Kündigung verwalten.
+            <Button variant="ghost" className="w-full mt-2" asChild>
+              <a href={`mailto:kracherdigital@gmail.com?subject=Einheitenlimit%20erhöhen%20SMARTCARL&body=Hallo%2C%0A%0Aich%20möchte%20mein%20Einheitenlimit%20erhöhen.%0A%0AOrganisation%3A%20${encodeURIComponent(org?.name || '')}%0ANeue%20Anzahl%20Einheiten%3A%20%0A%0AMit%20freundlichen%20Grüßen`}>
+                <Mail className="h-4 w-4 mr-2" />
+                Mehr Einheiten anfragen
+              </a>
+            </Button>
+            <p className="text-xs text-muted-foreground mt-1 text-center">
+              Zahlungsmethode, Rechnungen und Kündigung über das Abrechnungsportal verwalten.
             </p>
           </CardContent>
         </Card>

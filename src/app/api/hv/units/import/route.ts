@@ -140,11 +140,29 @@ export async function POST(request: NextRequest) {
 
     const { data: orgData } = await supabase
       .from('organizations')
-      .select('name')
+      .select('name, einheiten_anzahl')
       .eq('id', orgId)
       .single()
 
     const orgName = orgData?.name || 'Ihre Hausverwaltung'
+    const einheitenLimit = orgData?.einheiten_anzahl || 0
+
+    // Count current units to determine remaining slots
+    let remainingSlots = Infinity
+    if (einheitenLimit > 0) {
+      const { count: currentCount } = await supabase
+        .from('units')
+        .select('id', { count: 'exact', head: true })
+        .eq('organization_id', orgId)
+        .eq('is_deleted', false)
+      const used = currentCount ?? 0
+      if (used >= einheitenLimit) {
+        return NextResponse.json({
+          error: `Einheitenlimit erreicht (${used} von ${einheitenLimit}). Bitte kontaktieren Sie uns unter kracherdigital@gmail.com um Ihr Abonnement anzupassen.`
+        }, { status: 403 })
+      }
+      remainingSlots = einheitenLimit - used
+    }
 
     // Parse multipart form
     const formData = await request.formData()
@@ -302,6 +320,12 @@ export async function POST(request: NextRequest) {
     const expiresAtStr = expiresAt.toISOString()
 
     for (const row of importRows) {
+      // Stop if unit limit reached
+      if (remainingSlots !== Infinity && result.units_created >= remainingSlots) {
+        result.errors.push({ row: row.rowIndex, message: `Einheitenlimit erreicht — "${row.unitName}" wurde nicht importiert. Abonnement anpassen um mehr Einheiten hinzuzufügen.` })
+        continue
+      }
+
       // Skip duplicates
       if (existingNames.has(row.unitName.toLowerCase())) {
         result.units_skipped++

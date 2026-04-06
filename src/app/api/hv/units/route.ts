@@ -43,6 +43,26 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "E-Mail oder Telefonnummer ist erforderlich" }, { status: 400 })
     }
 
+    // Check unit limit
+    const { data: orgInfo } = await supabase
+      .from('organizations')
+      .select('einheiten_anzahl')
+      .eq('id', profile.organization_id)
+      .single()
+
+    if (orgInfo?.einheiten_anzahl && orgInfo.einheiten_anzahl > 0) {
+      const { count: currentCount } = await supabase
+        .from('units')
+        .select('id', { count: 'exact', head: true })
+        .eq('organization_id', profile.organization_id)
+        .eq('is_deleted', false)
+      if ((currentCount ?? 0) >= orgInfo.einheiten_anzahl) {
+        return NextResponse.json({
+          error: `Einheitenlimit erreicht (${orgInfo.einheiten_anzahl} von ${orgInfo.einheiten_anzahl}). Bitte kontaktieren Sie uns unter kracherdigital@gmail.com um Ihr Abonnement anzupassen.`
+        }, { status: 403 })
+      }
+    }
+
     const { data: newUnit, error: unitError } = await adminSupabase
       .from("units")
       .insert({
@@ -165,6 +185,14 @@ export async function GET(request: NextRequest) {
         { status: 403 }
       )
     }
+
+    // Get unit limit from organization
+    const { data: orgData } = await supabase
+      .from('organizations')
+      .select('einheiten_anzahl')
+      .eq('id', profile.organization_id)
+      .single()
+    const orgLimit = orgData?.einheiten_anzahl || 0
 
     // Parse query params
     const { searchParams } = new URL(request.url)
@@ -372,6 +400,7 @@ export async function GET(request: NextRequest) {
         occupied: enriched.filter((u) => u.tenant_status === 'occupied').length,
         pending: enriched.filter((u) => u.tenant_status === 'pending').length,
         vacant: enriched.filter((u) => u.tenant_status === 'vacant').length,
+        einheiten_limit: orgLimit,
       },
     })
   } catch (err) {
