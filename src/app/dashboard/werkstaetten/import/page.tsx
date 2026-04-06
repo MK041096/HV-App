@@ -97,7 +97,7 @@ export default function WerkstaettenImportPage() {
         <h1 className="text-2xl font-bold tracking-tight">Werkstätten importieren</h1>
         <p className="text-muted-foreground mt-1">
           Importieren Sie Ihre Handwerker und Dienstleister aus Excel (.xlsx) oder CSV (.csv).
-          Das System schlägt bei einer Schadensmeldung automatisch die passende Werkstatt vor.
+          CARL schlägt bei einer Schadensmeldung automatisch die passende Werkstatt vor.
         </p>
       </div>
 
@@ -114,7 +114,7 @@ export default function WerkstaettenImportPage() {
             {[
               { n: "1", title: "Datei vorbereiten", desc: "Firmenname, Kontaktdaten und Tätigkeit der Werkstatt" },
               { n: "2", title: "Datei hochladen", desc: "Alle Werkstätten werden sofort angelegt." },
-              { n: "3", title: "Werkstätten sind aktiv.", desc: "Bei einer Schadensmeldung schlägt das System die passende Werkstatt vor." },
+              { n: "3", title: "Werkstätten sind aktiv.", desc: "Bei einer Schadensmeldung schlägt CARL automatisch die passende Werkstatt vor." },
             ].map(({ n, title, desc }) => (
               <div key={n} className="flex gap-3">
                 <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-bold">{n}</div>

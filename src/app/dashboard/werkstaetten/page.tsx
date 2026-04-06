@@ -221,7 +221,7 @@ export default function WerkstaettenPage() {
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Werkstätten</h1>
           <p className="text-sm text-muted-foreground mt-0.5">
-            Verwalten Sie Ihre Handwerker und Dienstleister
+            Hinterlegen Sie Ihre Handwerker — CARL schlägt bei einem Schadensfall automatisch den passenden Betrieb vor.
           </p>
         </div>
         <div className="flex gap-2">
