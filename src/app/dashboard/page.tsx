@@ -33,6 +33,10 @@ import {
 } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import {
+  Dialog,
+  DialogContent,
+} from "@/components/ui/dialog"
 
 interface DashboardStats {
   total: number
@@ -140,11 +144,15 @@ const ONBOARDING_STEPS: OnboardingStep[] = [
   },
 ]
 
+const LS_LAST_SEEN = "smartcarl_hv_last_seen"
+
 export default function DashboardPage() {
   const [stats, setStats] = useState<DashboardStats | null>(null)
   const [recentCases, setRecentCases] = useState<RecentCase[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [newCasesDismissed, setNewCasesDismissed] = useState(false)
+  const [newCasesPopup, setNewCasesPopup] = useState<RecentCase[]>([])
+  const [showNewCasesPopup, setShowNewCasesPopup] = useState(false)
   const [onboarding, setOnboarding] = useState<OnboardingState>({
     hasUnits: false,
     hasWerkstaetten: false,
@@ -280,6 +288,34 @@ export default function DashboardPage() {
         if (recentRes.data) {
           setRecentCases(recentRes.data as unknown as RecentCase[])
         }
+
+        // ── Neue Fälle seit letztem Login → Popup ──
+        const lastSeen = localStorage.getItem(LS_LAST_SEEN)
+        const nowIso = new Date().toISOString()
+
+        if (lastSeen) {
+          const { data: newSinceLast } = await supabase
+            .from("damage_reports")
+            .select(
+              `id, case_number, title, urgency, status, created_at,
+              reporter:profiles!damage_reports_reporter_id_fkey(first_name, last_name),
+              unit:units(name)`
+            )
+            .eq("organization_id", orgId)
+            .eq("is_deleted", false)
+            .gt("created_at", lastSeen)
+            .order("created_at", { ascending: false })
+            .limit(50)
+
+          if (newSinceLast && newSinceLast.length > 0) {
+            setNewCasesPopup(newSinceLast as unknown as RecentCase[])
+            setShowNewCasesPopup(true)
+          }
+        }
+
+        // Zeitstempel dieses Logins speichern
+        localStorage.setItem(LS_LAST_SEEN, nowIso)
+
       } catch (err) {
         console.error("Failed to load dashboard:", err)
       } finally {
@@ -313,6 +349,91 @@ export default function DashboardPage() {
 
   return (
     <div className="p-4 sm:p-6 lg:p-8 space-y-6">
+
+      {/* ── Neue Schadensmeldungen Popup (seit letztem Login) ── */}
+      <Dialog open={showNewCasesPopup} onOpenChange={setShowNewCasesPopup}>
+        <DialogContent className="sm:max-w-lg p-0 overflow-hidden">
+          {/* Header */}
+          {(() => {
+            const hasNotfall = newCasesPopup.some(c => c.urgency === "notfall")
+            const hasDringend = newCasesPopup.some(c => c.urgency === "dringend")
+            const bgClass = hasNotfall ? "bg-red-600" : hasDringend ? "bg-orange-500" : "bg-primary"
+            return (
+              <div className={`${bgClass} px-6 py-5`}>
+                <div className="flex items-center gap-3">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/20">
+                    {hasNotfall ? <Flame className="h-5 w-5 text-white" /> : <Bell className="h-5 w-5 text-white" />}
+                  </div>
+                  <div>
+                    <p className="font-bold text-white text-lg">
+                      {newCasesPopup.length === 1
+                        ? "1 neue Schadensmeldung"
+                        : `${newCasesPopup.length} neue Schadensmeldungen`}
+                    </p>
+                    <p className="text-white/80 text-sm">
+                      {hasNotfall
+                        ? "Darunter ein Notfall — sofortiges Handeln erforderlich!"
+                        : hasDringend
+                        ? "Darunter dringende Meldungen"
+                        : "Seit Ihrem letzten Login eingegangen"}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )
+          })()}
+
+          {/* Liste der neuen Fälle */}
+          <div className="px-4 py-3 space-y-2 max-h-80 overflow-y-auto">
+            {newCasesPopup.map((c) => {
+              const urgencyColor =
+                c.urgency === "notfall" ? "bg-red-100 text-red-800 border-red-200"
+                : c.urgency === "dringend" ? "bg-orange-100 text-orange-800 border-orange-200"
+                : "bg-blue-100 text-blue-800 border-blue-200"
+              const urgencyLabel =
+                c.urgency === "notfall" ? "Notfall"
+                : c.urgency === "dringend" ? "Dringend"
+                : "Normal"
+              return (
+                <Link
+                  key={c.id}
+                  href={`/dashboard/cases/${c.id}`}
+                  onClick={() => setShowNewCasesPopup(false)}
+                  className="flex items-center justify-between rounded-lg border px-3 py-2.5 hover:bg-accent transition-colors group"
+                >
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-xs font-mono text-muted-foreground">{c.case_number}</span>
+                      <Badge variant="outline" className={`text-[10px] px-1.5 py-0 ${urgencyColor}`}>
+                        {urgencyLabel}
+                      </Badge>
+                    </div>
+                    <p className="text-sm font-medium truncate mt-0.5">{c.title}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {c.unit?.name && `${c.unit.name} · `}
+                      {c.reporter?.first_name} {c.reporter?.last_name}
+                    </p>
+                  </div>
+                  <ArrowRight className="h-4 w-4 shrink-0 text-muted-foreground group-hover:text-foreground group-hover:translate-x-0.5 transition-all ml-2" />
+                </Link>
+              )
+            })}
+          </div>
+
+          {/* Footer */}
+          <div className="px-4 pb-4 pt-1 flex gap-2">
+            <Button className="flex-1" onClick={() => setShowNewCasesPopup(false)} asChild>
+              <Link href="/dashboard/cases">
+                Alle Fälle öffnen
+              </Link>
+            </Button>
+            <Button variant="outline" onClick={() => setShowNewCasesPopup(false)}>
+              Schließen
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       {/* Page Header */}
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Übersicht</h1>
