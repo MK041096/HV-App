@@ -17,11 +17,14 @@ import {
   Wrench,
   Calendar,
   Eye,
+  Plus,
 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
+import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
 import {
   Select,
   SelectContent,
@@ -48,6 +51,13 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog"
 import { Separator } from "@/components/ui/separator"
 import { Skeleton } from "@/components/ui/skeleton"
 
@@ -203,6 +213,60 @@ export default function CasesListPage() {
   const [dateFrom, setDateFrom] = useState(searchParams.get("date_from") || "")
   const [dateTo, setDateTo] = useState(searchParams.get("date_to") || "")
 
+  // Manuell anlegen
+  const [createOpen, setCreateOpen] = useState(false)
+  const [createLoading, setCreateLoading] = useState(false)
+  const [createError, setCreateError] = useState<string | null>(null)
+  const [createTitle, setCreateTitle] = useState("")
+  const [createCategory, setCreateCategory] = useState("")
+  const [createUrgency, setCreateUrgency] = useState("normal")
+  const [createUnitId, setCreateUnitId] = useState("")
+  const [createDescription, setCreateDescription] = useState("")
+  const [units, setUnits] = useState<{ id: string; name: string; address: string | null }[]>([])
+
+  useEffect(() => {
+    async function loadUnits() {
+      const res = await fetch("/api/hv/units?per_page=500")
+      if (res.ok) {
+        const json = await res.json()
+        setUnits(json.data || [])
+      }
+    }
+    loadUnits()
+  }, [])
+
+  async function handleCreateCase() {
+    if (!createTitle.trim() || !createCategory) {
+      setCreateError("Titel und Kategorie sind Pflichtfelder.")
+      return
+    }
+    setCreateLoading(true)
+    setCreateError(null)
+    try {
+      const res = await fetch("/api/hv/cases", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: createTitle.trim(),
+          category: createCategory,
+          urgency: createUrgency,
+          unit_id: createUnitId || null,
+          description: createDescription.trim() || null,
+        }),
+      })
+      const json = await res.json()
+      if (!res.ok) { setCreateError(json.error || "Fehler beim Anlegen"); return }
+      setCreateOpen(false)
+      setCreateTitle(""); setCreateCategory(""); setCreateUrgency("normal")
+      setCreateUnitId(""); setCreateDescription("")
+      router.push(`/dashboard/cases/${json.data.id}`)
+    } catch {
+      setCreateError("Netzwerkfehler")
+    } finally {
+      setCreateLoading(false)
+    }
+  }
+
   // Debounced search
   const [debouncedSearch, setDebouncedSearch] = useState(searchQuery)
 
@@ -289,17 +353,89 @@ export default function CasesListPage() {
   return (
     <div className="p-4 sm:p-6 lg:p-8 space-y-4">
       {/* Page Header */}
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">Fälle</h1>
-        <p className="text-muted-foreground mt-1">
-          Alle offenen und abgeschlossenen Schadensfälle auf einen Blick
-          {pagination && (
-            <span className="ml-1">
-              ({pagination.total_count} gesamt)
-            </span>
-          )}
-        </p>
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Fälle</h1>
+          <p className="text-muted-foreground mt-1">
+            Alle offenen und abgeschlossenen Schadensfälle auf einen Blick
+            {pagination && (
+              <span className="ml-1">
+                ({pagination.total_count} gesamt)
+              </span>
+            )}
+          </p>
+        </div>
+        <Button onClick={() => { setCreateOpen(true); setCreateError(null) }}>
+          <Plus className="mr-2 h-4 w-4" />
+          Fall anlegen
+        </Button>
       </div>
+
+      {/* Dialog: Manuell anlegen */}
+      <Dialog open={createOpen} onOpenChange={setCreateOpen}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Fall manuell anlegen</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="space-y-1.5">
+              <Label htmlFor="c-title">Titel <span className="text-destructive">*</span></Label>
+              <Input id="c-title" placeholder="z.B. Wasserschaden Badezimmer" value={createTitle} onChange={(e) => setCreateTitle(e.target.value)} />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label htmlFor="c-category">Kategorie <span className="text-destructive">*</span></Label>
+                <Select value={createCategory} onValueChange={setCreateCategory}>
+                  <SelectTrigger id="c-category"><SelectValue placeholder="Wählen..." /></SelectTrigger>
+                  <SelectContent>
+                    {DAMAGE_CATEGORIES.map((c) => (
+                      <SelectItem key={c} value={c}>{CATEGORY_LABELS[c]}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="c-urgency">Dringlichkeit</Label>
+                <Select value={createUrgency} onValueChange={setCreateUrgency}>
+                  <SelectTrigger id="c-urgency"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {URGENCY_LEVELS.map((u) => (
+                      <SelectItem key={u} value={u}>{URGENCY_LABELS[u]}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="c-unit">Einheit (optional)</Label>
+              <Select value={createUnitId} onValueChange={setCreateUnitId}>
+                <SelectTrigger id="c-unit"><SelectValue placeholder="Keine Einheit zugeordnet" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Keine Einheit</SelectItem>
+                  {units.map((u) => (
+                    <SelectItem key={u.id} value={u.id}>
+                      {u.name}{u.address ? ` — ${u.address}` : ""}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="c-desc">Beschreibung (optional)</Label>
+              <Textarea id="c-desc" placeholder="Kurze Beschreibung des Schadens..." value={createDescription} onChange={(e) => setCreateDescription(e.target.value)} rows={3} />
+            </div>
+            {createError && (
+              <p className="text-sm text-destructive">{createError}</p>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setCreateOpen(false)} disabled={createLoading}>Abbrechen</Button>
+            <Button onClick={handleCreateCase} disabled={createLoading}>
+              {createLoading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Wird angelegt...</> : "Fall anlegen"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Search & Filter Bar */}
       <Card>

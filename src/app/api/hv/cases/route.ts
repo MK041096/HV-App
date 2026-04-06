@@ -1,11 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { z } from 'zod'
 import { createServerSupabaseClient } from '@/lib/supabase-server'
 import {
   hvCaseListSchema,
   URGENCY_SORT_ORDER,
   CASE_STATUS_LABELS,
 } from '@/lib/validations/hv-case-management'
-import { CATEGORY_LABELS, URGENCY_LABELS } from '@/lib/validations/damage-report'
+import { CATEGORY_LABELS, URGENCY_LABELS, DAMAGE_CATEGORIES, URGENCY_LEVELS } from '@/lib/validations/damage-report'
+
+const createCaseSchema = z.object({
+  title: z.string().min(3, 'Titel muss mindestens 3 Zeichen haben').max(200),
+  category: z.enum(DAMAGE_CATEGORIES),
+  urgency: z.enum(URGENCY_LEVELS).default('normal'),
+  unit_id: z.string().uuid('Ungültige Einheit').optional().nullable(),
+  description: z.string().max(2000).optional().nullable(),
+})
 
 // GET /api/hv/cases - List all damage reports for the HV organization
 // Supports: pagination (page/per_page), filtering, sorting, search
@@ -270,5 +279,72 @@ export async function GET(request: NextRequest) {
       { error: 'Interner Serverfehler' },
       { status: 500 }
     )
+  }
+}
+
+// POST /api/hv/cases - HV legt manuell einen Fall an
+export async function POST(request: NextRequest) {
+  try {
+    const supabase = await createServerSupabaseClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return NextResponse.json({ error: 'Nicht authentifiziert' }, { status: 401 })
+
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('organization_id, role, first_name, last_name')
+      .eq('id', user.id)
+      .single()
+
+    if (!profile || !['hv_admin', 'hv_mitarbeiter', 'platform_admin'].includes(profile.role)) {
+      return NextResponse.json({ error: 'Keine Berechtigung' }, { status: 403 })
+    }
+
+    const body = await request.json()
+    const parsed = createCaseSchema.safeParse(body)
+    if (!parsed.success) {
+      return NextResponse.json({ error: parsed.error.issues[0]?.message || 'Ungültige Eingabe' }, { status: 400 })
+    }
+
+    const { title, category, urgency, unit_id, description } = parsed.data
+
+    // Einheit prüfen wenn angegeben
+    if (unit_id) {
+      const { data: unit } = await supabase.from('units').select('id').eq('id', unit_id).eq('organization_id', profile.organization_id).single()
+      if (!unit) return NextResponse.json({ error: 'Einheit nicht gefunden' }, { status: 404 })
+    }
+
+    // Fallnummer generieren
+    const { data: countData } = await supabase
+      .from('damage_reports')
+      .select('id', { count: 'exact', head: true })
+      .eq('organization_id', profile.organization_id)
+    const caseNumber = `F-${String((countData as unknown as number ?? 0) + 1).padStart(4, '0')}`
+
+    const { data: newCase, error: insertError } = await supabase
+      .from('damage_reports')
+      .insert({
+        organization_id: profile.organization_id,
+        reporter_id: user.id,
+        unit_id: unit_id || null,
+        title,
+        category,
+        urgency,
+        status: 'neu',
+        description: description || null,
+        case_number: caseNumber,
+        created_by_hv: true,
+      })
+      .select('id, case_number')
+      .single()
+
+    if (insertError) {
+      console.error('Insert error:', insertError)
+      return NextResponse.json({ error: 'Fall konnte nicht angelegt werden' }, { status: 500 })
+    }
+
+    return NextResponse.json({ data: newCase }, { status: 201 })
+  } catch (err) {
+    console.error('POST /api/hv/cases error:', err)
+    return NextResponse.json({ error: 'Interner Serverfehler' }, { status: 500 })
   }
 }
