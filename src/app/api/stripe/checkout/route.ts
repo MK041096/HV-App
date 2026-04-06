@@ -81,13 +81,6 @@ export async function POST(request: NextRequest) {
     }
     const priceId = plan === 'yearly' ? STRIPE_PRICES.yearly : STRIPE_PRICES.monthly
 
-    // April-Aktion: 50% Rabatt automatisch bis 30. April 2026
-    const now = new Date()
-    const isAprilPromo = now >= new Date('2026-04-01') && now <= new Date('2026-04-30T23:59:59Z')
-    const aprilCoupon = isAprilPromo
-      ? (plan === 'yearly' ? 'APRIL2026_YEARLY' : 'APRIL2026_MONTHLY')
-      : null
-
     // Build line items: setup fee + subscription
     const lineItems: { price: string; quantity: number }[] = []
 
@@ -105,8 +98,7 @@ export async function POST(request: NextRequest) {
       metadata: { organization_id: org.id, plan },
       subscription_data: {
         metadata: { organization_id: org.id, plan },
-        trial_period_days: 30,
-        ...(aprilCoupon ? { coupon: aprilCoupon } : {}),
+        trial_period_days: 14,
       },
       allow_promotion_codes: true,
       billing_address_collection: 'required',

@@ -38,7 +38,7 @@ interface OrgBilling {
 
 const STATUS_LABEL: Record<string, string> = {
   active: 'Aktiv',
-  trialing: 'Probezeitraum (30 Tage)',
+  trialing: 'Probezeitraum (14 Tage)',
   past_due: 'Zahlung ausstehend',
   canceled: 'Gekündigt',
   inactive: 'Kein Abonnement',
@@ -64,11 +64,6 @@ function fmt(n: number) {
   return n.toFixed(2).replace('.', ',')
 }
 
-// April-Aktion läuft bis 30. April 2026
-function isAprilPromoActive() {
-  const now = new Date()
-  return now >= new Date('2026-04-01') && now <= new Date('2026-04-30T23:59:59Z')
-}
 
 export default function BillingPage() {
   const searchParams = useSearchParams()
@@ -80,7 +75,7 @@ export default function BillingPage() {
 
   const successParam = searchParams.get('success')
   const canceledParam = searchParams.get('canceled')
-  const isPromo = isAprilPromoActive()
+  const isPromo = false
 
   useEffect(() => {
     async function loadOrg() {
@@ -175,7 +170,7 @@ export default function BillingPage() {
         <Alert className="border-green-200 bg-green-50">
           <CheckCircle className="h-4 w-4 text-green-600" />
           <AlertDescription className="text-green-800">
-            Abonnement erfolgreich gestartet! Ihr 30-tägiger kostenloser Testzeitraum läuft — die erste Abbuchung erfolgt erst nach 30 Tagen.
+            Abonnement erfolgreich gestartet! Ihr 14-tägiger Testzeitraum läuft — die erste Abbuchung erfolgt erst nach 14 Tagen.
           </AlertDescription>
         </Alert>
       )}
@@ -385,7 +380,7 @@ export default function BillingPage() {
                   </div>
                   <div className="border-t pt-2 mt-2 flex justify-between text-xs text-muted-foreground">
                     <span>Alle Preise zzgl. MwSt.</span>
-                    <span>Erste Abbuchung nach 30 Tagen</span>
+                    <span>Erste Abbuchung nach 14 Tagen</span>
                   </div>
                 </div>
 
@@ -412,12 +407,12 @@ export default function BillingPage() {
                 </p>
 
                 <Button className="w-full" size="lg" onClick={handleCheckout} disabled={actionLoading || isEnterprise}>
-                  {actionLoading ? 'Weiterleitung...' : '30 Tage kostenlos testen → Jetzt starten'}
+                  {actionLoading ? 'Weiterleitung...' : '14 Tage gratis testen → Jetzt starten'}
                   <ExternalLink className="h-4 w-4 ml-2" />
                 </Button>
 
                 <p className="text-xs text-center text-muted-foreground">
-                  30-Tage Geld-zurück-Garantie · Jederzeit kündbar · Keine versteckten Kosten
+                  14 Tage gratis · Aktionscode APRIL26 einlösbar · Jederzeit kündbar
                 </p>
               </CardContent>
             </Card>

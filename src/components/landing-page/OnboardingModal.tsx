@@ -178,14 +178,14 @@ export default function OnboardingModal({ onClose }: { onClose: () => void }) {
                 borderRadius: '4px', padding: '4px 12px', marginBottom: '12px',
               }}>
                 <span style={{ fontSize: '10px', letterSpacing: '0.12em', color: '#C74229', fontWeight: 600, fontFamily: 'var(--font-dm-sans, sans-serif)', textTransform: 'uppercase' }}>
-                  30 TAGE KOSTENLOS TESTEN
+                  14 TAGE GRATIS TESTEN
                 </span>
               </div>
               <h2 style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: '26px', color: '#000', margin: '0 0 6px', fontWeight: 700, lineHeight: 1.2 }}>
                 Jetzt starten
               </h2>
               <p style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', color: '#555', fontSize: '14px', margin: 0 }}>
-                Keine Zahlung in den ersten 30 Tagen — Sie können jederzeit kündigen.
+                Keine Zahlung in den ersten 14 Tagen — Sie können jederzeit kündigen.
               </p>
             </div>
 
@@ -377,7 +377,7 @@ export default function OnboardingModal({ onClose }: { onClose: () => void }) {
               </button>
 
               <p style={{ textAlign: 'center', fontSize: '12px', fontFamily: 'var(--font-dm-sans, sans-serif)', color: '#888', margin: 0 }}>
-                🔒 Sichere Zahlung via Stripe · 30 Tage kostenlos · Jederzeit kündbar
+                🔒 Sichere Zahlung via Stripe · 14 Tage gratis · Aktionscode: APRIL26
               </p>
             </div>
           </form>

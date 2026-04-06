@@ -173,7 +173,7 @@ async function handleNewCustomerCheckout(
     <p style="color:#6b7280;margin:24px 0 0;font-size:14px">Falls der Button nicht funktioniert:<br><a href="${passwordLink}" style="color:#2563eb;word-break:break-all">${passwordLink}</a></p>
     <div style="margin-top:24px;padding:16px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:6px">
       <p style="margin:0;color:#166534;font-size:14px;font-weight:600">Ihr Abonnement</p>
-      <p style="margin:6px 0 0;color:#166534;font-size:14px">${einheiten_anzahl} Einheiten · ${plan === 'yearly' ? 'Jahresabo' : 'Monatsabo'} · 30 Tage kostenlos testen</p>
+      <p style="margin:6px 0 0;color:#166534;font-size:14px">${einheiten_anzahl} Einheiten · ${plan === 'yearly' ? 'Jahresabo' : 'Monatsabo'} · 14 Tage gratis testen</p>
     </div>
     <hr style="border:none;border-top:1px solid #e5e7eb;margin:24px 0">
     <p style="color:#9ca3af;font-size:12px;margin:0">SMARTCARL – Digitales Schadensmeldungs-Management<br>Bei Fragen: <a href="mailto:Kracherdigital@gmail.com" style="color:#6b7280">Kracherdigital@gmail.com</a></p>

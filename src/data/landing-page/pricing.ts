@@ -16,7 +16,7 @@ export const pricing: PricingTier[] = [
       "Registrierung per Aktivierungscode",
       "Schadensmeldung & Status-Tracking",
       "E-Mail-Benachrichtigungen",
-      "30 Tage Geld-zurück-Garantie",
+      "14 Tage gratis testen",
       "Onboarding & Einrichtung: 699 € einmalig"
     ],
     highlighted: false
@@ -28,7 +28,7 @@ export const pricing: PricingTier[] = [
     features: [
       "Alle Funktionen des Monatspakets",
       "15% Rabatt gegenüber monatlicher Zahlung",
-      "30 Tage Geld-zurück-Garantie",
+      "14 Tage gratis testen",
       "Onboarding & Einrichtung: 699 € einmalig"
     ],
     highlighted: true

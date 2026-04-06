@@ -215,7 +215,7 @@ export default function HvRegistrierungPage() {
             <span className="text-xl font-bold">SMARTCARL</span>
           </Link>
           <p className="text-sm text-muted-foreground">
-            Jetzt kostenlos testen — kein Risiko, kein Vertrag
+            14 Tage gratis testen — kein Risiko, kein Vertrag
           </p>
         </div>
 
@@ -514,7 +514,7 @@ export default function HvRegistrierungPage() {
           <span>·</span>
           <span>Server in der EU</span>
           <span>·</span>
-          <span>30-Tage Geld-zurück</span>
+          <span>14 Tage gratis testen</span>
         </div>
 
         <p className="text-center text-sm text-muted-foreground">
