@@ -182,6 +182,10 @@ export default function UnitsListPage() {
   const [deleteUnit, setDeleteUnit] = useState<UnitItem | null>(null)
   const [deleteOpen, setDeleteOpen] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
+  const [deleteUnitOpen, setDeleteUnitOpen] = useState(false)
+  const [deleteUnitTarget, setDeleteUnitTarget] = useState<UnitItem | null>(null)
+  const [isDeletingUnit, setIsDeletingUnit] = useState(false)
+  const [deleteUnitError, setDeleteUnitError] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState("")
   const [tenantStatusFilter, setTenantStatusFilter] = useState("")
   const [sortBy, setSortBy] = useState<SortField>("name")
@@ -267,6 +271,23 @@ export default function UnitsListPage() {
     }
   }
 
+  async function handleDeleteUnit(unit: UnitItem) {
+    setIsDeletingUnit(true)
+    setDeleteUnitError(null)
+    try {
+      const res = await fetch(`/api/hv/units/${unit.id}`, { method: 'DELETE' })
+      const json = await res.json()
+      if (!res.ok) { setDeleteUnitError(json.error || 'Fehler beim Löschen'); return }
+      setUnits((prev) => prev.filter((u) => u.id !== unit.id))
+      setDeleteUnitOpen(false)
+      setDeleteUnitTarget(null)
+    } catch {
+      setDeleteUnitError('Netzwerkfehler')
+    } finally {
+      setIsDeletingUnit(false)
+    }
+  }
+
   function handleInviteSuccess(unitId: string, code: string, expiresAt: string) {
     setUnits((prev) => prev.map((u) => u.id === unitId ? {
       ...u,
@@ -299,7 +320,7 @@ export default function UnitsListPage() {
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Mieter &amp; Einheiten</h1>
           <p className="text-muted-foreground mt-1">
-            Alle Wohneinheiten mit Mieterstatus und Aktivierungscodes
+            Übersicht aller Einheiten, Mieter und Aktivierungscodes
             {summary && <span className="ml-1">({summary.total_units} gesamt)</span>}
           </p>
         </div>
@@ -420,6 +441,7 @@ export default function UnitsListPage() {
                 <TableHead>Mieter</TableHead>
                 <TableHead>Aktivierungscode</TableHead>
                 <TableHead>Meldungen</TableHead>
+                <TableHead className="w-[80px]">Aktionen</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -487,9 +509,17 @@ export default function UnitsListPage() {
                       {unit.tenant_status === "occupied" ? (
                         <span className="text-xs text-muted-foreground">—</span>
                       ) : unit.pending_code ? (
-                        <div className="flex items-center gap-1">
-                          <code className="text-xs font-mono bg-muted px-1.5 py-0.5 rounded tracking-wider">{unit.pending_code.code}</code>
-                          <CopyCodeButton code={unit.pending_code.code} />
+                        <div className="space-y-0.5">
+                          <div className="flex items-center gap-1">
+                            <code className="text-xs font-mono bg-muted px-1.5 py-0.5 rounded tracking-wider">{unit.pending_code.code}</code>
+                            <CopyCodeButton code={unit.pending_code.code} />
+                          </div>
+                          <p className="text-[10px] text-muted-foreground">
+                            Gültig bis {new Date(unit.pending_code.expires_at).toLocaleDateString("de-AT", { day: "2-digit", month: "2-digit", year: "numeric" })}
+                            {new Date(unit.pending_code.expires_at) < new Date() && (
+                              <span className="ml-1 text-red-600 font-medium">· Abgelaufen</span>
+                            )}
+                          </p>
                         </div>
                       ) : (
                         <Button variant="outline" size="sm" className="h-7 text-xs" onClick={(e) => { e.stopPropagation(); setInviteUnit(unit); setInviteOpen(true) }}>Einladen</Button>
@@ -504,7 +534,10 @@ export default function UnitsListPage() {
                     <TableCell>
                       <div className="flex items-center gap-1">
                         <Button variant="ghost" size="icon" className="h-7 w-7 text-blue-600 hover:text-blue-700 hover:bg-blue-50" onClick={(e) => { e.stopPropagation(); window.location.href = '/dashboard/dokumente?unit_id=' + unit.id }} title="Dokumente"><FileText className="h-4 w-4" /></Button>
-                        <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive" onClick={(e) => { e.stopPropagation(); setDeleteUnit(unit); setDeleteOpen(true) }} title="Mieter entfernen"><Trash2 className="h-4 w-4" /></Button>
+                        {unit.tenant_status !== "vacant" && (
+                          <Button variant="ghost" size="icon" className="h-7 w-7 text-orange-600 hover:text-orange-700 hover:bg-orange-50" onClick={(e) => { e.stopPropagation(); setDeleteUnit(unit); setDeleteOpen(true) }} title="Mieter entfernen"><Users className="h-4 w-4" /></Button>
+                        )}
+                        <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive hover:bg-destructive/10" onClick={(e) => { e.stopPropagation(); setDeleteUnitTarget(unit); setDeleteUnitError(null); setDeleteUnitOpen(true) }} title="Einheit löschen"><Trash2 className="h-4 w-4" /></Button>
                       </div>
                     </TableCell>
                   </TableRow>
@@ -590,7 +623,31 @@ export default function UnitsListPage() {
         </div>
       )}
 
-      {/* Invite Dialog */}
+      {/* Einheit löschen Dialog */}
+      <Dialog open={deleteUnitOpen} onOpenChange={(o) => { if (!o) { setDeleteUnitOpen(false); setDeleteUnitError(null) } }}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Einheit löschen</DialogTitle>
+            <DialogDescription>
+              <span className="font-medium">&bdquo;{deleteUnitTarget?.name}&ldquo;</span> wird dauerhaft gelöscht — inklusive aller Aktivierungscodes.
+              Schadensmeldungen bleiben im Archiv erhalten. Diese Aktion kann nicht rückgängig gemacht werden.
+            </DialogDescription>
+          </DialogHeader>
+          {deleteUnitError && (
+            <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700 flex gap-2 items-start">
+              <AlertTriangle className="h-4 w-4 mt-0.5 shrink-0" />{deleteUnitError}
+            </div>
+          )}
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => { setDeleteUnitOpen(false); setDeleteUnitError(null) }} disabled={isDeletingUnit}>Abbrechen</Button>
+            <Button variant="destructive" onClick={() => deleteUnitTarget && handleDeleteUnit(deleteUnitTarget)} disabled={isDeletingUnit}>
+              {isDeletingUnit ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Wird gelöscht...</> : <><Trash2 className="mr-2 h-4 w-4" />Einheit löschen</>}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Mieter entfernen Dialog */}
       <Dialog open={deleteOpen} onOpenChange={(o) => !o && setDeleteOpen(false)}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
