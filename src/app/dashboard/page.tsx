@@ -133,7 +133,7 @@ const ONBOARDING_STEPS: OnboardingStep[] = [
     description:
       "Sobald ein Mieter registriert ist, kann er über sein Portal eine Schadensmeldung abschicken. Sie sehen die Meldung sofort in Ihrem Dashboard und können mit einem Klick: Status setzen, Handwerker zuweisen, Notizen hinzufügen und die Meldung abschließen.",
     whyBox:
-      "Das Ziel: eine Schadensmeldung von Eingang bis Abschluss in unter 3 Minuten — statt wie bisher 20 Minuten mit Telefonaten, WhatsApp und Excel.",
+      "Kein Telefonieren, kein Suchen in E-Mails, kein manuelles Nachverfolgen. Mit SMARTCARL haben Sie jeden Schaden übersichtlich an einem Ort — vom ersten Eingang bis zur Erledigung.",
     href: "/dashboard/cases",
     linkText: "Zu den Schadensmeldungen",
     icon: ClipboardList,
