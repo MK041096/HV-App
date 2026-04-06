@@ -200,6 +200,8 @@ export default function CasesListPage() {
   )
   const [page, setPage] = useState(parseInt(searchParams.get("page") || "1", 10))
   const [filtersOpen, setFiltersOpen] = useState(false)
+  const [dateFrom, setDateFrom] = useState(searchParams.get("date_from") || "")
+  const [dateTo, setDateTo] = useState(searchParams.get("date_to") || "")
 
   // Debounced search
   const [debouncedSearch, setDebouncedSearch] = useState(searchQuery)
@@ -228,6 +230,8 @@ export default function CasesListPage() {
       if (statusFilter) params.set("status", statusFilter)
       if (urgencyFilter) params.set("urgency", urgencyFilter)
       if (categoryFilter) params.set("category", categoryFilter)
+      if (dateFrom) params.set("date_from", dateFrom)
+      if (dateTo) params.set("date_to", dateTo)
 
       const res = await fetch(`/api/hv/cases?${params.toString()}`)
       if (!res.ok) {
@@ -243,7 +247,7 @@ export default function CasesListPage() {
     } finally {
       setIsLoading(false)
     }
-  }, [page, sortBy, sortOrder, debouncedSearch, statusFilter, urgencyFilter, categoryFilter])
+  }, [page, sortBy, sortOrder, debouncedSearch, statusFilter, urgencyFilter, categoryFilter, dateFrom, dateTo])
 
   useEffect(() => {
     fetchCases()
@@ -270,13 +274,15 @@ export default function CasesListPage() {
   }
 
   // Active filter count
-  const activeFilters = [statusFilter, urgencyFilter, categoryFilter].filter(Boolean).length
+  const activeFilters = [statusFilter, urgencyFilter, categoryFilter, dateFrom, dateTo].filter(Boolean).length
 
   function clearFilters() {
     setStatusFilter("")
     setUrgencyFilter("")
     setCategoryFilter("")
     setSearchQuery("")
+    setDateFrom("")
+    setDateTo("")
     setPage(1)
   }
 
@@ -286,7 +292,7 @@ export default function CasesListPage() {
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Fälle</h1>
         <p className="text-muted-foreground mt-1">
-          Alle Schadensmeldungen Ihrer Organisation
+          Alle offenen und abgeschlossenen Schadensfälle auf einen Blick
           {pagination && (
             <span className="ml-1">
               ({pagination.total_count} gesamt)
@@ -299,7 +305,7 @@ export default function CasesListPage() {
       <Card>
         <CardContent className="pt-4 pb-3 space-y-3">
           {/* Search Row */}
-          <div className="flex flex-col sm:flex-row gap-2">
+          <div className="flex gap-2">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
@@ -319,7 +325,8 @@ export default function CasesListPage() {
               )}
             </div>
 
-            <Collapsible open={filtersOpen} onOpenChange={setFiltersOpen}>
+            {/* Mobile: Filter-Toggle */}
+            <Collapsible open={filtersOpen} onOpenChange={setFiltersOpen} className="md:hidden">
               <CollapsibleTrigger asChild>
                 <Button variant="outline" className="shrink-0">
                   <Filter className="mr-2 h-4 w-4" />
@@ -334,87 +341,112 @@ export default function CasesListPage() {
             </Collapsible>
           </div>
 
-          {/* Filter Row (collapsible) */}
-          <Collapsible open={filtersOpen} onOpenChange={setFiltersOpen}>
+          {/* Desktop: Filter immer sichtbar */}
+          <div className="hidden md:grid grid-cols-5 gap-3">
+            <div>
+              <label className="text-xs font-medium text-muted-foreground mb-1 block">Status</label>
+              <Select value={statusFilter} onValueChange={(v) => { setStatusFilter(v === "alle" ? "" : v); setPage(1) }}>
+                <SelectTrigger><SelectValue placeholder="Alle Status" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="alle">Alle Status</SelectItem>
+                  {CASE_STATUSES.map((s) => <SelectItem key={s} value={s}>{CASE_STATUS_LABELS[s]}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <label className="text-xs font-medium text-muted-foreground mb-1 block">Dringlichkeit</label>
+              <Select value={urgencyFilter} onValueChange={(v) => { setUrgencyFilter(v === "alle" ? "" : v); setPage(1) }}>
+                <SelectTrigger><SelectValue placeholder="Alle" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="alle">Alle</SelectItem>
+                  {URGENCY_LEVELS.map((u) => <SelectItem key={u} value={u}>{URGENCY_LABELS[u]}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <label className="text-xs font-medium text-muted-foreground mb-1 block">Kategorie</label>
+              <Select value={categoryFilter} onValueChange={(v) => { setCategoryFilter(v === "alle" ? "" : v); setPage(1) }}>
+                <SelectTrigger><SelectValue placeholder="Alle Kategorien" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="alle">Alle Kategorien</SelectItem>
+                  {DAMAGE_CATEGORIES.map((c) => <SelectItem key={c} value={c}>{CATEGORY_LABELS[c]}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <label className="text-xs font-medium text-muted-foreground mb-1 block">Von</label>
+              <input
+                type="date"
+                value={dateFrom}
+                onChange={(e) => { setDateFrom(e.target.value); setPage(1) }}
+                className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+              />
+            </div>
+            <div>
+              <label className="text-xs font-medium text-muted-foreground mb-1 block">Bis</label>
+              <input
+                type="date"
+                value={dateTo}
+                onChange={(e) => { setDateTo(e.target.value); setPage(1) }}
+                className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+              />
+            </div>
+          </div>
+          {activeFilters > 0 && (
+            <div className="hidden md:flex justify-end">
+              <Button variant="ghost" size="sm" onClick={clearFilters}>
+                <X className="mr-1 h-3.5 w-3.5" />
+                Alle Filter zurücksetzen
+              </Button>
+            </div>
+          )}
+
+          {/* Mobile: Filter ausklappbar */}
+          <Collapsible open={filtersOpen} onOpenChange={setFiltersOpen} className="md:hidden">
             <CollapsibleContent>
               <Separator className="my-2" />
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="text-xs font-medium text-muted-foreground mb-1 block">
-                    Status
-                  </label>
-                  <Select
-                    value={statusFilter}
-                    onValueChange={(v) => {
-                      setStatusFilter(v === "alle" ? "" : v)
-                      setPage(1)
-                    }}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Alle Status" />
-                    </SelectTrigger>
+                  <label className="text-xs font-medium text-muted-foreground mb-1 block">Status</label>
+                  <Select value={statusFilter} onValueChange={(v) => { setStatusFilter(v === "alle" ? "" : v); setPage(1) }}>
+                    <SelectTrigger><SelectValue placeholder="Alle Status" /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="alle">Alle Status</SelectItem>
-                      {CASE_STATUSES.map((s) => (
-                        <SelectItem key={s} value={s}>
-                          {CASE_STATUS_LABELS[s]}
-                        </SelectItem>
-                      ))}
+                      {CASE_STATUSES.map((s) => <SelectItem key={s} value={s}>{CASE_STATUS_LABELS[s]}</SelectItem>)}
                     </SelectContent>
                   </Select>
                 </div>
-
                 <div>
-                  <label className="text-xs font-medium text-muted-foreground mb-1 block">
-                    Dringlichkeit
-                  </label>
-                  <Select
-                    value={urgencyFilter}
-                    onValueChange={(v) => {
-                      setUrgencyFilter(v === "alle" ? "" : v)
-                      setPage(1)
-                    }}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Alle Dringlichkeiten" />
-                    </SelectTrigger>
+                  <label className="text-xs font-medium text-muted-foreground mb-1 block">Dringlichkeit</label>
+                  <Select value={urgencyFilter} onValueChange={(v) => { setUrgencyFilter(v === "alle" ? "" : v); setPage(1) }}>
+                    <SelectTrigger><SelectValue placeholder="Alle" /></SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="alle">Alle Dringlichkeiten</SelectItem>
-                      {URGENCY_LEVELS.map((u) => (
-                        <SelectItem key={u} value={u}>
-                          {URGENCY_LABELS[u]}
-                        </SelectItem>
-                      ))}
+                      <SelectItem value="alle">Alle</SelectItem>
+                      {URGENCY_LEVELS.map((u) => <SelectItem key={u} value={u}>{URGENCY_LABELS[u]}</SelectItem>)}
                     </SelectContent>
                   </Select>
                 </div>
-
                 <div>
-                  <label className="text-xs font-medium text-muted-foreground mb-1 block">
-                    Kategorie
-                  </label>
-                  <Select
-                    value={categoryFilter}
-                    onValueChange={(v) => {
-                      setCategoryFilter(v === "alle" ? "" : v)
-                      setPage(1)
-                    }}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Alle Kategorien" />
-                    </SelectTrigger>
+                  <label className="text-xs font-medium text-muted-foreground mb-1 block">Kategorie</label>
+                  <Select value={categoryFilter} onValueChange={(v) => { setCategoryFilter(v === "alle" ? "" : v); setPage(1) }}>
+                    <SelectTrigger><SelectValue placeholder="Alle Kategorien" /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="alle">Alle Kategorien</SelectItem>
-                      {DAMAGE_CATEGORIES.map((c) => (
-                        <SelectItem key={c} value={c}>
-                          {CATEGORY_LABELS[c]}
-                        </SelectItem>
-                      ))}
+                      {DAMAGE_CATEGORIES.map((c) => <SelectItem key={c} value={c}>{CATEGORY_LABELS[c]}</SelectItem>)}
                     </SelectContent>
                   </Select>
                 </div>
+                <div>
+                  <label className="text-xs font-medium text-muted-foreground mb-1 block">Von</label>
+                  <input type="date" value={dateFrom} onChange={(e) => { setDateFrom(e.target.value); setPage(1) }}
+                    className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm" />
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-muted-foreground mb-1 block">Bis</label>
+                  <input type="date" value={dateTo} onChange={(e) => { setDateTo(e.target.value); setPage(1) }}
+                    className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm" />
+                </div>
               </div>
-
               {activeFilters > 0 && (
                 <div className="mt-3 flex justify-end">
                   <Button variant="ghost" size="sm" onClick={clearFilters}>
@@ -577,7 +609,7 @@ export default function CasesListPage() {
                               </span>
                             </div>
                           ) : (
-                            <span className="text-xs text-muted-foreground">--</span>
+                            <span className="text-xs text-muted-foreground italic">Noch kein Handwerker</span>
                           )}
                           {c.scheduled_appointment && (
                             <div className="flex items-center gap-1 mt-0.5">
