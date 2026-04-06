@@ -110,7 +110,7 @@ function TenantSidebarContent({
               {profile.first_name} {profile.last_name}
             </span>
             <span className="text-xs text-muted-foreground truncate">
-              Mieter
+              {profile.role === "platform_admin" ? "Platform Admin (Vorschau)" : "Mieter"}
             </span>
           </div>
         )}
@@ -181,24 +181,20 @@ export default function MeinBereichLayout({
           return
         }
 
-        // Redirect HV staff to their dashboard
-        if (
-          ["hv_admin", "hv_mitarbeiter", "platform_admin"].includes(
-            profileData.role
-          )
-        ) {
+        // Redirect HV staff (but NOT platform_admin) to their dashboard
+        if (["hv_admin", "hv_mitarbeiter"].includes(profileData.role)) {
           window.location.href = "/dashboard"
           return
         }
 
-        // Check tenant role
-        if (profileData.role !== "mieter") {
+        // Check tenant role (platform_admin can also access for testing)
+        if (profileData.role !== "mieter" && profileData.role !== "platform_admin") {
           window.location.href = "/login"
           return
         }
 
-        // Check organization assignment
-        if (!profileData.organization_id) {
+        // Mieter must have an organization — platform_admin can skip this
+        if (profileData.role === "mieter" && !profileData.organization_id) {
           window.location.href = "/no-organization"
           return
         }
