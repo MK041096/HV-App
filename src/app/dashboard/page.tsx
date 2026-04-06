@@ -83,7 +83,7 @@ const ONBOARDING_STEPS: OnboardingStep[] = [
     number: 1,
     title: "Einheiten anlegen",
     description:
-      "Tragen Sie alle Einheiten ein, die Sie in Ihrer Hausverwaltung verwalten. Mit dem Excel- oder CSV-Import können Sie hunderte Einheiten auf einmal hochladen — kein manuelles Eintippen notwendig. Geben Sie beim Import die E-Mail-Adresse des Mieters an, und SMARTCARL sendet den Aktivierungscode automatisch.",
+      "Tragen Sie alle Einheiten ein, die Sie in Ihrer Hausverwaltung verwalten. Mit dem Excel- oder CSV-Import können Sie hunderte Einheiten auf einmal hochladen — kein manuelles Eintippen notwendig. Wichtig: Jede Einheit benötigt einen Namen und eine Adresse — nur so können Schadensmeldungen später der richtigen Liegenschaft zugeordnet und gefiltert werden. Geben Sie zusätzlich die E-Mail-Adresse des Mieters an, und SMARTCARL sendet den Aktivierungscode automatisch.",
     whyBox:
       "Ohne angelegte Einheiten kann kein Mieter eine Schadensmeldung abschicken. Sobald Sie beim Import eine Mieter-E-Mail angeben, verschickt SMARTCARL den Aktivierungscode automatisch. Kein extra Schritt notwendig.",
     href: "/dashboard/units",
