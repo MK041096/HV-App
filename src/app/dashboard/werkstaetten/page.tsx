@@ -228,7 +228,7 @@ export default function WerkstaettenPage() {
           <Button variant="outline" asChild>
             <Link href="/dashboard/werkstaetten/import">
               <FileSpreadsheet className="mr-2 h-4 w-4" />
-              Excel importieren
+              Excel / CSV importieren
             </Link>
           </Button>
           <Button onClick={openAddDialog}>

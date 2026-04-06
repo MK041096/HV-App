@@ -306,7 +306,7 @@ export default function UnitsListPage() {
         <div className="flex gap-2">
           <Button asChild variant="outline">
             <Link href="/dashboard/units/import">
-              <FileSpreadsheet className="mr-2 h-4 w-4" />Excel importieren
+              <FileSpreadsheet className="mr-2 h-4 w-4" />Excel / CSV importieren
             </Link>
           </Button>
           <Button onClick={() => { setNewUnitOpen(true); setNewUnitError(null) }}>
