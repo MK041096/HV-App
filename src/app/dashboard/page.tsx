@@ -107,9 +107,9 @@ const ONBOARDING_STEPS: OnboardingStep[] = [
     number: 3,
     title: "Handwerker / Werkstätten eintragen",
     description:
-      "Fügen Sie Ihre Handwerker ein — Elektriker, Installateur, Maler usw. Sie hinterlegen Name, Gewerk, Telefon und E-Mail. SMARTCARL schlägt Ihnen dann bei jeder Schadensmeldung automatisch den passenden Handwerker vor.",
+      "Fügen Sie Ihre Handwerker ein — Elektriker, Installateur, Maler usw. Sie hinterlegen Name, Gewerk, Telefon und E-Mail. CARL schlägt Ihnen dann bei jeder Schadensmeldung automatisch den passenden Handwerker vor.",
     whyBox:
-      "Nie wieder überlegen, welche Werkstatt für welchen Schaden zuständig ist. SMARTCARL wählt automatisch den passenden Handwerker aus und kontaktiert ihn direkt.",
+      "Nie wieder überlegen, welche Werkstatt für welchen Schaden zuständig ist. CARL wählt automatisch den passenden Handwerker aus und kontaktiert ihn direkt.",
     href: "/dashboard/werkstaetten",
     linkText: "Zu den Handwerkern",
     icon: Wrench,
