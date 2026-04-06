@@ -9,6 +9,7 @@ import {
   CheckCircle2,
   AlertTriangle,
   Loader2,
+  Sparkles,
 } from "lucide-react"
 
 import { supabase } from "@/lib/supabase"
@@ -21,6 +22,10 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import {
+  Dialog,
+  DialogContent,
+} from "@/components/ui/dialog"
 
 interface DamageReport {
   id: string
@@ -46,6 +51,14 @@ export default function MeinBereichPage() {
   const [stats, setStats] = useState({ total: 0, open: 0, resolved: 0 })
   const [isLoading, setIsLoading] = useState(true)
   const [userName, setUserName] = useState("")
+  const [showWelcome, setShowWelcome] = useState(false)
+
+  useEffect(() => {
+    if (!localStorage.getItem("smartcarl_welcome_seen")) {
+      setShowWelcome(true)
+      localStorage.setItem("smartcarl_welcome_seen", "1")
+    }
+  }, [])
 
   useEffect(() => {
     async function loadDashboard() {
@@ -108,6 +121,52 @@ export default function MeinBereichPage() {
   }
 
   return (
+    <>
+      {/* Willkommens-Dialog — erscheint nur beim allerersten Besuch */}
+      <Dialog open={showWelcome} onOpenChange={setShowWelcome}>
+        <DialogContent className="sm:max-w-md text-center p-0 overflow-hidden">
+          {/* Header-Bereich */}
+          <div className="bg-primary px-6 pt-8 pb-6">
+            <div className="flex items-center justify-center mb-4">
+              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-white/20">
+                <Sparkles className="h-8 w-8 text-white" />
+              </div>
+            </div>
+            <h2 className="text-xl font-bold text-white">
+              Willkommen bei SMARTCARL!
+            </h2>
+            <p className="text-primary-foreground/80 text-sm mt-1">
+              {userName ? `Schön, dass Sie dabei sind, ${userName}!` : "Schön, dass Sie dabei sind!"}
+            </p>
+          </div>
+
+          {/* Inhalt */}
+          <div className="px-6 py-6 space-y-4">
+            <div className="rounded-xl border bg-muted/40 px-4 py-4 text-left space-y-2">
+              <div className="flex items-center gap-2">
+                <Sparkles className="h-4 w-4 text-primary shrink-0" />
+                <p className="text-sm font-semibold">Ihr persönlicher Assistent: CARL</p>
+              </div>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                CARL begleitet Sie durch jede Schadensmeldung — er stellt die richtigen Fragen,
+                hilft Ihnen den Schaden genau zu beschreiben und sorgt dafür, dass Ihre
+                Hausverwaltung alle wichtigen Informationen sofort erhält.
+              </p>
+            </div>
+
+            <p className="text-sm text-muted-foreground">
+              Wenn Sie einen Schaden melden möchten, tippen Sie einfach auf{" "}
+              <span className="font-medium text-foreground">„Neue Schadensmeldung"</span> —
+              CARL führt Sie Schritt für Schritt durch alles.
+            </p>
+
+            <Button className="w-full" onClick={() => setShowWelcome(false)}>
+              Los geht&apos;s!
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
     <div className="p-4 sm:p-6 lg:p-8 space-y-6 max-w-4xl">
       {/* Greeting */}
       <div>
@@ -240,5 +299,6 @@ export default function MeinBereichPage() {
         </CardContent>
       </Card>
     </div>
+    </>
   )
 }
