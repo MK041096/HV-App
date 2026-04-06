@@ -110,6 +110,16 @@ export async function POST(request: NextRequest) {
 
     const result: ImportResult = { contractors_created: 0, contractors_skipped: 0, errors: [] }
 
+    // ── Phase 1: Validate and collect valid rows ──
+    interface ValidContractor {
+      rowIndex: number
+      company: string
+      phone: string
+      email: string
+      notes: string
+    }
+    const validContractors: ValidContractor[] = []
+
     for (let i = 1; i < rows.length; i++) {
       const row = rows[i] || []
       const company = row[colCompany]?.toString().trim()
@@ -120,55 +130,44 @@ export async function POST(request: NextRequest) {
       const taetigkeit  = colTaetigkeit   >= 0 ? row[colTaetigkeit]?.toString().trim()  || null : null
       const beschreibung = colBeschreibung >= 0 ? row[colBeschreibung]?.toString().trim() || null : null
 
-      // Validate required fields
-      if (!phone) {
-        result.errors.push({ row: i + 1, message: `"${company}": Telefonnummer fehlt (Pflichtfeld)` })
-        continue
-      }
-      if (!email) {
-        result.errors.push({ row: i + 1, message: `"${company}": E-Mail fehlt (Pflichtfeld)` })
-        continue
-      }
-      if (!taetigkeit) {
-        result.errors.push({ row: i + 1, message: `"${company}": Tätigkeit fehlt (Pflichtfeld)` })
-        continue
-      }
+      if (!phone) { result.errors.push({ row: i + 1, message: `"${company}": Telefonnummer fehlt (Pflichtfeld)` }); continue }
+      if (!email) { result.errors.push({ row: i + 1, message: `"${company}": E-Mail fehlt (Pflichtfeld)` }); continue }
+      if (!taetigkeit) { result.errors.push({ row: i + 1, message: `"${company}": Tätigkeit fehlt (Pflichtfeld)` }); continue }
 
       const key = `${company.toLowerCase()}|${phone.toLowerCase()}`
-      if (existingKeys.has(key)) {
-        result.contractors_skipped++
-        continue
-      }
+      if (existingKeys.has(key)) { result.contractors_skipped++; continue }
 
-      // Combine Tätigkeit + Beschreibung into notes
-      const notes = beschreibung ? `${taetigkeit}\n${beschreibung}` : taetigkeit
-
-      const { error: insertErr } = await adminSupabase.from('contractors').insert({
-        organization_id: orgId,
-        name: company,
-        company,
-        phone,
-        email,
-        specialties: [],
-        notes,
-        is_active: true,
-      })
-
-      if (insertErr) {
-        result.errors.push({ row: i + 1, message: `"${company}" konnte nicht gespeichert werden: ${insertErr.message}` })
-        continue
-      }
-
-      result.contractors_created++
       existingKeys.add(key)
+      const notes = beschreibung ? `${taetigkeit}\n${beschreibung}` : taetigkeit
+      validContractors.push({ rowIndex: i + 1, company, phone, email, notes })
+    }
 
-      // Send welcome email (non-blocking — errors don't fail the import)
-      sendWerkstattWillkommensmail({
-        to: email,
-        contractorName: company,
-        orgName,
-        orgPhone,
-      }).catch(() => { /* silent */ })
+    // ── Phase 2: Batch insert all valid contractors ──
+    if (validContractors.length > 0) {
+      const { error: batchErr } = await adminSupabase.from('contractors').insert(
+        validContractors.map(c => ({
+          organization_id: orgId,
+          name: c.company,
+          company: c.company,
+          phone: c.phone,
+          email: c.email,
+          specialties: [],
+          notes: c.notes,
+          is_active: true,
+        }))
+      )
+
+      if (batchErr) {
+        return NextResponse.json({ error: `Fehler beim Speichern: ${batchErr.message}` }, { status: 500 })
+      }
+
+      result.contractors_created = validContractors.length
+
+      // ── Phase 3: Send welcome emails (non-blocking) ──
+      for (const c of validContractors) {
+        sendWerkstattWillkommensmail({ to: c.email, contractorName: c.company, orgName, orgPhone })
+          .catch(() => { /* silent */ })
+      }
     }
 
     return NextResponse.json({ data: result }, { status: 200 })

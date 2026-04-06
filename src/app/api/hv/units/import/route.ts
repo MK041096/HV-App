@@ -309,133 +309,105 @@ export async function POST(request: NextRequest) {
       errors: [],
     }
 
-    // Validate email format helper
     function isValidEmail(email: string): boolean {
       return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
     }
 
-    // Process rows
     const expiresAt = new Date()
     expiresAt.setDate(expiresAt.getDate() + 30)
     const expiresAtStr = expiresAt.toISOString()
 
+    // ── Phase 1: Filter valid rows (duplicates + limit) ──
+    const validRows: ImportRow[] = []
     for (const row of importRows) {
-      // Stop if unit limit reached
-      if (remainingSlots !== Infinity && result.units_created >= remainingSlots) {
-        result.errors.push({ row: row.rowIndex, message: `Einheitenlimit erreicht — "${row.unitName}" wurde nicht importiert. Abonnement anpassen um mehr Einheiten hinzuzufügen.` })
+      if (remainingSlots !== Infinity && validRows.length >= remainingSlots) {
+        result.errors.push({ row: row.rowIndex, message: `Einheitenlimit erreicht — "${row.unitName}" wurde nicht importiert.` })
         continue
       }
-
-      // Skip duplicates
       if (existingNames.has(row.unitName.toLowerCase())) {
         result.units_skipped++
         continue
       }
-
-      // Create unit
-      const { data: newUnit, error: unitError } = await adminSupabase
-        .from('units')
-        .insert({
-          organization_id: orgId,
-          name: row.unitName,
-          address: row.address,
-          floor: row.floor,
-          is_deleted: false,
-        })
-        .select('id, name')
-        .single()
-
-      if (unitError || !newUnit) {
-        result.errors.push({
-          row: row.rowIndex,
-          message: `Einheit "${row.unitName}" konnte nicht erstellt werden: ${unitError?.message || 'Unbekannter Fehler'}`,
-        })
-        continue
-      }
-
-      result.units_created++
+      validRows.push(row)
       existingNames.add(row.unitName.toLowerCase())
+    }
 
-      // Generate activation code
-      let code = ''
-      for (let attempt = 0; attempt < 5; attempt++) {
-        const candidate = generateActivationCode()
-        const { data: existing } = await adminSupabase
-          .from('activation_codes')
-          .select('id')
-          .eq('code', candidate)
-          .limit(1)
-        if (!existing || existing.length === 0) {
-          code = candidate
-          break
+    if (validRows.length === 0) {
+      await adminSupabase.from('audit_logs').insert({
+        user_id: user.id, organization_id: orgId, action: 'units_imported',
+        entity_type: 'unit', entity_id: orgId,
+        details: { file_name: file.name, rows_total: importRows.length, units_created: 0, units_skipped: result.units_skipped, codes_generated: 0, emails_sent: 0, errors: result.errors.length },
+      })
+      return NextResponse.json({ data: result }, { status: 200 })
+    }
+
+    // ── Phase 2: Generate unique codes in bulk ──
+    const generatedCodes: string[] = []
+    while (generatedCodes.length < validRows.length) {
+      const needed = validRows.length - generatedCodes.length
+      const candidates = Array.from({ length: needed + 20 }, () => generateActivationCode())
+      const { data: existing } = await adminSupabase
+        .from('activation_codes').select('code').in('code', candidates)
+      const existingSet = new Set((existing || []).map((e: { code: string }) => e.code))
+      const usedSet = new Set(generatedCodes)
+      for (const c of candidates) {
+        if (!existingSet.has(c) && !usedSet.has(c) && generatedCodes.length < validRows.length) {
+          generatedCodes.push(c)
         }
       }
+    }
 
-      if (!code) {
-        result.errors.push({
-          row: row.rowIndex,
-          message: `Code für "${row.unitName}" konnte nicht generiert werden`,
-        })
-        continue
-      }
+    // ── Phase 3: Batch insert units ──
+    const { data: newUnits, error: batchUnitError } = await adminSupabase
+      .from('units')
+      .insert(validRows.map(row => ({
+        organization_id: orgId,
+        name: row.unitName,
+        address: row.address,
+        floor: row.floor,
+        is_deleted: false,
+      })))
+      .select('id, name')
 
-      const { data: codeData, error: codeError } = await adminSupabase
-        .from('activation_codes')
-        .insert({
-          organization_id: orgId,
-          unit_id: newUnit.id,
-          code,
-          status: 'pending',
-          expires_at: expiresAtStr,
-          created_by: user.id,
-          invited_email: row.email || null,
-          invited_first_name: row.firstName || null,
-          invited_last_name: row.lastName || null,
-        })
-        .select('id')
-        .single()
+    if (batchUnitError || !newUnits || newUnits.length === 0) {
+      return NextResponse.json({ error: `Fehler beim Erstellen der Einheiten: ${batchUnitError?.message}` }, { status: 500 })
+    }
 
-      if (codeError || !codeData) {
-        result.errors.push({
-          row: row.rowIndex,
-          message: `Code für "${row.unitName}" konnte nicht gespeichert werden`,
-        })
-        continue
-      }
+    result.units_created = newUnits.length
 
-      result.codes_generated++
+    // Map unit name → id (Supabase preserves insert order but we match by name to be safe)
+    const unitIdByName = new Map(newUnits.map((u: { id: string; name: string }) => [u.name, u.id]))
 
-      // Send invite email if email provided
-      if (row.email) {
-        if (!isValidEmail(row.email)) {
-          result.errors.push({
-            row: row.rowIndex,
-            message: `Ungültige E-Mail-Adresse für "${row.unitName}": ${row.email}`,
-          })
-          continue
-        }
+    // ── Phase 4: Batch insert activation codes ──
+    const codeInserts = validRows.map((row, i) => ({
+      organization_id: orgId,
+      unit_id: unitIdByName.get(row.unitName) ?? newUnits[i]?.id,
+      code: generatedCodes[i],
+      status: 'pending',
+      expires_at: expiresAtStr,
+      created_by: user.id,
+      invited_email: row.email || null,
+      invited_first_name: row.firstName || null,
+      invited_last_name: row.lastName || null,
+    }))
 
-        const tenantName =
-          row.firstName && row.lastName
-            ? `${row.firstName} ${row.lastName}`
-            : row.firstName || row.lastName || null
+    const { error: batchCodeError } = await adminSupabase.from('activation_codes').insert(codeInserts)
+    if (!batchCodeError) result.codes_generated = codeInserts.length
 
-        try {
-          await sendTenantInviteEmail({
-            to: row.email,
-            tenantName,
-            activationCode: code,
-            expiresAt: expiresAtStr,
-            orgName,
-            unitName: newUnit.name,
-          })
-          result.emails_sent++
-        } catch (emailErr) {
-          result.errors.push({
-            row: row.rowIndex,
-            message: `E-Mail an ${row.email} konnte nicht gesendet werden`,
-          })
-        }
+    // ── Phase 5: Send emails (sequential, only for rows with email) ──
+    for (let i = 0; i < validRows.length; i++) {
+      const row = validRows[i]
+      if (!row.email || !isValidEmail(row.email)) continue
+      const tenantName = row.firstName && row.lastName
+        ? `${row.firstName} ${row.lastName}`
+        : row.firstName || row.lastName || null
+      const unitId = unitIdByName.get(row.unitName) ?? newUnits[i]?.id
+      const unitName = newUnits.find((u: { id: string; name: string }) => u.id === unitId)?.name ?? row.unitName
+      try {
+        await sendTenantInviteEmail({ to: row.email, tenantName, activationCode: generatedCodes[i], expiresAt: expiresAtStr, orgName, unitName })
+        result.emails_sent++
+      } catch {
+        result.errors.push({ row: row.rowIndex, message: `E-Mail an ${row.email} konnte nicht gesendet werden` })
       }
     }
 
