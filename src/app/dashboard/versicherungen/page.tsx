@@ -248,12 +248,12 @@ export default function VersicherungenPage() {
         const analyseData = await analyseRes.json()
         if (analyseData.suggested_name) name = analyseData.suggested_name
 
-        // Scope-Check: Einheits-Police im Liegenschaft-Bereich?
-        if (analyseData.is_unit_police && analyseData.is_insurance !== false) {
+        // Soft advisory: Top-Nummer erkannt — Upload wird trotzdem zugelassen
+        if (analyseData.unit_top) {
           setLgUploadMismatch(
-            `Diese Police gilt nur für eine einzelne Einheit${analyseData.unit_top ? ` (Top ${analyseData.unit_top})` : ''}, nicht für eine ganze Liegenschaft. Bitte laden Sie sie im Tab „Pro Einheit" hoch.`
+            `Hinweis: Diese Police enthält die Top-Nummer ${analyseData.unit_top}. Für Einheits-Policen empfiehlt sich der Tab „Nach Einheit".`
           )
-          return
+          // do NOT return — upload proceeds normally
         }
       } catch { /* ignore, use fallback name */ }
 
@@ -303,12 +303,12 @@ export default function VersicherungenPage() {
         const analyseData = await analyseRes.json()
         if (analyseData.suggested_name) name = analyseData.suggested_name
 
-        // Scope-Check: Liegenschaft-Police im Einheit-Bereich?
-        if (analyseData.is_insurance === true && !analyseData.is_unit_police) {
+        // Soft advisory: kein Top erkannt — Upload wird trotzdem zugelassen
+        if (analyseData.is_insurance === true && !analyseData.unit_top) {
           setUnitUploadMismatch(
-            `Diese Police gilt für eine ganze Liegenschaft, nicht für eine einzelne Einheit. Bitte laden Sie sie im Tab „Pro Liegenschaft" hoch.`
+            `Hinweis: Diese Police enthält keine Top-Nummer — möglicherweise handelt es sich um eine Liegenschafts-Police.`
           )
-          return
+          // do NOT return — upload proceeds normally
         }
       } catch { /* ignore */ }
 
@@ -418,17 +418,15 @@ export default function VersicherungenPage() {
 
         if (analyseData.is_insurance === false) {
           updated[i] = { ...updated[i], status: 'wrong_type', liegenschaft: null, suggestedName: null }
-        } else if (analyseData.is_unit_police && analyseData.is_insurance !== false) {
-          // Einheits-Police im Liegenschaft-Bulk-Upload
+        } else if (analyseData.liegenschaft) {
           updated[i] = {
             ...updated[i],
-            status: 'wrong_type',
-            liegenschaft: null,
-            suggestedName: null,
-            errorMsg: `Einheits-Police${analyseData.unit_top ? ` (Top ${analyseData.unit_top})` : ''} — bitte im Tab „Pro Einheit" hochladen`,
+            status: 'done',
+            liegenschaft: analyseData.liegenschaft,
+            suggestedName: analyseData.suggested_name || null,
+            // advisory only — user sees this but upload is not blocked
+            errorMsg: analyseData.unit_top ? `Hinweis: Top ${analyseData.unit_top} erkannt — für Einheits-Policen besser Tab „Nach Einheit" nutzen` : undefined,
           }
-        } else if (analyseData.liegenschaft) {
-          updated[i] = { ...updated[i], status: 'done', liegenschaft: analyseData.liegenschaft, suggestedName: analyseData.suggested_name || null }
         } else {
           updated[i] = { ...updated[i], status: 'not_found', liegenschaft: null, suggestedName: analyseData.suggested_name || null }
         }
@@ -522,7 +520,8 @@ export default function VersicherungenPage() {
       <Card className="border-blue-200 bg-blue-50">
         <CardContent className="pt-4 pb-4">
           <p className="text-sm text-blue-800">
-            Hinterlegen Sie für jede Liegenschaft die zugehörigen Versicherungspolicen. Das System übernimmt die Zuordnung automatisch. Einheitsspezifische Policen, wie etwa eine Maschinenversicherung für eingebaute Geräte, können ebenfalls hochgeladen und direkt der jeweiligen Einheit zugewiesen werden.
+            <strong>Tab „Nach Liegenschaft":</strong> Für Policen, die das gesamte Gebäude betreffen — z. B. Gebäudeversicherung, Leitungswasserversicherung, Haftpflicht. CARL erkennt automatisch, welcher Liegenschaft die Police gehört.<br />
+            <strong>Tab „Nach Einheit":</strong> Für Policen, die nur eine bestimmte Wohnung betreffen — z. B. Geräteversicherung Top 1, Glasbruchversicherung Top 3. Dort die Einheit auswählen und die Police hochladen.
           </p>
         </CardContent>
       </Card>
@@ -674,9 +673,14 @@ export default function VersicherungenPage() {
                                 <Loader2 className="h-3 w-3 animate-spin" /> Analyse…
                               </span>
                             )}
-                            {item.status === 'done' && (
+                            {item.status === 'done' && !item.errorMsg && (
                               <span className="flex items-center gap-1 text-green-700 text-xs">
                                 <CheckCircle2 className="h-3 w-3" /> Erkannt
+                              </span>
+                            )}
+                            {item.status === 'done' && item.errorMsg && (
+                              <span className="flex items-center gap-1 text-amber-600 text-xs" title={item.errorMsg}>
+                                <AlertCircle className="h-3 w-3" /> Erkannt (Hinweis)
                               </span>
                             )}
                             {item.status === 'not_found' && (
@@ -808,9 +812,9 @@ export default function VersicherungenPage() {
               </div>
             </div>
             {lgUploadMismatch && (
-              <div className="flex items-start gap-2 rounded-md border border-red-200 bg-red-50 p-3">
-                <AlertCircle className="h-4 w-4 text-red-600 shrink-0 mt-0.5" />
-                <p className="text-sm text-red-800">{lgUploadMismatch}</p>
+              <div className="flex items-start gap-2 rounded-md border border-amber-200 bg-amber-50 p-3">
+                <AlertCircle className="h-4 w-4 text-amber-600 shrink-0 mt-0.5" />
+                <p className="text-sm text-amber-800">{lgUploadMismatch}</p>
               </div>
             )}
             <div className="flex gap-2">
@@ -894,9 +898,9 @@ export default function VersicherungenPage() {
               </div>
             </div>
             {unitUploadMismatch && (
-              <div className="flex items-start gap-2 rounded-md border border-red-200 bg-red-50 p-3">
-                <AlertCircle className="h-4 w-4 text-red-600 shrink-0 mt-0.5" />
-                <p className="text-sm text-red-800">{unitUploadMismatch}</p>
+              <div className="flex items-start gap-2 rounded-md border border-amber-200 bg-amber-50 p-3">
+                <AlertCircle className="h-4 w-4 text-amber-600 shrink-0 mt-0.5" />
+                <p className="text-sm text-amber-800">{unitUploadMismatch}</p>
               </div>
             )}
             <div className="flex gap-2">
