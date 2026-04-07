@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createServerSupabaseClient } from '@/lib/supabase-server'
+import { createServerSupabaseClient, createAdminClient } from '@/lib/supabase-server'
 
 const HV_ROLES = ['hv_admin', 'hv_mitarbeiter', 'platform_admin']
 
@@ -11,6 +11,7 @@ export async function DELETE(
   try {
     const { id } = await params
     const supabase = await createServerSupabaseClient()
+    const admin = createAdminClient()
 
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return NextResponse.json({ error: 'Nicht authentifiziert' }, { status: 401 })
@@ -19,6 +20,7 @@ export async function DELETE(
       .from('profiles')
       .select('organization_id, role')
       .eq('id', user.id)
+      .eq('is_deleted', false)
       .single()
 
     if (!profile || !HV_ROLES.includes(profile.role)) {
@@ -26,7 +28,7 @@ export async function DELETE(
     }
 
     // Einheit prüfen
-    const { data: unit } = await supabase
+    const { data: unit } = await admin
       .from('units')
       .select('id, name')
       .eq('id', id)
@@ -37,7 +39,7 @@ export async function DELETE(
     if (!unit) return NextResponse.json({ error: 'Einheit nicht gefunden' }, { status: 404 })
 
     // Offene Schadensmeldungen prüfen
-    const { count } = await supabase
+    const { count } = await admin
       .from('damage_reports')
       .select('id', { count: 'exact', head: true })
       .eq('unit_id', id)
@@ -50,8 +52,8 @@ export async function DELETE(
       }, { status: 409 })
     }
 
-    // Soft-Delete
-    const { error: deleteError } = await supabase
+    // Soft-Delete via admin (RLS auf units prüft user_roles, nicht profiles)
+    const { error: deleteError } = await admin
       .from('units')
       .update({ is_deleted: true, deleted_at: new Date().toISOString() })
       .eq('id', id)
@@ -62,7 +64,7 @@ export async function DELETE(
       return NextResponse.json({ error: 'Fehler beim Löschen' }, { status: 500 })
     }
 
-    await supabase.from('audit_logs').insert({
+    await admin.from('audit_logs').insert({
       user_id: user.id,
       organization_id: profile.organization_id,
       action: 'unit_deleted',
