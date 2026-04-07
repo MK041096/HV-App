@@ -698,7 +698,7 @@ export default function CasesListPage() {
                     return (
                       <TableRow
                         key={c.id}
-                        className="cursor-pointer transition-all hover:bg-accent/80 hover:ring-1 hover:ring-black/20"
+                        className="cursor-pointer transition-colors hover:bg-muted/50"
                         onClick={() => router.push(`/dashboard/cases/${c.id}`)}
                       >
                         <TableCell className="font-mono text-xs">

@@ -706,7 +706,7 @@ export default function DokumentePage() {
               const hasVertrag = einheit.docs.length > 0
               return (
                 <Card key={einheit.id} className={hasVertrag ? 'border-green-200' : 'border-orange-200'}>
-                  <CardHeader className="pb-3 cursor-pointer select-none rounded-t-lg hover:bg-accent/80 hover:ring-1 hover:ring-black/20 transition-all" onClick={() => toggleCard(einheit.id)}>
+                  <CardHeader className="pb-3 cursor-pointer select-none rounded-t-lg hover:bg-muted/50 transition-colors" onClick={() => toggleCard(einheit.id)}>
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2 flex-1 min-w-0">
                         <Home className="h-4 w-4 text-muted-foreground shrink-0" />
@@ -761,7 +761,7 @@ export default function DokumentePage() {
                       ) : (
                         <div className="space-y-2">
                           {einheit.docs.map(doc => (
-                            <div key={doc.id} className={`flex items-center justify-between py-2 px-3 rounded-md ${selectedDocIds.has(doc.id) ? 'bg-muted/70' : 'bg-muted/40'}`}>
+                            <div key={doc.id} className={`flex items-center justify-between py-2 px-3 rounded-md transition-colors ${selectedDocIds.has(doc.id) ? 'bg-muted/70' : 'bg-muted/40 hover:bg-muted/60'}`}>
                               <div className="flex items-center gap-2 flex-1 min-w-0">
                                 <Checkbox checked={selectedDocIds.has(doc.id)} onCheckedChange={() => toggleSelectDoc(doc.id)} aria-label={`${doc.name} auswählen`} />
                                 <File className="h-4 w-4 text-blue-700 shrink-0" />

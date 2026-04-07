@@ -975,7 +975,7 @@ export default function VersicherungenPage() {
               <Card key={lg.address} className={isInsured ? 'border-green-200' : 'border-orange-200'}>
                 {/* Collapsed header — always visible, clickable */}
                 <CardHeader
-                  className="pb-3 cursor-pointer select-none rounded-t-lg hover:bg-accent/80 transition-colors"
+                  className="pb-3 cursor-pointer select-none rounded-t-lg hover:bg-muted/50 transition-colors"
                   onClick={() => toggleCard(lg.address)}
                 >
                   <div className="flex items-center justify-between">
@@ -1036,7 +1036,7 @@ export default function VersicherungenPage() {
                         {lg.docs.map(doc => (
                           <div
                             key={doc.id}
-                            className="flex items-center justify-between py-2 px-3 rounded-md bg-muted/40"
+                            className="flex items-center justify-between py-2 px-3 rounded-md bg-muted/40 hover:bg-muted/60 transition-colors"
                           >
                             <div className="flex items-center gap-2 flex-1 min-w-0">
                               <File className="h-4 w-4 text-green-700 shrink-0" />
@@ -1122,7 +1122,7 @@ export default function VersicherungenPage() {
                   return (
                     <Card key={einheit.id} className={isInsured ? 'border-green-200' : 'border-orange-200'}>
                       <CardHeader
-                        className="pb-3 cursor-pointer select-none rounded-t-lg hover:bg-accent/80 transition-colors"
+                        className="pb-3 cursor-pointer select-none rounded-t-lg hover:bg-muted/50 transition-colors"
                         onClick={() => toggleUnit(einheit.id)}
                       >
                         <div className="flex items-center justify-between">
@@ -1183,7 +1183,7 @@ export default function VersicherungenPage() {
                               {einheit.docs.map(doc => (
                                 <div
                                   key={doc.id}
-                                  className="flex items-center justify-between py-2 px-3 rounded-md bg-muted/40"
+                                  className="flex items-center justify-between py-2 px-3 rounded-md bg-muted/40 hover:bg-muted/60 transition-colors"
                                 >
                                   <div className="flex items-center gap-2 flex-1 min-w-0">
                                     <File className="h-4 w-4 text-green-700 shrink-0" />

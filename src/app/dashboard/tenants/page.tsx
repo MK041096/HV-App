@@ -328,7 +328,7 @@ export default function TenantsListPage() {
                   tenants.map((tenant) => (
                     <TableRow
                       key={tenant.id}
-                      className="cursor-pointer transition-all hover:bg-accent/80 hover:ring-1 hover:ring-black/20"
+                      className="cursor-pointer transition-colors hover:bg-muted/50"
                       onClick={() => router.push(`/dashboard/tenants/${tenant.id}`)}
                     >
                       <TableCell>
