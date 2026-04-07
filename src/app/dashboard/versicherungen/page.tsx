@@ -184,6 +184,10 @@ export default function VersicherungenPage() {
   const [lgComboOpen, setLgComboOpen] = useState(false)
   const [lgFormComboOpen, setLgFormComboOpen] = useState(false)
 
+  // Scope-Validierung: falsche Police im falschen Bereich
+  const [lgUploadMismatch, setLgUploadMismatch] = useState<string | null>(null)
+  const [unitUploadMismatch, setUnitUploadMismatch] = useState<string | null>(null)
+
   function toggleCard(address: string) {
     setExpandedCards(prev => {
       const next = new Set(prev)
@@ -232,8 +236,9 @@ export default function VersicherungenPage() {
       const uploadData = await uploadRes.json()
       if (!uploadRes.ok) { alert(uploadData.error || 'Upload fehlgeschlagen'); return }
 
-      // Auto-detect name from PDF
+      // Auto-detect name from PDF + Scope-Validierung
       let name = `Versicherungspolice ${new Date().toLocaleDateString('de-AT')}`
+      setLgUploadMismatch(null)
       try {
         const analyseRes = await fetch('/api/documents/analyse', {
           method: 'POST',
@@ -242,6 +247,14 @@ export default function VersicherungenPage() {
         })
         const analyseData = await analyseRes.json()
         if (analyseData.suggested_name) name = analyseData.suggested_name
+
+        // Scope-Check: Einheits-Police im Liegenschaft-Bereich?
+        if (analyseData.unit_top && analyseData.is_insurance !== false) {
+          setLgUploadMismatch(
+            `Diese Police ist für eine einzelne Einheit (Top ${analyseData.unit_top}) ausgestellt, nicht für eine ganze Liegenschaft. Bitte laden Sie sie im Tab „Pro Einheit" hoch.`
+          )
+          return
+        }
       } catch { /* ignore, use fallback name */ }
 
       const metaRes = await fetch('/api/documents', {
@@ -280,6 +293,7 @@ export default function VersicherungenPage() {
       if (!uploadRes.ok) { alert(uploadData.error || 'Upload fehlgeschlagen'); return }
 
       let name = 'Versicherungspolice Einheit ' + new Date().toLocaleDateString('de-AT')
+      setUnitUploadMismatch(null)
       try {
         const analyseRes = await fetch('/api/documents/analyse', {
           method: 'POST',
@@ -288,6 +302,14 @@ export default function VersicherungenPage() {
         })
         const analyseData = await analyseRes.json()
         if (analyseData.suggested_name) name = analyseData.suggested_name
+
+        // Scope-Check: Liegenschaft-Police im Einheit-Bereich?
+        if (analyseData.is_insurance === true && !analyseData.unit_top) {
+          setUnitUploadMismatch(
+            `Diese Police enthält keine Top-Nummer und gilt offenbar für eine ganze Liegenschaft (nicht für eine einzelne Einheit). Bitte laden Sie sie im Tab „Pro Liegenschaft" hoch.`
+          )
+          return
+        }
       } catch { /* ignore */ }
 
       const metaRes = await fetch('/api/documents', {
@@ -396,6 +418,15 @@ export default function VersicherungenPage() {
 
         if (analyseData.is_insurance === false) {
           updated[i] = { ...updated[i], status: 'wrong_type', liegenschaft: null, suggestedName: null }
+        } else if (analyseData.unit_top && analyseData.is_insurance !== false) {
+          // Einheits-Police im Liegenschaft-Bulk-Upload
+          updated[i] = {
+            ...updated[i],
+            status: 'wrong_type',
+            liegenschaft: null,
+            suggestedName: null,
+            errorMsg: `Einheits-Police (Top ${analyseData.unit_top}) — bitte im Tab „Pro Einheit" hochladen`,
+          }
         } else if (analyseData.liegenschaft) {
           updated[i] = { ...updated[i], status: 'done', liegenschaft: analyseData.liegenschaft, suggestedName: analyseData.suggested_name || null }
         } else {
@@ -659,8 +690,9 @@ export default function VersicherungenPage() {
                               </span>
                             )}
                             {item.status === 'wrong_type' && (
-                              <span className="flex items-center gap-1 text-red-700 text-xs">
-                                <XCircle className="h-3 w-3" /> Kein Versicherungsdokument
+                              <span className="flex items-center gap-1 text-red-700 text-xs" title={item.errorMsg || 'Kein Versicherungsdokument'}>
+                                <XCircle className="h-3 w-3" />
+                                {item.errorMsg ? 'Falscher Bereich' : 'Kein Versicherungsdokument'}
                               </span>
                             )}
                           </td>
@@ -775,6 +807,12 @@ export default function VersicherungenPage() {
                 )}
               </div>
             </div>
+            {lgUploadMismatch && (
+              <div className="flex items-start gap-2 rounded-md border border-red-200 bg-red-50 p-3">
+                <AlertCircle className="h-4 w-4 text-red-600 shrink-0 mt-0.5" />
+                <p className="text-sm text-red-800">{lgUploadMismatch}</p>
+              </div>
+            )}
             <div className="flex gap-2">
               <Button
                 onClick={handleUpload}
@@ -782,7 +820,7 @@ export default function VersicherungenPage() {
               >
                 {uploading ? 'Wird hochgeladen...' : 'Hochladen'}
               </Button>
-              <Button variant="outline" onClick={() => { setShowForm(false); setSelectedLiegenschaft(''); setSelectedFile(null) }}>Abbrechen</Button>
+              <Button variant="outline" onClick={() => { setShowForm(false); setSelectedLiegenschaft(''); setSelectedFile(null); setLgUploadMismatch(null) }}>Abbrechen</Button>
             </div>
           </CardContent>
         </Card>
@@ -855,6 +893,12 @@ export default function VersicherungenPage() {
                 )}
               </div>
             </div>
+            {unitUploadMismatch && (
+              <div className="flex items-start gap-2 rounded-md border border-red-200 bg-red-50 p-3">
+                <AlertCircle className="h-4 w-4 text-red-600 shrink-0 mt-0.5" />
+                <p className="text-sm text-red-800">{unitUploadMismatch}</p>
+              </div>
+            )}
             <div className="flex gap-2">
               <Button
                 onClick={handleUnitUpload}
@@ -862,7 +906,7 @@ export default function VersicherungenPage() {
               >
                 {unitUploading ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Wird hochgeladen…</> : 'Hochladen'}
               </Button>
-              <Button variant="outline" onClick={() => { setShowUnitForm(false); setUnitUploadUnitId(''); setUnitUploadFile(null) }}>Abbrechen</Button>
+              <Button variant="outline" onClick={() => { setShowUnitForm(false); setUnitUploadUnitId(''); setUnitUploadFile(null); setUnitUploadMismatch(null) }}>Abbrechen</Button>
             </div>
           </CardContent>
         </Card>
