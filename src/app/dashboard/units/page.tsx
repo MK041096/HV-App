@@ -459,7 +459,7 @@ export default function UnitsListPage() {
           </div>
           <div className="w-full bg-muted rounded-full h-2">
             <div
-              className={`h-2 rounded-full transition-all ${atLimit ? 'bg-green-500' : totalUnits / unitLimit > 0.9 ? 'bg-yellow-500' : 'bg-primary'}`}
+              className="h-2 rounded-full transition-all bg-foreground"
               style={{ width: `${Math.min((totalUnits / unitLimit) * 100, 100)}%` }}
             />
           </div>
