@@ -224,6 +224,7 @@ export default function UnitsListPage() {
   const [bulkDeleteUnitsOpen, setBulkDeleteUnitsOpen] = useState(false)
   const [isBulkDeletingUnits, setIsBulkDeletingUnits] = useState(false)
   const [bulkDeleteErrors, setBulkDeleteErrors] = useState<string[]>([])
+  const [isSelectingAll, setIsSelectingAll] = useState(false)
 
   useEffect(() => {
     const timer = setTimeout(() => { setDebouncedSearch(searchQuery); setPage(1) }, 400)
@@ -332,25 +333,55 @@ export default function UnitsListPage() {
     }
   }
 
+  async function handleSelectAllAcrossPages() {
+    setIsSelectingAll(true)
+    try {
+      const params = new URLSearchParams()
+      params.set("page", "1")
+      params.set("per_page", "5000")
+      params.set("sort_by", sortBy)
+      params.set("sort_order", sortOrder)
+      if (debouncedSearch) params.set("search", debouncedSearch)
+      if (tenantStatusFilter) params.set("tenant_status", tenantStatusFilter)
+      const res = await fetch(`/api/hv/units?${params.toString()}`)
+      const json = await res.json()
+      const allIds = new Set<string>((json.data || []).map((u: UnitItem) => u.id))
+      setSelectedUnitIds(allIds)
+    } catch {
+      // fallback: just select current page
+      setSelectedUnitIds(new Set(units.map(u => u.id)))
+    } finally {
+      setIsSelectingAll(false)
+    }
+  }
+
   async function handleBulkDeleteUnits() {
     setIsBulkDeletingUnits(true)
     setBulkDeleteErrors([])
-    const errors: string[] = []
-    for (const id of selectedUnitIds) {
-      const unit = units.find(u => u.id === id)
-      const res = await fetch(`/api/hv/units/${id}`, { method: "DELETE" })
+    try {
+      const res = await fetch('/api/hv/units', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ids: Array.from(selectedUnitIds) }),
+      })
+      const json = await res.json()
       if (!res.ok) {
-        const json = await res.json().catch(() => ({}))
-        errors.push(`${unit?.name ?? id}: ${json.error ?? "Fehler"}`)
+        setBulkDeleteErrors([json.error || 'Fehler beim Löschen'])
+      } else {
+        const skipped: string[] = json.skipped || []
+        if (skipped.length > 0) {
+          setBulkDeleteErrors(skipped.map((name: string) => `${name}: Hat offene Schadensmeldungen`))
+        } else {
+          setBulkDeleteUnitsOpen(false)
+          setSelectedUnitIds(new Set())
+        }
+        fetchUnits()
       }
+    } catch {
+      setBulkDeleteErrors(['Netzwerkfehler beim Löschen'])
+    } finally {
+      setIsBulkDeletingUnits(false)
     }
-    setBulkDeleteErrors(errors)
-    setIsBulkDeletingUnits(false)
-    if (errors.length === 0) {
-      setBulkDeleteUnitsOpen(false)
-      setSelectedUnitIds(new Set())
-    }
-    fetchUnits()
   }
 
   function handleInviteSuccess(unitId: string, code: string, expiresAt: string) {
@@ -617,8 +648,19 @@ export default function UnitsListPage() {
 
       {/* Bulk Action Bar */}
       {selectedUnitIds.size > 0 && (
-        <div className="flex items-center justify-between rounded-lg border bg-muted/50 px-4 py-2.5">
-          <span className="text-sm font-medium">{selectedUnitIds.size} ausgewählt</span>
+        <div className="flex items-center justify-between rounded-lg border bg-muted/50 px-4 py-2.5 gap-3">
+          <div className="flex items-center gap-3">
+            <span className="text-sm font-medium">{selectedUnitIds.size} ausgewählt</span>
+            {pagination && selectedUnitIds.size < (summary?.total_units ?? 0) && (
+              <button
+                onClick={handleSelectAllAcrossPages}
+                disabled={isSelectingAll}
+                className="text-xs text-primary underline underline-offset-2 hover:opacity-80 disabled:opacity-50"
+              >
+                {isSelectingAll ? 'Wird geladen...' : `Alle ${summary?.total_units} auswählen`}
+              </button>
+            )}
+          </div>
           <Button variant="destructive" size="sm" onClick={() => { setBulkDeleteErrors([]); setBulkDeleteUnitsOpen(true) }}>
             <Trash2 className="mr-2 h-4 w-4" />Ausgewählte löschen
           </Button>
@@ -645,7 +687,7 @@ export default function UnitsListPage() {
                   <Checkbox checked={units.length > 0 && selectedUnitIds.size === units.length} onCheckedChange={toggleSelectAllUnits} aria-label="Alle auswählen" />
                 </TableHead>
                 <TableHead><button onClick={() => handleSort("name")} className="flex items-center gap-1 hover:text-foreground transition-colors">Einheit <SortIcon field="name" /></button></TableHead>
-                <TableHead><button onClick={() => handleSort("address")} className="flex items-center gap-1 hover:text-foreground transition-colors">Adresse <SortIcon field="address" /></button></TableHead>
+                <TableHead>Adresse</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Mieter</TableHead>
                 <TableHead>Aktivierungscode</TableHead>

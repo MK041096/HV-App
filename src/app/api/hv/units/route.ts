@@ -147,6 +147,84 @@ export async function POST(request: NextRequest) {
   }
 }
 
+// DELETE /api/hv/units - Bulk delete units by IDs (single DB query, much faster than N individual calls)
+export async function DELETE(request: NextRequest) {
+  try {
+    const supabase = await createServerSupabaseClient()
+    const admin = createAdminClient()
+
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return NextResponse.json({ error: 'Nicht authentifiziert' }, { status: 401 })
+
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('organization_id, role')
+      .eq('id', user.id)
+      .eq('is_deleted', false)
+      .single()
+
+    if (!profile || !HV_ROLES.includes(profile.role)) {
+      return NextResponse.json({ error: 'Keine Berechtigung' }, { status: 403 })
+    }
+
+    const body = await request.json()
+    const ids: string[] = body.ids
+    if (!Array.isArray(ids) || ids.length === 0) {
+      return NextResponse.json({ error: 'Keine IDs angegeben' }, { status: 400 })
+    }
+
+    // Verify all IDs belong to this organization and have no open reports
+    const { data: units } = await admin
+      .from('units')
+      .select('id, name')
+      .in('id', ids)
+      .eq('organization_id', profile.organization_id)
+      .eq('is_deleted', false)
+
+    const validIds = (units || []).map(u => u.id)
+    if (validIds.length === 0) {
+      return NextResponse.json({ error: 'Keine gültigen Einheiten gefunden' }, { status: 404 })
+    }
+
+    // Check for open damage reports across all selected units
+    const { data: openReports } = await admin
+      .from('damage_reports')
+      .select('unit_id, id')
+      .in('unit_id', validIds)
+      .eq('is_deleted', false)
+      .not('status', 'in', '("erledigt","abgelehnt")')
+
+    const blockedUnitIds = new Set((openReports || []).map(r => r.unit_id))
+    const deletableIds = validIds.filter(id => !blockedUnitIds.has(id))
+    const skippedNames = (units || []).filter(u => blockedUnitIds.has(u.id)).map(u => u.name)
+
+    if (deletableIds.length > 0) {
+      await admin
+        .from('units')
+        .update({ is_deleted: true, deleted_at: new Date().toISOString() })
+        .in('id', deletableIds)
+        .eq('organization_id', profile.organization_id)
+
+      await admin.from('audit_logs').insert({
+        user_id: user.id,
+        organization_id: profile.organization_id,
+        action: 'units_bulk_deleted',
+        entity_type: 'unit',
+        entity_id: profile.organization_id,
+        details: { deleted_count: deletableIds.length, skipped_count: skippedNames.length },
+      })
+    }
+
+    return NextResponse.json({
+      deleted: deletableIds.length,
+      skipped: skippedNames,
+    })
+  } catch (err) {
+    console.error('DELETE /api/hv/units error:', err)
+    return NextResponse.json({ error: 'Serverfehler' }, { status: 500 })
+  }
+}
+
 // GET /api/hv/units - List all units with tenant status for HV portal
 // Returns enriched unit data: unit info + assigned tenant + activation code status
 export async function GET(request: NextRequest) {
@@ -236,8 +314,9 @@ export async function GET(request: NextRequest) {
       dataQuery = dataQuery.or(`name.ilike.${searchTerm},address.ilike.${searchTerm}`)
     }
 
-    // Sorting
-    dataQuery = dataQuery.order(sort_by, { ascending: sort_order === 'asc' })
+    // Sorting — use name_sort for natural numeric order (1, 2, 3... not 1, 10, 11, 2...)
+    const sortColumn = sort_by === 'name' ? 'name_sort' : sort_by
+    dataQuery = dataQuery.order(sortColumn, { ascending: sort_order === 'asc' })
     if (sort_by !== 'created_at') {
       dataQuery = dataQuery.order('created_at', { ascending: false })
     }
