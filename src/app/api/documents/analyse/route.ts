@@ -280,6 +280,10 @@ export async function POST(request: NextRequest) {
       pdfText.match(/\beinheit[-.]?nr\.?\s*:?\s*(\d{1,3})\b/i) ??
       // "Stiege X, Tür Y" — österreichisches Adressformat
       pdfText.match(/\bTür\s*(\d{1,3})\b/i) ??
+      // Österreichisches Slash-Format: "Straße 88/1, 1060 Wien" → Einheitsnummer vor PLZ
+      pdfText.match(/\b\d+\/\s*0*(\d{1,3})\s*[,\s]\s*\d{4}\b/i) ??
+      // Slash-Format in Risikoadress-Kontext: "Risikoanschrift: Straße 88/1"
+      pdfText.match(/(?:risikoanschrift|risikostandort|versicherungsort)[^\n]{0,100}\/\s*0*(\d{1,3})(?=[\s,]|$)/i) ??
       // Generischer Fallback: "Top X" irgendwo im Text
       pdfText.match(/\bTop\s*(\d{1,3})\b(?!\s*[-–]\s*\d)/i)
     const unit_top = topMatch ? topMatch[1] : null
@@ -354,6 +358,7 @@ export async function POST(request: NextRequest) {
     const suggested_name = extractPolicyName(pdfText)
 
     let bestMatch: string | null = null
+    let usedFullTextFallback = false
 
     if (liegenschaften.length > 0) {
       const objectLabels = [
@@ -380,7 +385,12 @@ export async function POST(request: NextRequest) {
         const match = findMatch(ctx)
         if (match) { bestMatch = match; break }
       }
-      if (!bestMatch) bestMatch = findMatch(pdfText)
+      // Full-text fallback — only if NO risk address label was found at all.
+      // Riskier: might match VN address or insurer address.
+      if (!bestMatch && contextWindows.length === 0) {
+        bestMatch = findMatch(pdfText)
+        usedFullTextFallback = true
+      }
     }
 
     // Extract risk address context — ONLY this determines if it's a unit or building policy.
@@ -412,7 +422,7 @@ export async function POST(request: NextRequest) {
       unit_top,
       is_insurance: true,
       is_unit_police: finalIsUnitPolice,
-      confidence: (bestMatch || unitMatch) ? 'hoch' : 'nicht_erkannt',
+      confidence: !bestMatch && !unitMatch ? 'nicht_erkannt' : usedFullTextFallback ? 'niedrig' : 'hoch',
     })
   } catch (err) {
     console.error('PDF analyse error:', err)
