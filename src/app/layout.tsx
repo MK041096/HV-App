@@ -27,6 +27,7 @@ const dmSans = DM_Sans({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://smartcarl.com"),
   title: "SMARTCARL – Schadensmeldungen für Hausverwaltungen",
   description: "SMARTCARL digitalisiert Schadensmeldungen für Hausverwaltungen. Von der strukturierten Erfassung bis zur vollständigen Dokumentation.",
   verification: {
