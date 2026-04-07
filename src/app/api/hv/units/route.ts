@@ -395,17 +395,24 @@ export async function GET(request: NextRequest) {
       .eq('is_deleted', false)
       .not('unit_id', 'is', null)
 
-    // Count pending: units with a pending activation code
-    const { data: pendingUnitIds } = await supabase
+    // Count pending: units with a code that was actually sent (has invited_email)
+    const { data: pendingCodes } = await supabase
       .from('activation_codes')
-      .select('unit_id')
+      .select('unit_id, invited_email')
       .eq('organization_id', profile.organization_id)
       .eq('status', 'pending')
-    const uniquePendingUnits = new Set((pendingUnitIds || []).map((r: { unit_id: string }) => r.unit_id)).size
+
+    const pendingWithEmail = new Set(
+      (pendingCodes || []).filter((r: { unit_id: string; invited_email: string | null }) => r.invited_email).map((r: { unit_id: string }) => r.unit_id)
+    ).size
+    const pendingNoEmail = new Set(
+      (pendingCodes || []).filter((r: { unit_id: string; invited_email: string | null }) => !r.invited_email).map((r: { unit_id: string }) => r.unit_id)
+    ).size
 
     const globalOccupied = occupiedCount || 0
-    const globalPending = uniquePendingUnits
-    const globalVacant = Math.max(0, totalCount - globalOccupied - globalPending)
+    const globalPending = pendingWithEmail
+    const globalVacantNoEmail = pendingNoEmail
+    const globalVacant = Math.max(0, totalCount - globalOccupied - globalPending - globalVacantNoEmail)
 
     return NextResponse.json({
       data: filtered,
@@ -422,6 +429,7 @@ export async function GET(request: NextRequest) {
         occupied: globalOccupied,
         pending: globalPending,
         vacant: globalVacant,
+        vacant_no_email: globalVacantNoEmail,
         einheiten_limit: orgLimit,
       },
     })

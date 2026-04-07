@@ -59,6 +59,7 @@ interface Summary {
   occupied: number
   pending: number
   vacant: number
+  vacant_no_email: number
   einheiten_limit: number
 }
 
@@ -356,6 +357,7 @@ export default function UnitsListPage() {
 
   const activeFilters = [tenantStatusFilter].filter(Boolean).length
   const vacantCount = summary?.vacant ?? 0
+  const vacantNoEmailCount = summary?.vacant_no_email ?? 0
   const unitLimit = summary?.einheiten_limit ?? 0
   const totalUnits = summary?.total_units ?? 0
   const atLimit = unitLimit > 0 && totalUnits >= unitLimit
@@ -430,13 +432,24 @@ export default function UnitsListPage() {
         </div>
       )}
 
+      {/* Vacant no email hint */}
+      {vacantNoEmailCount > 0 && !tenantStatusFilter && (
+        <div className="flex items-start gap-3 rounded-lg border border-yellow-200 bg-yellow-50 px-4 py-3 text-sm">
+          <AlertTriangle className="h-4 w-4 text-yellow-600 mt-0.5 shrink-0" />
+          <p className="text-yellow-800">
+            <span className="font-medium">{vacantNoEmailCount} Einheit{vacantNoEmailCount !== 1 ? "en" : ""} ohne E-Mail-Adresse</span>
+            {" — beim Import war keine E-Mail hinterlegt, daher wurde kein Aktivierungscode versendet. Klicken Sie bei der jeweiligen Einheit auf \"Einladen\" um die E-Mail-Adresse nachzutragen und den Code manuell zu senden."}
+          </p>
+        </div>
+      )}
+
       {/* Vacant hint */}
       {vacantCount > 0 && !tenantStatusFilter && (
         <div className="flex items-start gap-3 rounded-lg border border-yellow-200 bg-yellow-50 px-4 py-3 text-sm">
           <AlertTriangle className="h-4 w-4 text-yellow-600 mt-0.5 shrink-0" />
           <p className="text-yellow-800">
             <span className="font-medium">{vacantCount} Einheit{vacantCount !== 1 ? "en" : ""} ohne Mieter</span>
-            {" — klicken Sie bei der jeweiligen Einheit auf \"Einladen\" um manuell einen Aktivierungscode zu senden."}
+            {" — klicken Sie bei der jeweiligen Einheit auf \"Einladen\" um einen Aktivierungscode zu senden."}
           </p>
         </div>
       )}
