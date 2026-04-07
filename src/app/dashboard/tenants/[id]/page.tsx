@@ -21,6 +21,8 @@ import {
   Ban,
   ShieldOff,
   ArrowRightLeft,
+  Download,
+  FolderOpen,
 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
@@ -215,6 +217,11 @@ export default function TenantDetailPage({
   const [blockDialogOpen, setBlockDialogOpen] = useState(false)
   const [blockAction, setBlockAction] = useState<"block_1day" | "block_1week" | null>(null)
 
+  // Unit documents state
+  const [unitDocs, setUnitDocs] = useState<{ id: string; name: string; document_type: string; created_at: string }[]>([])
+  const [docsLoading, setDocsLoading] = useState(false)
+  const [downloadingId, setDownloadingId] = useState<string | null>(null)
+
   // Mieterwechsel state
   const [changeDialogOpen, setChangeDialogOpen] = useState(false)
   const [isChanging, setIsChanging] = useState(false)
@@ -232,11 +239,36 @@ export default function TenantDetailPage({
         throw new Error(body.error || "Fehler beim Laden des Mieterprofils")
       }
       const json = await res.json()
-      setTenant(json.data as TenantDetail)
+      const tenantData = json.data as TenantDetail
+      setTenant(tenantData)
+      if (tenantData.unit_id) fetchUnitDocs(tenantData.unit_id)
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unbekannter Fehler")
     } finally {
       setIsLoading(false)
+    }
+  }
+
+  async function fetchUnitDocs(unitId: string) {
+    setDocsLoading(true)
+    try {
+      const res = await fetch(`/api/documents?unit_id=${unitId}`)
+      if (!res.ok) return
+      const json = await res.json()
+      setUnitDocs(json.data || [])
+    } catch { /* ignore */ } finally {
+      setDocsLoading(false)
+    }
+  }
+
+  async function handleDownload(docId: string) {
+    setDownloadingId(docId)
+    try {
+      const res = await fetch(`/api/documents/${docId}`)
+      const data = await res.json()
+      if (data.url) window.open(data.url, '_blank')
+    } finally {
+      setDownloadingId(null)
     }
   }
 
@@ -1029,7 +1061,7 @@ export default function TenantDetailPage({
             </Card>
           )}
 
-          {/* Documents shortcut */}
+          {/* Documents */}
           {tenant.unit_id && (
             <Card>
               <CardHeader>
@@ -1038,14 +1070,58 @@ export default function TenantDetailPage({
                   Dokumente
                 </CardTitle>
                 <CardDescription>
-                  Mietvertrag und weitere Dokumente für diese Einheit
+                  Mietvertrag und weitere Dokumente dieser Einheit
                 </CardDescription>
               </CardHeader>
-              <CardContent>
+              <CardContent className="space-y-2">
+                {docsLoading && (
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground py-2">
+                    <Loader2 className="h-3 w-3 animate-spin" />
+                    Dokumente werden geladen…
+                  </div>
+                )}
+                {!docsLoading && unitDocs.length === 0 && (
+                  <p className="text-sm text-muted-foreground py-1">
+                    Noch keine Dokumente für diese Einheit hinterlegt.
+                  </p>
+                )}
+                {!docsLoading && unitDocs.map(doc => (
+                  <div
+                    key={doc.id}
+                    className="flex items-center justify-between gap-2 rounded-md border px-3 py-2 text-sm"
+                  >
+                    <div className="flex items-center gap-2 min-w-0">
+                      <FileText className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                      <div className="min-w-0">
+                        <p className="truncate font-medium">{doc.name}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {doc.document_type === 'mietvertrag' ? 'Mietvertrag' :
+                           doc.document_type === 'versicherung' ? 'Versicherung' :
+                           doc.document_type === 'rechnung' ? 'Rechnung' : 'Dokument'}
+                          {' · '}
+                          {new Date(doc.created_at).toLocaleDateString('de-AT')}
+                        </p>
+                      </div>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-7 w-7 shrink-0"
+                      onClick={() => handleDownload(doc.id)}
+                      disabled={downloadingId === doc.id}
+                      title="Herunterladen / Öffnen"
+                    >
+                      {downloadingId === doc.id
+                        ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                        : <Download className="h-3.5 w-3.5" />
+                      }
+                    </Button>
+                  </div>
+                ))}
                 <Link href={`/dashboard/dokumente?unit_id=${tenant.unit_id}`}>
-                  <Button variant="outline" className="w-full">
-                    <FileText className="mr-2 h-4 w-4" />
-                    Dokumente verwalten
+                  <Button variant="outline" size="sm" className="w-full mt-1">
+                    <FolderOpen className="mr-2 h-3.5 w-3.5" />
+                    Alle Dokumente verwalten
                   </Button>
                 </Link>
               </CardContent>
