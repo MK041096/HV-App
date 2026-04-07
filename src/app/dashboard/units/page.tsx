@@ -74,7 +74,7 @@ function getTenantStatusConfig(status: string) {
   switch (status) {
     case "occupied": return { label: "Aktiv", icon: UserCheck, className: "bg-green-100 text-green-800 border-green-200" }
     case "pending": return { label: "Ausstehend", icon: Clock, className: "bg-yellow-100 text-yellow-800 border-yellow-200" }
-    default: return { label: "Kein Mieter", icon: CircleDashed, className: "bg-gray-100 text-gray-600 border-gray-200" }
+    default: return { label: "Nicht eingeladen", icon: CircleDashed, className: "bg-gray-100 text-gray-600 border-gray-200" }
   }
 }
 
@@ -163,7 +163,7 @@ function InviteDialog({ unit, open, onClose, onSuccess }: InviteDialogProps) {
             <Label htmlFor="email">E-Mail-Adresse (optional)</Label>
             <Input id="email" type="email" placeholder="mieter@beispiel.at" value={email} onChange={(e) => setEmail(e.target.value)} />
             <p className="text-xs text-muted-foreground">
-              {email ? "Einladungs-E-Mail mit Aktivierungscode wird versendet." : "Ohne E-Mail wird nur der Code erstellt — Sie können ihn dann manuell weitergeben."}
+              {email ? "Einladungs-E-Mail mit Aktivierungscode wird versendet." : "Mit E-Mail: Code wird direkt zugesendet. Ohne E-Mail: Code erscheint hier und Sie können ihn manuell weitergeben."}
             </p>
           </div>
           {error && <p className="text-sm text-destructive">{error}</p>}
@@ -610,7 +610,7 @@ export default function UnitsListPage() {
                     <SelectItem value="alle">Alle Status</SelectItem>
                     <SelectItem value="occupied">Aktiver Mieter</SelectItem>
                     <SelectItem value="pending">Registrierung ausstehend</SelectItem>
-                    <SelectItem value="vacant">Kein Mieter</SelectItem>
+                    <SelectItem value="vacant">Nicht eingeladen</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
