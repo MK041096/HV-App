@@ -483,9 +483,29 @@ export default function DokumentePage() {
             Mietverträge
           </h1>
         </div>
-        <Button onClick={() => { setShowBulk(!showBulk); setShowForm(false) }}>
-          <Sparkles className="h-4 w-4 mr-2" /> Mietverträge importieren
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={async () => {
+            const ohneVertrag = einheiten.filter(e => e.docs.length === 0)
+            if (ohneVertrag.length === 0) { alert('Alle Einheiten haben bereits einen Mietvertrag.'); return }
+            if (!window.confirm(`Für ${ohneVertrag.length} Einheit${ohneVertrag.length !== 1 ? 'en' : ''} automatisch Mietverträge generieren?`)) return
+            for (const e of ohneVertrag) {
+              setGeneratingUnitId(e.id)
+              await fetch('/api/documents/generate-mietvertrag', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ unit_id: e.id, save_to_storage: true }),
+              })
+            }
+            setGeneratingUnitId(null)
+            await loadData()
+          }}>
+            <Sparkles className="h-4 w-4 mr-2" />
+            Alle generieren ({einheiten.filter(e => e.docs.length === 0).length})
+          </Button>
+          <Button onClick={() => { setShowBulk(!showBulk); setShowForm(false) }}>
+            <Upload className="h-4 w-4 mr-2" /> PDFs importieren
+          </Button>
+        </div>
       </div>
 
       <Card className="border-blue-200 bg-blue-50">
