@@ -178,9 +178,22 @@ export async function sendTenantInviteEmail(params: {
       Klicken Sie auf den Button, geben Sie Ihren Code ein und registrieren Sie sich in 2 Minuten:
     </p>
     <a href="${registerUrl}"
-       style="display:inline-block;background-color:#18181b;color:#ffffff;text-decoration:none;padding:13px 28px;border-radius:8px;font-size:15px;font-weight:600;margin-bottom:28px;">
+       style="display:inline-block;background-color:#18181b;color:#ffffff;text-decoration:none;padding:13px 28px;border-radius:8px;font-size:15px;font-weight:600;margin-bottom:16px;">
       Jetzt kostenlos registrieren →
     </a>
+
+    <p style="color:#71717a;font-size:12px;margin:0 0 8px 0;">
+      Oder öffnen Sie diesen Link manuell in Ihrem Browser:<br>
+      <span style="color:#18181b;font-weight:500;">${registerUrl}</span>
+    </p>
+
+    <div style="background-color:#fefce8;border:1px solid #fde047;border-radius:8px;padding:12px 16px;margin-bottom:24px;">
+      <p style="color:#854d0e;font-size:12px;line-height:1.6;margin:0;">
+        <strong>&#9888; Hinweis:</strong> Diese E-Mail stammt von SMARTCARL, dem offiziellen digitalen System Ihrer Hausverwaltung <strong>${orgName}</strong>.
+        Falls sie in Ihrem Spam-Ordner gelandet ist, markieren Sie sie bitte als <strong>„Kein Spam"</strong> — so erhalten Sie zukünftige Nachrichten direkt im Posteingang.
+        Ihr Aktivierungscode lautet: <strong style="letter-spacing:0.1em;">${activationCode}</strong>
+      </p>
+    </div>
 
     <div style="border-top:1px solid #e4e4e7;padding-top:16px;">
       <p style="color:#a1a1aa;font-size:12px;line-height:1.7;margin:0;">
