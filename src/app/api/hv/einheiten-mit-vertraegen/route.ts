@@ -36,6 +36,32 @@ export async function GET() {
       return (a.name || '').localeCompare(b.name || '', 'de', { numeric: true, sensitivity: 'base' })
     })
 
+    // Load tenant names for each unit (active tenants + pending activation codes)
+    const unitIds = (units || []).map(u => u.id)
+    const [{ data: tenants }, { data: codes }] = await Promise.all([
+      supabase
+        .from('profiles')
+        .select('unit_id, first_name, last_name')
+        .in('unit_id', unitIds)
+        .eq('role', 'mieter')
+        .eq('is_deleted', false),
+      supabase
+        .from('activation_codes')
+        .select('unit_id, invited_first_name, invited_last_name')
+        .in('unit_id', unitIds)
+        .eq('status', 'pending'),
+    ])
+    const tenantMap: Record<string, string> = {}
+    for (const t of tenants || []) {
+      if (t.unit_id) tenantMap[t.unit_id] = [t.first_name, t.last_name].filter(Boolean).join(' ')
+    }
+    for (const c of codes || []) {
+      if (c.unit_id && !tenantMap[c.unit_id]) {
+        const name = [c.invited_first_name, c.invited_last_name].filter(Boolean).join(' ')
+        if (name) tenantMap[c.unit_id] = name
+      }
+    }
+
     // Load all mietvertrag docs that are assigned to a unit
     const { data: docs } = await supabase
       .from('documents')
@@ -56,6 +82,7 @@ export async function GET() {
       id: unit.id,
       name: unit.name,
       address: unit.address,
+      tenant_name: tenantMap[unit.id] || null,
       docs: docsByUnit.get(unit.id) || [],
     }))
 

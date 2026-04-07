@@ -50,7 +50,28 @@ interface Einheit {
   id: string
   name: string
   address: string | null
+  tenant_name: string | null
   docs: EinheitDoc[]
+}
+
+// Client-seitige PDF-Texterkennung (raw bytes — funktioniert auch wenn pdf-parse scheitert)
+async function extractPdfTextClientSide(file: File): Promise<string> {
+  const buffer = await file.arrayBuffer()
+  const bytes = new Uint8Array(buffer)
+  const raw = Array.from(bytes).map(b => String.fromCharCode(b)).join('')
+  const matches = raw.match(/\(([^)]{1,200})\)\s*T[jJ]/g) || []
+  return matches.map(m => m.replace(/^\(/, '').replace(/\)\s*T[jJ]$/, '')).join(' ')
+}
+
+// Einheit anhand Mietername im PDF-Text finden
+function findByTenantName(pdfText: string, einheiten: Einheit[]): Einheit | null {
+  const textLower = pdfText.toLowerCase()
+  for (const einheit of einheiten) {
+    if (!einheit.tenant_name) continue
+    const parts = einheit.tenant_name.toLowerCase().split(' ').filter(p => p.length > 2)
+    if (parts.length > 0 && parts.every(p => textLower.includes(p))) return einheit
+  }
+  return null
 }
 
 interface BulkItem {
@@ -312,7 +333,18 @@ export default function DokumentePage() {
           }
           // Mehrere Kandidaten ohne Top-Nummer → User wählt manuell
         }
-        // Name immer aus der gematchten Einheit - nicht aus dem Versicherungstyp-Analyser
+
+        // Fallback: Mietername-Suche via client-seitiger PDF-Texterkennung
+        if (!matchedUnitId) {
+          try {
+            const clientText = await extractPdfTextClientSide(updated[i].file)
+            const found = findByTenantName(clientText, einheiten)
+            if (found) matchedUnitId = found.id
+          } catch {
+            // Fallback gescheitert — kein weiterer Versuch
+          }
+        }
+
         const matchedUnit = matchedUnitId ? einheiten.find(e => e.id === matchedUnitId) : null
         const suggestedName = matchedUnit ? `Mietvertrag – ${matchedUnit.name}` : null
         updated[i] = {
@@ -324,7 +356,25 @@ export default function DokumentePage() {
           pdfUnitTop: analyseData.unit_top ?? null,
         }
       } catch {
-        updated[i] = { ...updated[i], status: 'not_found', suggestedUnitId: null, suggestedName: null }
+        // Analyse-API komplett gescheitert — trotzdem Mietername-Fallback versuchen
+        try {
+          const clientText = await extractPdfTextClientSide(updated[i].file)
+          const found = findByTenantName(clientText, einheiten)
+          if (found) {
+            updated[i] = {
+              ...updated[i],
+              status: 'done',
+              suggestedUnitId: found.id,
+              suggestedName: `Mietvertrag – ${found.name}`,
+              pdfLiegenschaft: null,
+              pdfUnitTop: null,
+            }
+          } else {
+            updated[i] = { ...updated[i], status: 'not_found', suggestedUnitId: null, suggestedName: null }
+          }
+        } catch {
+          updated[i] = { ...updated[i], status: 'not_found', suggestedUnitId: null, suggestedName: null }
+        }
       }
       setBulkItems([...updated])
     }
