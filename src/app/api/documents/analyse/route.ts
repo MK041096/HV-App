@@ -149,36 +149,48 @@ export async function POST(request: NextRequest) {
       const normalizedLg = normalize(liegenschaft.split(',')[0])
       const normalizedPdf = normalize(pdfFullText)
 
-      // Strategy 1: Top-number match ("Top 1", "Top 01", "/Top 1")
+      // Strategy 1: Top-number match — checks both address AND name
+      // (In many DBs the address is just the building address; Top number only in the name)
       if (topNr) {
         const topInt = parseInt(topNr, 10)
+        const topRe = new RegExp(`\\bTop\\s*0*${topInt}\\b`, 'i')
+        const slashRe = new RegExp(`/\\s*0*${topInt}(?:\\b|,|\\s|$)`)
         for (const u of units) {
-          if (!u.address) continue
-          const addr = u.address as string
+          const addr = (u.address || '') as string
+          const name = (u.name || '') as string
           const normAddr = normalize(addr)
-          if (!normAddr.includes(normalizedLg)) continue
-          if (new RegExp(`\\bTop\\s*0*${topInt}\\b`, 'i').test(addr) ||
-              new RegExp(`/\\s*0*${topInt}(?:\\b|,|\\s|$)`).test(addr)) {
-            return { unit_id: u.id, unit_name: u.name || addr }
+          const normName = normalize(name)
+          // Must be in this liegenschaft (check address OR name)
+          if (!normAddr.includes(normalizedLg) && !normName.includes(normalizedLg)) continue
+          // Top number must appear in address OR name
+          if (topRe.test(addr) || slashRe.test(addr) || topRe.test(name) || slashRe.test(name)) {
+            return { unit_id: u.id, unit_name: name || addr }
           }
         }
       }
 
-      // Strategy 2: Full unit-address appears in PDF text
-      // Covers Austrian format "Straße 8/2, 7400 Ort" without "Top" keyword.
-      // Only applies to units whose address contains "/" or "Top" (= sub-unit indicator).
+      // Strategy 2: Normalized unit name or address appears in normalized PDF text.
+      // Covers "/X" Austrian format AND cases where Top number is only in u.name.
       for (const u of units) {
-        if (!u.address) continue
-        const addr = u.address as string
+        const addr = (u.address || '') as string
+        const name = (u.name || '') as string
         const normAddr = normalize(addr)
-        // Must belong to this liegenschaft AND be more specific than it
-        if (!normAddr.includes(normalizedLg)) continue
-        if (normAddr.length <= normalizedLg.length + 1) continue
-        // Must look like a sub-unit address (contains "/" or "Top")
-        if (!addr.includes('/') && !/\bTop\s*\d/i.test(addr)) continue
-        // Check if the unit's normalized address appears in the normalized PDF text
-        if (normalizedPdf.includes(normAddr)) {
-          return { unit_id: u.id, unit_name: u.name || addr }
+        const normName = normalize(name)
+        // Must belong to this liegenschaft
+        if (!normAddr.includes(normalizedLg) && !normName.includes(normalizedLg)) continue
+        // Must be more specific than just the liegenschaft (has unit info beyond building address)
+        const addrExtra = normAddr.length > normalizedLg.length + 2
+        const nameExtra = normName.length > normalizedLg.length + 2
+        if (!addrExtra && !nameExtra) continue
+        // Must contain a unit indicator in address OR name
+        const hasUnitIndicator =
+          addr.includes('/') || /\bTop\s*\d/i.test(addr) ||
+          /\bTop\s*\d/i.test(name) || /Wohnung|Stiege|Tür\b/i.test(name)
+        if (!hasUnitIndicator) continue
+        // Check if normalized address or name appears in normalized PDF text
+        if ((addrExtra && normalizedPdf.includes(normAddr)) ||
+            (nameExtra && normalizedPdf.includes(normName))) {
+          return { unit_id: u.id, unit_name: name || addr }
         }
       }
 

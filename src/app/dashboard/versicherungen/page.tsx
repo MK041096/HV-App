@@ -627,7 +627,7 @@ export default function VersicherungenPage() {
                       <tr>
                         <th className="text-left px-3 py-2 font-medium">Dateiname</th>
                         <th className="text-left px-3 py-2 font-medium">Bezeichnung (automatisch)</th>
-                        <th className="text-left px-3 py-2 font-medium">Liegenschaft</th>
+                        <th className="text-left px-3 py-2 font-medium">Liegenschaft / Einheit</th>
                         <th className="text-left px-3 py-2 font-medium w-28">Status</th>
                       </tr>
                     </thead>
