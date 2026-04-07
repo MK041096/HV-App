@@ -943,11 +943,6 @@ export default function VersicherungenPage() {
           <TabsTrigger value="einheit">
             <Home className="h-4 w-4 mr-2" />
             Nach Einheit
-            {einheitenMitPolice.length > 0 && (
-              <Badge className="ml-2 bg-green-100 text-green-800 border-0 text-xs">
-                {einheitenMitPolice.length}
-              </Badge>
-            )}
           </TabsTrigger>
         </TabsList>
 

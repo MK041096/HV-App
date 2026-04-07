@@ -86,7 +86,8 @@ function SidebarContent({
           const isActive =
             item.href === "/dashboard"
               ? pathname === "/dashboard"
-              : pathname.startsWith(item.href)
+              : pathname.startsWith(item.href) ||
+                (item.href === "/dashboard/dokumente" && pathname.startsWith("/dashboard/versicherungen"))
 
           return (
             <div key={item.href}>
