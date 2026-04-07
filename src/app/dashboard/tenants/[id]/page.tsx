@@ -20,11 +20,13 @@ import {
   FileText,
   Ban,
   ShieldOff,
+  ArrowRightLeft,
 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
+import { Checkbox } from "@/components/ui/checkbox"
 import {
   Card,
   CardContent,
@@ -213,6 +215,12 @@ export default function TenantDetailPage({
   const [blockDialogOpen, setBlockDialogOpen] = useState(false)
   const [blockAction, setBlockAction] = useState<"block_1day" | "block_1week" | null>(null)
 
+  // Mieterwechsel state
+  const [changeDialogOpen, setChangeDialogOpen] = useState(false)
+  const [isChanging, setIsChanging] = useState(false)
+  const [changeForm, setChangeForm] = useState({ first_name: "", last_name: "", email: "", archive_lease: false })
+  const [changeError, setChangeError] = useState<string | null>(null)
+
   // Fetch tenant
   async function fetchTenant() {
     setIsLoading(true)
@@ -273,6 +281,31 @@ export default function TenantDetailPage({
       })
     } finally {
       setIsUpdating(false)
+    }
+  }
+
+  // Handle Mieterwechsel
+  async function handleTenantChange(e: React.FormEvent) {
+    e.preventDefault()
+    if (!tenant?.unit_id) return
+    setIsChanging(true)
+    setChangeError(null)
+    try {
+      const res = await fetch(`/api/hv/units/${tenant.unit_id}/tenant-change`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(changeForm),
+      })
+      const json = await res.json()
+      if (!res.ok) throw new Error(json.error || "Fehler beim Mieterwechsel")
+      setChangeDialogOpen(false)
+      setChangeForm({ first_name: "", last_name: "", email: "", archive_lease: false })
+      // Weiterleitung zur Einheitenübersicht — neuer Mieter ist noch nicht registriert
+      router.push("/dashboard/units")
+    } catch (err) {
+      setChangeError(err instanceof Error ? err.message : "Fehler beim Mieterwechsel")
+    } finally {
+      setIsChanging(false)
     }
   }
 
@@ -764,6 +797,108 @@ export default function TenantDetailPage({
               )}
             </CardContent>
           </Card>
+
+          {/* Mieterwechsel */}
+          {tenant.is_active && tenant.unit_id && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">Mieterwechsel</CardTitle>
+                <CardDescription>
+                  Neuen Mieter für diese Einheit eintragen — alter Mieter verliert automatisch den Zugang
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Dialog open={changeDialogOpen} onOpenChange={(o) => {
+                  setChangeDialogOpen(o)
+                  if (!o) { setChangeError(null); setChangeForm({ first_name: "", last_name: "", email: "", archive_lease: false }) }
+                }}>
+                  <DialogTrigger asChild>
+                    <Button variant="outline" className="w-full">
+                      <ArrowRightLeft className="mr-2 h-4 w-4" />
+                      Mieterwechsel durchführen
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                      <DialogTitle>Mieterwechsel</DialogTitle>
+                      <DialogDescription>
+                        Der aktuelle Mieter <span className="font-medium">{tenant.full_name}</span> wird aus dem System entfernt.
+                        Der neue Mieter erhält eine Einladungsmail mit Aktivierungscode.
+                      </DialogDescription>
+                    </DialogHeader>
+                    <form onSubmit={handleTenantChange} className="space-y-4 py-2">
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="space-y-1.5">
+                          <Label htmlFor="change_first_name">Vorname</Label>
+                          <Input
+                            id="change_first_name"
+                            placeholder="Max"
+                            value={changeForm.first_name}
+                            onChange={(e) => setChangeForm(f => ({ ...f, first_name: e.target.value }))}
+                            required
+                          />
+                        </div>
+                        <div className="space-y-1.5">
+                          <Label htmlFor="change_last_name">Nachname</Label>
+                          <Input
+                            id="change_last_name"
+                            placeholder="Mustermann"
+                            value={changeForm.last_name}
+                            onChange={(e) => setChangeForm(f => ({ ...f, last_name: e.target.value }))}
+                            required
+                          />
+                        </div>
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label htmlFor="change_email">E-Mail-Adresse des neuen Mieters</Label>
+                        <Input
+                          id="change_email"
+                          type="email"
+                          placeholder="neuer-mieter@beispiel.at"
+                          value={changeForm.email}
+                          onChange={(e) => setChangeForm(f => ({ ...f, email: e.target.value }))}
+                          required
+                        />
+                        <p className="text-xs text-muted-foreground">
+                          Der Aktivierungscode wird automatisch an diese Adresse gesendet.
+                        </p>
+                      </div>
+                      <div className="flex items-start gap-2 rounded-lg border p-3 bg-muted/30">
+                        <Checkbox
+                          id="archive_lease"
+                          checked={changeForm.archive_lease}
+                          onCheckedChange={(v) => setChangeForm(f => ({ ...f, archive_lease: v === true }))}
+                          className="mt-0.5"
+                        />
+                        <div>
+                          <Label htmlFor="archive_lease" className="text-sm font-normal cursor-pointer">
+                            Vorhandene Dokumente dieser Einheit archivieren
+                          </Label>
+                          <p className="text-xs text-muted-foreground mt-0.5">
+                            Mietvertrag und andere Dokumente werden als archiviert markiert (nicht gelöscht)
+                          </p>
+                        </div>
+                      </div>
+                      {changeError && <p className="text-sm text-destructive">{changeError}</p>}
+                      <DialogFooter>
+                        <Button type="button" variant="outline" onClick={() => setChangeDialogOpen(false)} disabled={isChanging}>
+                          Abbrechen
+                        </Button>
+                        <Button type="submit" disabled={isChanging || !changeForm.first_name || !changeForm.last_name || !changeForm.email}>
+                          {isChanging ? (
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          ) : (
+                            <ArrowRightLeft className="mr-2 h-4 w-4" />
+                          )}
+                          Wechsel durchführen
+                        </Button>
+                      </DialogFooter>
+                    </form>
+                  </DialogContent>
+                </Dialog>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Block / Unblock */}
           {tenant.is_active && (
