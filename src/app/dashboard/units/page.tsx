@@ -436,7 +436,7 @@ export default function UnitsListPage() {
           <AlertTriangle className="h-4 w-4 text-yellow-600 mt-0.5 shrink-0" />
           <p className="text-yellow-800">
             <span className="font-medium">{vacantCount} Einheit{vacantCount !== 1 ? "en" : ""} ohne Mieter</span>
-            {" — klicken Sie auf Einladen, um einen Aktivierungscode zu erstellen."}
+            {" — klicken Sie bei der jeweiligen Einheit auf \"Einladen\" um manuell einen Aktivierungscode zu senden."}
           </p>
         </div>
       )}
