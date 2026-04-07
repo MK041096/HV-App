@@ -352,7 +352,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // ── Phase 3: Batch insert units ──
+    // ── Phase 3: Batch insert units (with imported tenant name) ──
     const { data: newUnits, error: batchUnitError } = await adminSupabase
       .from('units')
       .insert(validRows.map(row => ({
@@ -361,6 +361,8 @@ export async function POST(request: NextRequest) {
         address: row.address,
         floor: row.floor,
         is_deleted: false,
+        imported_first_name: row.firstName || null,
+        imported_last_name: row.lastName || null,
       })))
       .select('id, name')
 
@@ -373,33 +375,40 @@ export async function POST(request: NextRequest) {
     // Map unit name → id (Supabase preserves insert order but we match by name to be safe)
     const unitIdByName = new Map(newUnits.map((u: { id: string; name: string }) => [u.name, u.id]))
 
-    // ── Phase 4: Batch insert activation codes ──
-    const codeInserts = validRows.map((row, i) => ({
-      organization_id: orgId,
-      unit_id: unitIdByName.get(row.unitName) ?? newUnits[i]?.id,
-      code: generatedCodes[i],
-      status: 'pending',
-      expires_at: expiresAtStr,
-      created_by: user.id,
-      invited_email: row.email || null,
-      invited_first_name: row.firstName || null,
-      invited_last_name: row.lastName || null,
-    }))
+    // ── Phase 4: Batch insert activation codes — ONLY for rows with a valid email ──
+    // Units without email: name is stored on the unit itself; code is created when HV clicks "Einladen"
+    const rowsWithEmail = validRows.filter((row, _i) => row.email && isValidEmail(row.email))
+    const codeIndexMap = new Map(rowsWithEmail.map((row, i) => [row.unitName, i]))
 
-    const { error: batchCodeError } = await adminSupabase.from('activation_codes').insert(codeInserts)
-    if (!batchCodeError) result.codes_generated = codeInserts.length
+    if (rowsWithEmail.length > 0) {
+      const codeInserts = rowsWithEmail.map((row) => {
+        const rowIdx = validRows.indexOf(row)
+        return {
+          organization_id: orgId,
+          unit_id: unitIdByName.get(row.unitName) ?? newUnits[rowIdx]?.id,
+          code: generatedCodes[rowIdx],
+          status: 'pending',
+          expires_at: expiresAtStr,
+          created_by: user.id,
+          invited_email: row.email,
+          invited_first_name: row.firstName || null,
+          invited_last_name: row.lastName || null,
+        }
+      })
+      const { error: batchCodeError } = await adminSupabase.from('activation_codes').insert(codeInserts)
+      if (!batchCodeError) result.codes_generated = codeInserts.length
+    }
 
-    // ── Phase 5: Send emails (sequential, only for rows with email) ──
-    for (let i = 0; i < validRows.length; i++) {
-      const row = validRows[i]
-      if (!row.email || !isValidEmail(row.email)) continue
+    // ── Phase 5: Send emails (only for rows with email) ──
+    for (const row of rowsWithEmail) {
+      const rowIdx = validRows.indexOf(row)
       const tenantName = row.firstName && row.lastName
         ? `${row.firstName} ${row.lastName}`
         : row.firstName || row.lastName || null
-      const unitId = unitIdByName.get(row.unitName) ?? newUnits[i]?.id
+      const unitId = unitIdByName.get(row.unitName) ?? newUnits[rowIdx]?.id
       const unitName = newUnits.find((u: { id: string; name: string }) => u.id === unitId)?.name ?? row.unitName
       try {
-        await sendTenantInviteEmail({ to: row.email, tenantName, activationCode: generatedCodes[i], expiresAt: expiresAtStr, orgName, unitName })
+        await sendTenantInviteEmail({ to: row.email!, tenantName, activationCode: generatedCodes[rowIdx], expiresAt: expiresAtStr, orgName, unitName })
         result.emails_sent++
       } catch {
         result.errors.push({ row: row.rowIndex, message: `E-Mail an ${row.email} konnte nicht gesendet werden` })

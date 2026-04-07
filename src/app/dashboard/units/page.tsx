@@ -38,6 +38,8 @@ interface UnitItem {
   address: string | null
   floor: string | null
   created_at: string
+  imported_first_name: string | null
+  imported_last_name: string | null
   tenant_status: "occupied" | "vacant" | "pending"
   tenant_status_label: string
   tenant: UnitTenant | null
@@ -109,8 +111,16 @@ function InviteDialog({ unit, open, onClose, onSuccess }: InviteDialogProps) {
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    if (!open) { setEmail(""); setTenantName(""); setError(null) }
-  }, [open])
+    if (open && unit) {
+      // Pre-fill name from import if available
+      const importedName = [unit.imported_first_name, unit.imported_last_name].filter(Boolean).join(" ")
+      setTenantName(importedName)
+      setEmail("")
+      setError(null)
+    } else if (!open) {
+      setEmail(""); setTenantName(""); setError(null)
+    }
+  }, [open, unit])
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -699,11 +709,11 @@ export default function UnitsListPage() {
                           <Users className="h-3.5 w-3.5 text-muted-foreground" />
                           <Link href={`/dashboard/tenants/${unit.tenant.id}`} className="text-sm font-medium text-primary hover:underline">{unit.tenant.full_name}</Link>
                         </div>
-                      ) : unit.pending_code?.invited_first_name || unit.pending_code?.invited_last_name ? (
+                      ) : (unit.imported_first_name || unit.imported_last_name) ? (
                         <div className="flex items-center gap-1.5">
                           <Users className="h-3.5 w-3.5 text-muted-foreground" />
                           <span className="text-sm font-medium text-foreground">
-                            {[unit.pending_code.invited_first_name, unit.pending_code.invited_last_name].filter(Boolean).join(" ")}
+                            {[unit.imported_first_name, unit.imported_last_name].filter(Boolean).join(" ")}
                           </span>
                         </div>
                       ) : <span className="text-xs text-muted-foreground">—</span>}
@@ -725,7 +735,9 @@ export default function UnitsListPage() {
                           </p>
                         </div>
                       ) : (
-                        <Button variant="outline" size="sm" className="h-7 text-xs" onClick={(e) => { e.stopPropagation(); setInviteUnit(unit); setInviteOpen(true) }}>Einladen</Button>
+                        <Button variant="outline" size="sm" className="h-7 text-xs" onClick={(e) => { e.stopPropagation(); setInviteUnit(unit); setInviteOpen(true) }}>
+                          {unit.imported_first_name || unit.imported_last_name ? "E-Mail ergänzen" : "Einladen"}
+                        </Button>
                       )}
                     </TableCell>
                     <TableCell>

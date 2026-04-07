@@ -222,10 +222,10 @@ export async function GET(request: NextRequest) {
       .eq('organization_id', profile.organization_id)
       .eq('is_deleted', false)
 
-    // Data query - fetch units with basic info
+    // Data query - fetch units with basic info (including imported tenant name)
     let dataQuery = supabase
       .from('units')
-      .select('id, name, address, floor, is_deleted, created_at, updated_at')
+      .select('id, name, address, floor, is_deleted, created_at, updated_at, imported_first_name, imported_last_name')
       .eq('organization_id', profile.organization_id)
       .eq('is_deleted', false)
 
@@ -362,6 +362,8 @@ export async function GET(request: NextRequest) {
         address: unit.address,
         floor: unit.floor,
         created_at: unit.created_at,
+        imported_first_name: (unit as any).imported_first_name || null,
+        imported_last_name: (unit as any).imported_last_name || null,
         tenant_status: unitTenantStatus,
         tenant_status_label: {
           occupied: 'Aktiver Mieter',
