@@ -226,61 +226,39 @@ export async function PATCH(
     if (action === 'deactivate') {
       if (tenant.is_deleted) {
         return NextResponse.json(
-          { error: 'Mieter ist bereits deaktiviert' },
+          { error: 'Mieter ist bereits gelöscht' },
           { status: 409 }
         )
       }
 
-      // Soft-delete via admin client (RLS auf profiles erlaubt nur eigene Profil-Updates)
+      const tenantName = [tenant.first_name, tenant.last_name].filter(Boolean).join(' ')
       const adminClient = createAdminClient()
-      const now = new Date().toISOString()
-      const { data: updated, error: updateError } = await adminClient
-        .from('profiles')
-        .update({
-          is_deleted: true,
-          deleted_at: now,
-          updated_at: now,
-        })
-        .eq('id', id)
-        .eq('organization_id', hvProfile.organization_id)
-        .select('id, first_name, last_name, is_deleted, deleted_at, updated_at')
-        .single()
 
-      if (updateError) {
-        console.error('Error deactivating tenant:', updateError)
+      // Audit log VOR dem Löschen (Profil wird durch Cascade gelöscht)
+      await supabase.from('audit_logs').insert({
+        user_id: user.id,
+        organization_id: hvProfile.organization_id,
+        action: 'tenant_deleted',
+        entity_type: 'profile',
+        entity_id: id,
+        details: { tenant_name: tenantName, reason: reason || null },
+      })
+
+      // Hard-delete aus Supabase Auth → Profil wird automatisch per CASCADE gelöscht
+      // → E-Mail wird frei für neue Registrierung
+      // → damage_reports.reporter_id wird per SET NULL auf null gesetzt (Meldungen bleiben erhalten)
+      const { error: authDeleteError } = await adminClient.auth.admin.deleteUser(id)
+
+      if (authDeleteError) {
+        console.error('Error deleting tenant from auth:', authDeleteError)
         return NextResponse.json(
           { error: 'Fehler beim Löschen des Mieters' },
           { status: 500 }
         )
       }
 
-      // Also ban the user in Supabase Auth so they can't log in
-      try {
-        const adminClient = createAdminClient()
-        await adminClient.auth.admin.updateUserById(id, {
-          ban_duration: '876600h', // ~100 years (effectively permanent)
-        })
-      } catch (authErr) {
-        console.error('Warning: Could not ban user in auth system:', authErr)
-        // Continue - profile is already soft-deleted
-      }
-
-      // Audit log
-      await supabase.from('audit_logs').insert({
-        user_id: user.id,
-        organization_id: hvProfile.organization_id,
-        action: 'tenant_deactivated',
-        entity_type: 'profile',
-        entity_id: id,
-        details: {
-          tenant_name: [tenant.first_name, tenant.last_name].filter(Boolean).join(' '),
-          reason: reason || null,
-        },
-      })
-
       return NextResponse.json({
-        data: updated,
-        message: `Mieter ${[tenant.first_name, tenant.last_name].filter(Boolean).join(' ')} wurde deaktiviert.`,
+        message: `Mieter ${tenantName} wurde gelöscht. Die E-Mail-Adresse ist nun wieder frei.`,
       })
     }
 

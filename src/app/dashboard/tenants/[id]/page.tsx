@@ -245,13 +245,19 @@ export default function TenantDetailPage({
       const json = await res.json()
       if (!res.ok) throw new Error(json.error || "Fehler")
 
-      setUpdateMessage({
-        type: "success",
-        text: json.message || `Mieter wurde ${action === "deactivate" ? "deaktiviert" : "reaktiviert"}.`,
-      })
       setDeactivateReason("")
       setDialogOpen(false)
-      await fetchTenant()
+
+      if (action === "deactivate") {
+        // Mieter wurde hart gelöscht → zurück zur Mieterliste
+        router.push("/dashboard/tenants")
+      } else {
+        setUpdateMessage({
+          type: "success",
+          text: json.message || "Mieter wurde wiederhergestellt.",
+        })
+        await fetchTenant()
+      }
     } catch (err) {
       setUpdateMessage({
         type: "error",
