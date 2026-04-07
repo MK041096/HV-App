@@ -152,6 +152,7 @@ export async function POST(request: NextRequest) {
 export async function GET(request: NextRequest) {
   try {
     const supabase = await createServerSupabaseClient()
+    const admin = createAdminClient()
 
     const {
       data: { user },
@@ -294,9 +295,10 @@ export async function GET(request: NextRequest) {
     }
 
     // Batch fetch: pending activation codes for these units
+    // Uses admin client to bypass RLS (activation_codes RLS checks user_roles table which may not include all HV roles)
     let pendingCodesByUnit: Record<string, { id: string; code: string; invited_first_name: string | null; invited_last_name: string | null; invited_email: string | null; created_at: string; expires_at: string }> = {}
     if (unitIds.length > 0) {
-      const { data: codes } = await supabase
+      const { data: codes } = await admin
         .from('activation_codes')
         .select('id, unit_id, code, invited_first_name, invited_last_name, invited_email, created_at, expires_at')
         .in('unit_id', unitIds)
@@ -399,7 +401,8 @@ export async function GET(request: NextRequest) {
       .not('unit_id', 'is', null)
 
     // Count pending: units with a code that was actually sent (has invited_email)
-    const { data: pendingCodes } = await supabase
+    // Uses admin client to bypass RLS (same reason as above)
+    const { data: pendingCodes } = await admin
       .from('activation_codes')
       .select('unit_id, invited_email')
       .eq('organization_id', profile.organization_id)
