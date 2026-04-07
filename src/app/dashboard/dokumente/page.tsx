@@ -466,8 +466,13 @@ export default function DokumentePage() {
             Mietverträge
           </h1>
         </div>
-        <Button onClick={() => { setShowBulk(!showBulk); setShowForm(false) }}>
-          <Sparkles className="h-4 w-4 mr-2" /> Mietverträge importieren
+        <Button
+          onClick={() => { setShowBulk(!showBulk); setShowForm(false) }}
+          variant={showBulk ? 'outline' : 'default'}
+          className={showBulk ? 'border-primary text-primary' : ''}
+        >
+          <Sparkles className="h-4 w-4 mr-2" />
+          {showBulk ? 'Importieren schließen' : 'Mietverträge importieren'}
         </Button>
       </div>
 
@@ -480,9 +485,9 @@ export default function DokumentePage() {
       </Card>
 
       {showBulk && (
-        <Card className="border-primary/30">
-          <CardHeader>
-            <CardTitle className="text-base flex items-center gap-2">
+        <Card className="border-2 border-primary bg-primary/5 shadow-md">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base flex items-center gap-2 text-primary">
               <Sparkles className="h-4 w-4" />
               Mietverträge importieren
             </CardTitle>
