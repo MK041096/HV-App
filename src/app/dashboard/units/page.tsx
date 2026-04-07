@@ -596,7 +596,7 @@ export default function UnitsListPage() {
           ].map(({ key, label, count, icon: Icon, color }) => (
             <Card
               key={key}
-              className={`cursor-pointer transition-colors ${tenantStatusFilter === key ? "ring-2 ring-primary" : "hover:bg-accent/50"}`}
+              className={`cursor-pointer transition-colors ${tenantStatusFilter === key ? "ring-2 ring-primary" : "hover:bg-accent/80"}`}
               onClick={() => { setTenantStatusFilter(tenantStatusFilter === key ? "" : key); setPage(1) }}
             >
               <CardContent className="pt-4 pb-3">
@@ -783,7 +783,7 @@ export default function UnitsListPage() {
                 return (
                   <TableRow
                     key={unit.id}
-                    className={`transition-all ${selectedUnitIds.has(unit.id) ? "bg-muted/40" : unit.tenant ? "cursor-pointer hover:bg-accent/50 hover:ring-1 hover:ring-black/20" : "hover:bg-accent/50"}`}
+                    className={`transition-all ${selectedUnitIds.has(unit.id) ? "bg-muted/40" : unit.tenant ? "cursor-pointer hover:bg-accent/80 hover:ring-1 hover:ring-black/20" : "hover:bg-accent/80"}`}
                     onClick={() => unit.tenant && router.push(`/dashboard/tenants/${unit.tenant.id}`)}
                     onMouseEnter={unit.tenant ? (e) => { (e.currentTarget as HTMLElement).style.outline = '2px solid rgba(0,0,0,0.7)'; (e.currentTarget as HTMLElement).style.outlineOffset = '-2px' } : undefined}
                     onMouseLeave={unit.tenant ? (e) => { (e.currentTarget as HTMLElement).style.outline = '' } : undefined}
@@ -907,7 +907,7 @@ export default function UnitsListPage() {
           return (
             <Card
               key={unit.id}
-              className={`transition-all ${unit.tenant ? "cursor-pointer hover:bg-accent/50 hover:ring-1 hover:ring-black/20" : "hover:bg-accent/50"}`}
+              className={`transition-all ${unit.tenant ? "cursor-pointer hover:bg-accent/80 hover:ring-1 hover:ring-black/20" : "hover:bg-accent/80"}`}
               onClick={() => unit.tenant && router.push(`/dashboard/tenants/${unit.tenant.id}`)}
             >
               <CardContent className="pt-4 pb-3">

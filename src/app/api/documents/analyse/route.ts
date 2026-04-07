@@ -166,6 +166,8 @@ export async function POST(request: NextRequest) {
       const normalizedSearch = normalize(searchText)
       let found: string | null = null
       let foundLen = 0
+
+      // Pass 1: exact full liegenschaft match
       for (const lg of liegenschaften) {
         const normalizedLg = normalize(lg)
         if (normalizedSearch.includes(normalizedLg) && normalizedLg.length > foundLen) {
@@ -173,17 +175,32 @@ export async function POST(request: NextRequest) {
           foundLen = normalizedLg.length
         }
       }
-      if (!found) {
-        for (const lg of liegenschaften) {
-          const streetPart = lg.split(',')[0].trim()
-          const normalizedStreet = normalize(streetPart)
-          if (normalizedStreet.length > 5 && normalizedSearch.includes(normalizedStreet)) {
-            found = lg
-            break
-          }
+      if (found) return found
+
+      // Pass 2: street part only (before comma)
+      for (const lg of liegenschaften) {
+        const streetPart = lg.split(',')[0].trim()
+        const normalizedStreet = normalize(streetPart)
+        if (normalizedStreet.length > 5 && normalizedSearch.includes(normalizedStreet)) {
+          return lg
         }
       }
-      return found
+
+      // Pass 3: token-based — all significant words of the street must appear in text
+      let bestLg: string | null = null
+      let bestScore = 0
+      for (const lg of liegenschaften) {
+        const streetPart = lg.split(',')[0].trim()
+        const tokens = streetPart.split(/\s+/).map(t => normalize(t)).filter(t => t.length >= 3)
+        if (tokens.length < 2) continue
+        const matched = tokens.filter(t => normalizedSearch.includes(t))
+        const score = matched.length / tokens.length
+        if (score >= 0.8 && matched.length >= 2 && score > bestScore) {
+          bestScore = score
+          bestLg = lg
+        }
+      }
+      return bestLg
     }
 
     // ── Top-Nummer aus PDF extrahieren ──
@@ -195,37 +212,43 @@ export async function POST(request: NextRequest) {
     const unit_top = topMatch ? topMatch[1] : null
 
     // ── Mietvertrag-Pfad ──
+    // Mietvertrag erkennen: mind. ein Mietvertrag-typisches Wort vorhanden
+    const MIETVERTRAG_POSITIVE: RegExp[] = [
+      /mietvertrag/i, /mietzins/i, /hauptmieter/i, /untermieter/i,
+      /vermieter/i, /mietgegenstand/i, /mietobjekt/i, /mietdauer/i,
+      /wohnungsübergabe/i, /wohnungsuebergabe/i,
+    ]
     const isMietvertrag = NON_INSURANCE_INDICATORS.some(p => p.test(pdfText))
-    if (isMietvertrag) {
+      || MIETVERTRAG_POSITIVE.some(p => p.test(pdfText))
+    // Kein Versicherungsdokument = eindeutig kein Insurance-Wort enthalten
+    const hasInsuranceWords = INSURANCE_INDICATORS.some(p => p.test(pdfText))
+    if (isMietvertrag && !hasInsuranceWords) {
       let bestMatch: string | null = null
 
       if (liegenschaften.length > 0) {
-        // Kontext-Labels für Mietverträge
+        // Kontext-Labels für Mietverträge — in größeren Fenstern suchen
         const mietLabels = [
-          'mietgegenstand',
-          'mietobjekt',
-          'das mietobjekt',
-          'die wohnung',
-          'wohneinheit',
-          'mietgegenstand befindet sich',
-          'objekt:',
-          'adresse:',
-          'lage:',
-          'gelegen in',
-          'befindet sich in',
-          'top',
+          'mietgegenstand', 'mietobjekt', 'das mietobjekt',
+          'die wohnung', 'wohneinheit', 'mietgegenstand befindet sich',
+          'objekt:', 'adresse:', 'lage:', 'gelegen in', 'befindet sich in',
+          'mietgegenstand befindet', 'das mietobjekt befindet',
+          'vermietet an', 'mieterin', 'mieter:',
+          'top ', '/top', '/ top',
+          'straße', 'strasse', 'gasse', 'platz', 'weg', 'allee',
         ]
         const contextWindows: string[] = []
         const lowerText = pdfText.toLowerCase()
         for (const label of mietLabels) {
           let pos = lowerText.indexOf(label)
           while (pos !== -1) {
-            contextWindows.push(pdfText.slice(pos, pos + 400))
+            // Auch Kontext VOR dem Label einbeziehen (Adresse kann vor dem Schlagwort stehen)
+            const start = Math.max(0, pos - 100)
+            contextWindows.push(pdfText.slice(start, pos + 500))
             pos = lowerText.indexOf(label, pos + 1)
           }
         }
-        for (const window of contextWindows) {
-          const match = findMatch(window)
+        for (const ctx of contextWindows) {
+          const match = findMatch(ctx)
           if (match) { bestMatch = match; break }
         }
         // Volltext-Fallback
@@ -274,8 +297,8 @@ export async function POST(request: NextRequest) {
           pos = lowerText.indexOf(label, pos + 1)
         }
       }
-      for (const window of contextWindows) {
-        const match = findMatch(window)
+      for (const ctx of contextWindows) {
+        const match = findMatch(ctx)
         if (match) { bestMatch = match; break }
       }
       if (!bestMatch) bestMatch = findMatch(pdfText)

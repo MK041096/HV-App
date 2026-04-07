@@ -820,7 +820,7 @@ function Step4PhotosAppointment({
         {photos.length < MAX_PHOTOS && (
           <div>
             <input ref={fileInputRef} type="file" accept="image/jpeg,image/png,image/heic" multiple onChange={onPhotoSelect} className="sr-only" id="photo-upload" />
-            <label htmlFor="photo-upload" className={cn("flex flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed p-8 cursor-pointer transition-colors", isUploading ? "opacity-60 pointer-events-none" : "hover:bg-accent/50 hover:border-primary/50")}>
+            <label htmlFor="photo-upload" className={cn("flex flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed p-8 cursor-pointer transition-colors", isUploading ? "opacity-60 pointer-events-none" : "hover:bg-accent/80 hover:border-primary/50")}>
               {isUploading ? (
                 <><Loader2 className="h-8 w-8 text-muted-foreground animate-spin" /><span className="text-sm text-muted-foreground">Wird hochgeladen...</span></>
               ) : (

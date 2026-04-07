@@ -768,7 +768,7 @@ export default function DashboardPage() {
                 <Link
                   key={c.id}
                   href={`/dashboard/cases/${c.id}`}
-                  className="flex items-center justify-between p-3 rounded-lg border hover:bg-accent/50 hover:ring-1 hover:ring-black/20 transition-all"
+                  className="flex items-center justify-between p-3 rounded-lg border hover:bg-accent/80 hover:ring-1 hover:ring-black/20 transition-all"
                 >
                   <div className="flex items-center gap-3 min-w-0">
                     <UrgencyDot urgency={c.urgency} />

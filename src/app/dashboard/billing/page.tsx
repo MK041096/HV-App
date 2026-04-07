@@ -299,7 +299,7 @@ export default function BillingPage() {
                 <RadioGroup value={plan} onValueChange={(v) => setPlan(v as 'monthly' | 'yearly')}>
                   {/* Monatlich */}
                   <div
-                    className={`flex items-start space-x-3 rounded-lg border p-4 cursor-pointer transition-colors ${plan === 'monthly' ? 'border-primary bg-primary/5' : ''}`}
+                    className={`flex items-start space-x-3 rounded-lg border p-4 cursor-pointer transition-colors hover:bg-accent/80 ${plan === 'monthly' ? 'border-primary bg-primary/5' : ''}`}
                     onClick={() => setPlan('monthly')}
                   >
                     <RadioGroupItem value="monthly" id="monthly" className="mt-0.5" />
@@ -325,7 +325,7 @@ export default function BillingPage() {
 
                   {/* Jährlich */}
                   <div
-                    className={`flex items-start space-x-3 rounded-lg border p-4 cursor-pointer transition-colors ${plan === 'yearly' ? 'border-primary bg-primary/5' : ''}`}
+                    className={`flex items-start space-x-3 rounded-lg border p-4 cursor-pointer transition-colors hover:bg-accent/80 ${plan === 'yearly' ? 'border-primary bg-primary/5' : ''}`}
                     onClick={() => setPlan('yearly')}
                   >
                     <RadioGroupItem value="yearly" id="yearly" className="mt-0.5" />

@@ -276,28 +276,41 @@ export default function DokumentePage() {
         })
         const analyseData = await analyseRes.json()
         let matchedUnitId: string | null = null
+
+        // Hilfsfunktion: Adressen normalisieren für robustere Suche
+        function normAddr(s: string) {
+          return s.toLowerCase()
+            .replace(/ä/g, 'ae').replace(/ö/g, 'oe').replace(/ü/g, 'ue').replace(/ß/g, 'ss')
+            .replace(/[^a-z0-9]/g, '')
+        }
+
         if (analyseData.liegenschaft) {
           const lg = analyseData.liegenschaft.toLowerCase().trim()
-          // Alle Einheiten finden, deren Adresse mit dieser Liegenschaft beginnt
-          const candidates = einheiten.filter(e =>
-            e.address?.toLowerCase().startsWith(lg) ||
-            e.address?.toLowerCase().includes(lg)
-          )
+          const lgNorm = normAddr(analyseData.liegenschaft)
+          // Straßenteil ohne PLZ/Stadt für lockeren Vergleich
+          const lgStreet = normAddr(analyseData.liegenschaft.split(',')[0])
+
+          const candidates = einheiten.filter(e => {
+            const addr = e.address || ''
+            const addrLower = addr.toLowerCase()
+            const addrNorm = normAddr(addr)
+            return addrLower.includes(lg) ||
+              addrNorm.includes(lgNorm) ||
+              (lgStreet.length > 5 && addrNorm.includes(lgStreet))
+          })
+
           if (candidates.length === 1) {
-            // Nur eine Einheit an dieser Adresse — eindeutige Zuordnung
             matchedUnitId = candidates[0].id
           } else if (candidates.length > 1 && analyseData.unit_top) {
-            // Mehrere Einheiten (Top 1-10) — Top-Nummer aus PDF nutzen
-            // \b-Wortgrenze verhindert dass "Top 1" auf "Top 10" matcht
             const topStr = String(analyseData.unit_top)
-            const topRegex = new RegExp(`\\bTop\\s+${topStr}\\b`, 'i')
+            const topRegex = new RegExp(`\\bTop\\s*${topStr}\\b`, 'i')
             const exact = candidates.find(e =>
               topRegex.test(e.address || '') ||
               topRegex.test(e.name || '')
             )
             matchedUnitId = exact?.id ?? null
           }
-          // Mehrere Kandidaten ohne Top-Nummer -> null, User wählt manuell
+          // Mehrere Kandidaten ohne Top-Nummer → User wählt manuell
         }
         // Name immer aus der gematchten Einheit - nicht aus dem Versicherungstyp-Analyser
         const matchedUnit = matchedUnitId ? einheiten.find(e => e.id === matchedUnitId) : null
@@ -643,7 +656,7 @@ export default function DokumentePage() {
               const hasVertrag = einheit.docs.length > 0
               return (
                 <Card key={einheit.id} className={hasVertrag ? 'border-green-200' : 'border-orange-200'}>
-                  <CardHeader className="pb-3 cursor-pointer select-none rounded-t-lg hover:bg-accent/50 hover:ring-1 hover:ring-black/20 transition-all" onClick={() => toggleCard(einheit.id)}>
+                  <CardHeader className="pb-3 cursor-pointer select-none rounded-t-lg hover:bg-accent/80 hover:ring-1 hover:ring-black/20 transition-all" onClick={() => toggleCard(einheit.id)}>
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2 flex-1 min-w-0">
                         <Home className="h-4 w-4 text-muted-foreground shrink-0" />

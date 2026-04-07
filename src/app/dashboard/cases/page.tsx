@@ -618,7 +618,7 @@ export default function CasesListPage() {
                   <TableHead className="w-[100px]">
                     <button
                       onClick={() => handleSort("case_number")}
-                      className="flex items-center gap-1 hover:text-foreground transition-colors"
+                      className="flex items-center gap-1 hover:text-foreground hover:bg-muted cursor-pointer rounded px-1 py-0.5 transition-colors"
                     >
                       Fall-Nr.
                       <SortIcon field="case_number" />
@@ -628,7 +628,7 @@ export default function CasesListPage() {
                   <TableHead>
                     <button
                       onClick={() => handleSort("category")}
-                      className="flex items-center gap-1 hover:text-foreground transition-colors"
+                      className="flex items-center gap-1 hover:text-foreground hover:bg-muted cursor-pointer rounded px-1 py-0.5 transition-colors"
                     >
                       Kategorie
                       <SortIcon field="category" />
@@ -637,7 +637,7 @@ export default function CasesListPage() {
                   <TableHead>
                     <button
                       onClick={() => handleSort("urgency")}
-                      className="flex items-center gap-1 hover:text-foreground transition-colors"
+                      className="flex items-center gap-1 hover:text-foreground hover:bg-muted cursor-pointer rounded px-1 py-0.5 transition-colors"
                     >
                       Dringlichkeit
                       <SortIcon field="urgency" />
@@ -646,7 +646,7 @@ export default function CasesListPage() {
                   <TableHead>
                     <button
                       onClick={() => handleSort("status")}
-                      className="flex items-center gap-1 hover:text-foreground transition-colors"
+                      className="flex items-center gap-1 hover:text-foreground hover:bg-muted cursor-pointer rounded px-1 py-0.5 transition-colors"
                     >
                       Status
                       <SortIcon field="status" />
@@ -656,7 +656,7 @@ export default function CasesListPage() {
                   <TableHead>
                     <button
                       onClick={() => handleSort("created_at")}
-                      className="flex items-center gap-1 hover:text-foreground transition-colors"
+                      className="flex items-center gap-1 hover:text-foreground hover:bg-muted cursor-pointer rounded px-1 py-0.5 transition-colors"
                     >
                       Erstellt
                       <SortIcon field="created_at" />
@@ -698,7 +698,7 @@ export default function CasesListPage() {
                     return (
                       <TableRow
                         key={c.id}
-                        className="cursor-pointer transition-all hover:bg-accent/50 hover:ring-1 hover:ring-black/20"
+                        className="cursor-pointer transition-all hover:bg-accent/80 hover:ring-1 hover:ring-black/20"
                         onClick={() => router.push(`/dashboard/cases/${c.id}`)}
                       >
                         <TableCell className="font-mono text-xs">
@@ -808,7 +808,7 @@ export default function CasesListPage() {
 
             return (
               <Link key={c.id} href={`/dashboard/cases/${c.id}`}>
-                <Card className="hover:bg-accent/50 hover:ring-1 hover:ring-black/20 transition-all">
+                <Card className="hover:bg-accent/80 hover:ring-1 hover:ring-black/20 transition-all">
                   <CardContent className="pt-4">
                     <div className="flex items-start justify-between gap-2">
                       <div className="min-w-0 flex-1">

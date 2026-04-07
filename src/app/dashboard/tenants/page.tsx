@@ -328,7 +328,7 @@ export default function TenantsListPage() {
                   tenants.map((tenant) => (
                     <TableRow
                       key={tenant.id}
-                      className="cursor-pointer transition-all hover:bg-accent/50 hover:ring-1 hover:ring-black/20"
+                      className="cursor-pointer transition-all hover:bg-accent/80 hover:ring-1 hover:ring-black/20"
                       onClick={() => router.push(`/dashboard/tenants/${tenant.id}`)}
                     >
                       <TableCell>
@@ -443,7 +443,7 @@ export default function TenantsListPage() {
         ) : (
           tenants.map((tenant) => (
             <Link key={tenant.id} href={`/dashboard/tenants/${tenant.id}`}>
-              <Card className="hover:bg-accent/50 hover:ring-1 hover:ring-black/20 transition-all">
+              <Card className="hover:bg-accent/80 hover:ring-1 hover:ring-black/20 transition-all">
                 <CardContent className="pt-4">
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0 flex-1">

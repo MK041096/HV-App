@@ -596,7 +596,7 @@ export default function TenantDetailPage({
                           return (
                             <TableRow
                               key={report.id}
-                              className="cursor-pointer transition-all hover:bg-accent/50 hover:ring-1 hover:ring-black/20"
+                              className="cursor-pointer transition-all hover:bg-accent/80 hover:ring-1 hover:ring-black/20"
                               onClick={() => router.push(`/dashboard/cases/${report.id}`)}
                             >
                               <TableCell className="font-mono text-xs">
@@ -652,7 +652,7 @@ export default function TenantDetailPage({
 
                       return (
                         <Link key={report.id} href={`/dashboard/cases/${report.id}`}>
-                          <div className="p-3 rounded-lg border hover:bg-accent/50 hover:ring-1 hover:ring-black/20 transition-all">
+                          <div className="p-3 rounded-lg border hover:bg-accent/80 hover:ring-1 hover:ring-black/20 transition-all">
                             <div className="flex items-center gap-2 flex-wrap">
                               <span className="text-xs font-mono text-muted-foreground">
                                 {report.case_number}

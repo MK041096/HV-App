@@ -914,7 +914,7 @@ export default function VersicherungenPage() {
               <Card key={lg.address} className={isInsured ? 'border-green-200' : 'border-orange-200'}>
                 {/* Collapsed header — always visible, clickable */}
                 <CardHeader
-                  className="pb-3 cursor-pointer select-none"
+                  className="pb-3 cursor-pointer select-none rounded-t-lg hover:bg-accent/80 transition-colors"
                   onClick={() => toggleCard(lg.address)}
                 >
                   <div className="flex items-center justify-between">
@@ -1061,7 +1061,7 @@ export default function VersicherungenPage() {
                   return (
                     <Card key={einheit.id} className={isInsured ? 'border-green-200' : 'border-orange-200'}>
                       <CardHeader
-                        className="pb-3 cursor-pointer select-none"
+                        className="pb-3 cursor-pointer select-none rounded-t-lg hover:bg-accent/80 transition-colors"
                         onClick={() => toggleUnit(einheit.id)}
                       >
                         <div className="flex items-center justify-between">

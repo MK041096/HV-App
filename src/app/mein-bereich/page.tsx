@@ -271,7 +271,7 @@ export default function MeinBereichPage() {
                   <Link
                     key={report.id}
                     href={`/mein-bereich/meldungen/${report.id}`}
-                    className="flex items-center justify-between rounded-lg border p-3 hover:bg-accent/50 transition-colors"
+                    className="flex items-center justify-between rounded-lg border p-3 hover:bg-accent/80 transition-colors"
                   >
                     <div className="min-w-0 flex-1">
                       <p className="text-sm font-medium truncate">
