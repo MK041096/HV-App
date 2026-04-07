@@ -385,6 +385,28 @@ export async function GET(request: NextRequest) {
       filtered = enriched.filter((u) => u.tenant_status === tenant_status)
     }
 
+    // ── Global summary counts (all units, not just current page) ──
+    // Count occupied: units with an active tenant profile
+    const { count: occupiedCount } = await supabase
+      .from('profiles')
+      .select('id', { count: 'exact', head: true })
+      .eq('organization_id', profile.organization_id)
+      .eq('role', 'mieter')
+      .eq('is_deleted', false)
+      .not('unit_id', 'is', null)
+
+    // Count pending: units with a pending activation code
+    const { data: pendingUnitIds } = await supabase
+      .from('activation_codes')
+      .select('unit_id')
+      .eq('organization_id', profile.organization_id)
+      .eq('status', 'pending')
+    const uniquePendingUnits = new Set((pendingUnitIds || []).map((r: { unit_id: string }) => r.unit_id)).size
+
+    const globalOccupied = occupiedCount || 0
+    const globalPending = uniquePendingUnits
+    const globalVacant = Math.max(0, totalCount - globalOccupied - globalPending)
+
     return NextResponse.json({
       data: filtered,
       pagination: {
@@ -397,9 +419,9 @@ export async function GET(request: NextRequest) {
       },
       summary: {
         total_units: totalCount,
-        occupied: enriched.filter((u) => u.tenant_status === 'occupied').length,
-        pending: enriched.filter((u) => u.tenant_status === 'pending').length,
-        vacant: enriched.filter((u) => u.tenant_status === 'vacant').length,
+        occupied: globalOccupied,
+        pending: globalPending,
+        vacant: globalVacant,
         einheiten_limit: orgLimit,
       },
     })

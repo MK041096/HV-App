@@ -156,12 +156,7 @@ export async function POST(request: NextRequest) {
         .eq('organization_id', orgId)
         .eq('is_deleted', false)
       const used = currentCount ?? 0
-      if (used >= einheitenLimit) {
-        return NextResponse.json({
-          error: `Einheitenlimit erreicht (${used} von ${einheitenLimit}). Bitte kontaktieren Sie uns unter kracherdigital@gmail.com um Ihr Abonnement anzupassen.`
-        }, { status: 403 })
-      }
-      remainingSlots = einheitenLimit - used
+      remainingSlots = Math.max(0, einheitenLimit - used)
     }
 
     // Parse multipart form

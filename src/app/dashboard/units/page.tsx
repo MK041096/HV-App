@@ -387,26 +387,21 @@ export default function UnitsListPage() {
 
       {/* Unit Limit Bar */}
       {unitLimit > 0 && (
-        <div className={`rounded-lg border px-4 py-3 ${atLimit ? 'border-red-200 bg-red-50' : 'border-border bg-muted/30'}`}>
+        <div className="rounded-lg border px-4 py-3 border-border bg-muted/30">
           <div className="flex items-center justify-between mb-1.5">
             <span className="text-sm font-medium">
               {totalUnits} von {unitLimit} Einheiten belegt
             </span>
-            {atLimit && (
-              <a href="mailto:kracherdigital@gmail.com?subject=Einheitenlimit%20erhöhen%20SMARTCARL" className="text-xs text-primary underline underline-offset-2">
-                Limit erhöhen anfragen
-              </a>
-            )}
+            <a href="mailto:kracherdigital@gmail.com?subject=Einheitenlimit%20erhöhen%20SMARTCARL" className="text-xs text-primary underline underline-offset-2">
+              Limit erhöhen anfragen
+            </a>
           </div>
           <div className="w-full bg-muted rounded-full h-2">
             <div
-              className={`h-2 rounded-full transition-all ${atLimit ? 'bg-red-500' : totalUnits / unitLimit > 0.8 ? 'bg-yellow-500' : 'bg-primary'}`}
+              className={`h-2 rounded-full transition-all ${totalUnits / unitLimit > 0.9 ? 'bg-yellow-500' : 'bg-primary'}`}
               style={{ width: `${Math.min((totalUnits / unitLimit) * 100, 100)}%` }}
             />
           </div>
-          {atLimit && (
-            <p className="text-xs text-red-700 mt-1.5">Limit erreicht — neue Einheiten können erst nach Erweiterung des Abonnements hinzugefügt werden.</p>
-          )}
         </div>
       )}
 
