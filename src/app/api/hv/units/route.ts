@@ -282,6 +282,7 @@ export async function GET(request: NextRequest) {
       search: searchParams.get('search') || undefined,
       sort_by: searchParams.get('sort_by') || undefined,
       sort_order: searchParams.get('sort_order') || undefined,
+      ids_only: searchParams.get('ids_only') || undefined,
     })
 
     if (!parsed.success) {
@@ -291,7 +292,23 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    const { page, per_page, tenant_status, search, sort_by, sort_order } = parsed.data
+    const { page, per_page, tenant_status, search, sort_by, sort_order, ids_only } = parsed.data
+
+    // ── Fast path: return only unit IDs (for "select all" across pages) ──
+    if (ids_only) {
+      let idsQuery = admin
+        .from('units')
+        .select('id')
+        .eq('organization_id', profile.organization_id)
+        .eq('is_deleted', false)
+        .limit(9999)
+      if (search) {
+        const searchTerm = `%${search}%`
+        idsQuery = idsQuery.or(`name.ilike.${searchTerm},address.ilike.${searchTerm}`)
+      }
+      const { data: idRows } = await idsQuery
+      return NextResponse.json({ ids: (idRows || []).map(r => r.id) })
+    }
 
     // Count query
     let countQuery = supabase

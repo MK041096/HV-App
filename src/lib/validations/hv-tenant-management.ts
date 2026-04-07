@@ -28,6 +28,9 @@ export const hvUnitListSchema = z.object({
     .enum(['occupied', 'vacant', 'pending', 'vacant_no_email', 'all'])
     .default('all'),
 
+  // Lightweight mode: only return IDs (for "select all" functionality)
+  ids_only: z.coerce.boolean().optional().default(false),
+
   // Search (address, unit name)
   search: z.string().max(200).optional(),
 

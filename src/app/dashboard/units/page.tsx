@@ -337,18 +337,13 @@ export default function UnitsListPage() {
     setIsSelectingAll(true)
     try {
       const params = new URLSearchParams()
-      params.set("page", "1")
-      params.set("per_page", "5000")
-      params.set("sort_by", sortBy)
-      params.set("sort_order", sortOrder)
+      params.set("ids_only", "true")
       if (debouncedSearch) params.set("search", debouncedSearch)
       if (tenantStatusFilter) params.set("tenant_status", tenantStatusFilter)
       const res = await fetch(`/api/hv/units?${params.toString()}`)
       const json = await res.json()
-      const allIds = new Set<string>((json.data || []).map((u: UnitItem) => u.id))
-      setSelectedUnitIds(allIds)
+      setSelectedUnitIds(new Set<string>(json.ids || []))
     } catch {
-      // fallback: just select current page
       setSelectedUnitIds(new Set(units.map(u => u.id)))
     } finally {
       setIsSelectingAll(false)
