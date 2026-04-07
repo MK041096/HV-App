@@ -115,6 +115,7 @@ interface ImportResult {
   units_skipped: number
   codes_generated: number
   emails_sent: number
+  tenants_reactivated: number
   errors: { row: number; message: string }[]
 }
 
@@ -301,6 +302,7 @@ export async function POST(request: NextRequest) {
       units_skipped: 0,
       codes_generated: 0,
       emails_sent: 0,
+      tenants_reactivated: 0,
       errors: [],
     }
 
@@ -375,13 +377,78 @@ export async function POST(request: NextRequest) {
     // Map unit name → id (Supabase preserves insert order but we match by name to be safe)
     const unitIdByName = new Map(newUnits.map((u: { id: string; name: string }) => [u.name, u.id]))
 
-    // ── Phase 4: Batch insert activation codes — ONLY for rows with a valid email ──
-    // Units without email: name is stored on the unit itself; code is created when HV clicks "Einladen"
-    const rowsWithEmail = validRows.filter((row, _i) => row.email && isValidEmail(row.email))
-    const codeIndexMap = new Map(rowsWithEmail.map((row, i) => [row.unitName, i]))
+    // ── Phase 4: E-Mails prüfen — bereits registrierte Mieter reaktivieren, neue einladen ──
+    const rowsWithEmail = validRows.filter((row) => row.email && isValidEmail(row.email))
 
+    // Batch-Lookup: welche E-Mails haben bereits einen Auth-Account?
+    // Eine einzige Abfrage aller Auth-Users der Org (max 1000 — ausreichend für MVP)
+    const existingAuthByEmail = new Map<string, string>() // email → auth user id
     if (rowsWithEmail.length > 0) {
-      const codeInserts = rowsWithEmail.map((row) => {
+      try {
+        const { data: authData } = await adminSupabase.auth.admin.listUsers({ page: 1, perPage: 1000 })
+        const emailSet = new Set(rowsWithEmail.map(r => r.email!.toLowerCase()))
+        for (const u of authData?.users || []) {
+          if (u.email && emailSet.has(u.email.toLowerCase())) {
+            existingAuthByEmail.set(u.email.toLowerCase(), u.id)
+          }
+        }
+      } catch { /* ignore — falls Lookup fehlschlägt, normal einladen */ }
+    }
+
+    // Aufteilen: bereits registriert vs. neu
+    const rowsToReactivate = rowsWithEmail.filter(r => existingAuthByEmail.has(r.email!.toLowerCase()))
+    const rowsToInvite = rowsWithEmail.filter(r => !existingAuthByEmail.has(r.email!.toLowerCase()))
+
+    // Bereits registrierte Mieter: Profil reaktivieren + mit neuer Einheit verknüpfen
+    for (const row of rowsToReactivate) {
+      const authUserId = existingAuthByEmail.get(row.email!.toLowerCase())!
+      const newUnitId = unitIdByName.get(row.unitName)
+      if (!newUnitId) continue
+
+      // Profil suchen (aktiv oder soft-deleted)
+      const { data: existingProfile } = await adminSupabase
+        .from('profiles')
+        .select('id, is_deleted')
+        .eq('id', authUserId)
+        .eq('organization_id', orgId)
+        .maybeSingle()
+
+      if (existingProfile) {
+        // Profil reaktivieren + neue Einheit zuweisen
+        await adminSupabase
+          .from('profiles')
+          .update({
+            is_deleted: false,
+            deleted_at: null,
+            unit_id: newUnitId,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', authUserId)
+          .eq('organization_id', orgId)
+      } else {
+        // Profil existiert nicht mehr (z.B. wegen Cascade) → neu anlegen
+        await adminSupabase.from('profiles').insert({
+          id: authUserId,
+          organization_id: orgId,
+          role: 'mieter',
+          first_name: row.firstName || null,
+          last_name: row.lastName || null,
+          unit_id: newUnitId,
+          is_deleted: false,
+        })
+      }
+
+      // Auth-User entsperren falls gebannt
+      try {
+        await adminSupabase.auth.admin.updateUserById(authUserId, { ban_duration: 'none' })
+      } catch { /* ignore */ }
+
+      result.tenants_reactivated++
+    }
+
+    // Neue Mieter: Aktivierungscode erstellen + E-Mail senden
+    if (rowsToInvite.length > 0) {
+      const codeInserts = rowsToInvite.map((row) => {
         const rowIdx = validRows.indexOf(row)
         return {
           organization_id: orgId,
@@ -399,8 +466,8 @@ export async function POST(request: NextRequest) {
       if (!batchCodeError) result.codes_generated = codeInserts.length
     }
 
-    // ── Phase 5: Send emails (only for rows with email) ──
-    for (const row of rowsWithEmail) {
+    // ── Phase 5: E-Mails senden (nur für neue Mieter ohne bestehenden Account) ──
+    for (const row of rowsToInvite) {
       const rowIdx = validRows.indexOf(row)
       const tenantName = row.firstName && row.lastName
         ? `${row.firstName} ${row.lastName}`
@@ -429,6 +496,7 @@ export async function POST(request: NextRequest) {
         units_skipped: result.units_skipped,
         codes_generated: result.codes_generated,
         emails_sent: result.emails_sent,
+        tenants_reactivated: result.tenants_reactivated,
         errors: result.errors.length,
       },
     })
