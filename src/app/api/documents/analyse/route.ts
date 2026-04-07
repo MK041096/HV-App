@@ -125,10 +125,10 @@ export async function POST(request: NextRequest) {
     const { file_path } = await request.json()
     if (!file_path) return NextResponse.json({ error: 'file_path fehlt' }, { status: 400 })
 
-    // Load known Liegenschaften for this org
+    // Load all units for this org (needed for liegenschaft matching AND unit_id lookup)
     const { data: units } = await supabase
       .from('units')
-      .select('address')
+      .select('id, name, address')
       .eq('organization_id', profile.organization_id)
       .eq('is_deleted', false)
 
@@ -142,6 +142,26 @@ export async function POST(request: NextRequest) {
           })
       )
     )
+
+    // Helper: find specific unit_id when liegenschaft + Top number are both known
+    const findUnitId = (liegenschaft: string, topNr: string): { unit_id: string; unit_name: string } | null => {
+      if (!units) return null
+      const normalizedLg = normalize(liegenschaft.split(',')[0])
+      const topInt = parseInt(topNr, 10)
+      for (const u of units) {
+        if (!u.address) continue
+        const addr = u.address as string
+        const normAddr = normalize(addr)
+        // Must be in the same liegenschaft
+        if (!normAddr.includes(normalizedLg)) continue
+        // Must contain the Top number (Top 1, Top 01, /1, /01 etc.)
+        if (new RegExp(`\\bTop\\s*0*${topInt}\\b`, 'i').test(addr) ||
+            new RegExp(`/\\s*0*${topInt}(?:\\b|,|\\s|$)`).test(addr)) {
+          return { unit_id: u.id, unit_name: u.name || addr }
+        }
+      }
+      return null
+    }
 
     // Download PDF from storage
     const { data: fileData, error: downloadError } = await supabase.storage
@@ -316,13 +336,20 @@ export async function POST(request: NextRequest) {
       if (!bestMatch) bestMatch = findMatch(pdfText)
     }
 
+    // If unit_top + liegenschaft both found → look up the concrete unit_id
+    const unitMatch = (is_unit_police && bestMatch && unit_top)
+      ? findUnitId(bestMatch, unit_top)
+      : null
+
     return NextResponse.json({
-      liegenschaft: bestMatch,
+      liegenschaft: unitMatch ? null : bestMatch,
+      unit_id: unitMatch?.unit_id ?? null,
+      unit_name: unitMatch?.unit_name ?? null,
       suggested_name,
       unit_top,
       is_insurance: true,
       is_unit_police,
-      confidence: bestMatch ? 'hoch' : 'nicht_erkannt',
+      confidence: (bestMatch || unitMatch) ? 'hoch' : 'nicht_erkannt',
     })
   } catch (err) {
     console.error('PDF analyse error:', err)

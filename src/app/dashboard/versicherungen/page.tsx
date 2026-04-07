@@ -88,6 +88,8 @@ interface BulkItem {
   status: 'pending' | 'uploading' | 'analysing' | 'done' | 'error' | 'not_found' | 'wrong_type'
   liegenschaft: string | null
   overrideLiegenschaft: string | null
+  unit_id: string | null
+  unitName: string | null
   suggestedName: string | null
   overrideName: string | null
   file_path?: string
@@ -367,6 +369,8 @@ export default function VersicherungenPage() {
       status: 'pending',
       liegenschaft: null,
       overrideLiegenschaft: null,
+      unit_id: null,
+      unitName: null,
       suggestedName: null,
       overrideName: null,
     })))
@@ -417,18 +421,29 @@ export default function VersicherungenPage() {
         const analyseData = await analyseRes.json()
 
         if (analyseData.is_insurance === false) {
-          updated[i] = { ...updated[i], status: 'wrong_type', liegenschaft: null, suggestedName: null }
+          updated[i] = { ...updated[i], status: 'wrong_type', liegenschaft: null, unit_id: null, unitName: null, suggestedName: null }
+        } else if (analyseData.unit_id) {
+          // Einheits-Police — konkrete Unit gefunden
+          updated[i] = {
+            ...updated[i],
+            status: 'done',
+            unit_id: analyseData.unit_id,
+            unitName: analyseData.unit_name || null,
+            liegenschaft: null,
+            suggestedName: analyseData.suggested_name || null,
+          }
         } else if (analyseData.liegenschaft) {
+          // Liegenschafts-Police
           updated[i] = {
             ...updated[i],
             status: 'done',
             liegenschaft: analyseData.liegenschaft,
+            unit_id: null,
+            unitName: null,
             suggestedName: analyseData.suggested_name || null,
-            // advisory only — user sees this but upload is not blocked
-            errorMsg: analyseData.unit_top ? `Hinweis: Top ${analyseData.unit_top} erkannt — für Einheits-Policen besser Tab „Nach Einheit" nutzen` : undefined,
           }
         } else {
-          updated[i] = { ...updated[i], status: 'not_found', liegenschaft: null, suggestedName: analyseData.suggested_name || null }
+          updated[i] = { ...updated[i], status: 'not_found', liegenschaft: null, unit_id: null, unitName: null, suggestedName: analyseData.suggested_name || null }
         }
       } catch {
         updated[i] = { ...updated[i], status: 'not_found', liegenschaft: null, suggestedName: null }
@@ -460,8 +475,8 @@ export default function VersicherungenPage() {
             file_size: item.file_size,
             mime_type: item.mime_type || 'application/pdf',
             document_type: 'versicherung',
-            unit_id: null,
-            liegenschaft: lg || null,
+            unit_id: item.unit_id || null,
+            liegenschaft: item.unit_id ? null : (lg || null),
           }),
         })
       }
@@ -517,15 +532,6 @@ export default function VersicherungenPage() {
         </div>
       </div>
 
-      <Card className="border-blue-200 bg-blue-50">
-        <CardContent className="pt-4 pb-4">
-          <p className="text-sm text-blue-800">
-            <strong>Tab „Nach Liegenschaft":</strong> Für Policen, die das gesamte Gebäude betreffen — z. B. Gebäudeversicherung, Leitungswasserversicherung, Haftpflicht. CARL erkennt automatisch, welcher Liegenschaft die Police gehört.<br />
-            <strong>Tab „Nach Einheit":</strong> Für Policen, die nur eine bestimmte Wohnung betreffen — z. B. Geräteversicherung Top 1, Glasbruchversicherung Top 3. Dort die Einheit auswählen und die Police hochladen.
-          </p>
-        </CardContent>
-      </Card>
-
       {/* ── Bulk Upload ─────────────────────────────────────────────────────── */}
       {showBulk && (
         <Card className="border-primary/30">
@@ -535,7 +541,7 @@ export default function VersicherungenPage() {
               Policen importieren
             </CardTitle>
             <CardDescription>
-              Laden Sie mehrere Policen auf einmal hoch. Das System liest Versicherungsart, Versicherer und Liegenschaft direkt aus dem PDF-Text und ordnet sie richtig zu.
+              Laden Sie alle Policen auf einmal hoch — das System erkennt automatisch ob eine Police für eine Liegenschaft oder eine bestimmte Einheit gilt und ordnet sie entsprechend zu.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -645,7 +651,11 @@ export default function VersicherungenPage() {
                             )}
                           </td>
                           <td className="px-3 py-2">
-                            {(item.status === 'done' || item.status === 'not_found') ? (
+                            {item.status === 'done' && item.unit_id ? (
+                              <span className="text-xs text-blue-700 font-medium">
+                                Einheit: {item.unitName || item.unit_id}
+                              </span>
+                            ) : (item.status === 'done' || item.status === 'not_found') ? (
                               <LgCombobox
                                 value={item.overrideLiegenschaft ?? item.liegenschaft}
                                 onChange={(val) => {
