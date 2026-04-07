@@ -215,23 +215,11 @@ export async function POST(request: NextRequest) {
       pdfText.match(/\bTop\s*(\d{1,3})\b(?!\s*[-–]\s*\d)/i)
     const unit_top = topMatch ? topMatch[1] : null
 
-    // ── Einheits-spezifische Versicherungstypen erkennen ──
-    // Diese Typen gelten immer nur für eine einzelne Einheit
-    const ALWAYS_UNIT_TYPES: RegExp[] = [
-      /geräteversicherung|geraeteversicherung/i,
-      /haushaltsversicherung/i,
-      /mietrechtsschutzversicherung/i,
-      /mietausfallversicherung/i,
-    ]
-    // Diese Typen sind einheits-spezifisch NUR wenn auch "Top X" vorkommt
-    const MAYBE_UNIT_TYPES: RegExp[] = [
-      /glasbruchversicherung|glas.?versicherung/i,
-    ]
-    const hasTopAnywhere = unit_top !== null || /\bTop\s+\d{1,3}\b/i.test(pdfText)
-    const is_unit_police =
-      ALWAYS_UNIT_TYPES.some(p => p.test(pdfText)) ||
-      (MAYBE_UNIT_TYPES.some(p => p.test(pdfText)) && hasTopAnywhere) ||
-      unit_top !== null
+    // ── Einheits-Police: genau dann wenn die Adresse eine Top-Nummer enthält ──
+    // Kein Raten anhand des Dokumenttyps — allein die Adresse entscheidet.
+    // Gebäudeversicherung einer Zentralheizung → keine Top-Nummer → Liegenschaft ✓
+    // Geräteversicherung Top 1 → enthält "Top 1" in der Risikoanschrift → Einheit ✓
+    const is_unit_police = unit_top !== null
 
     // ── Mietvertrag-Pfad ──
     // Mietvertrag erkennen: mind. ein Mietvertrag-typisches Wort vorhanden
