@@ -7,7 +7,7 @@ import {
   Search, Filter, ArrowUpDown, ArrowUp, ArrowDown,
   ChevronLeft, ChevronRight, Loader2, Home, X,
   UserCheck, Clock, CircleDashed, ClipboardList, MapPin,
-  Users, FileSpreadsheet, Copy, Check, Mail, AlertTriangle, Trash2, FileText, Plus,
+  Users, FileSpreadsheet, Copy, Check, Mail, AlertTriangle, Trash2, FileText, Plus, TrendingUp, CheckCircle2,
 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
@@ -201,6 +201,14 @@ export default function UnitsListPage() {
   const [newUnitError, setNewUnitError] = useState<string | null>(null)
   const [newUnitForm, setNewUnitForm] = useState({ name: "", address: "", floor: "", first_name: "", last_name: "", email: "", phone: "" })
 
+  // Upgrade state
+  const [upgradeOpen, setUpgradeOpen] = useState(false)
+  const [upgradeNewCount, setUpgradeNewCount] = useState("")
+  const [upgradeStep, setUpgradeStep] = useState<'input' | 'preview' | 'success'>('input')
+  const [upgradePreviewAmount, setUpgradePreviewAmount] = useState<number | null>(null)
+  const [upgradeLoading, setUpgradeLoading] = useState(false)
+  const [upgradeError, setUpgradeError] = useState<string | null>(null)
+
   // Bulk selection state
   const [selectedUnitIds, setSelectedUnitIds] = useState<Set<string>>(new Set())
   const [bulkDeleteUnitsOpen, setBulkDeleteUnitsOpen] = useState(false)
@@ -344,6 +352,57 @@ export default function UnitsListPage() {
     } : u))
   }
 
+  async function handleUpgradePreview() {
+    const count = parseInt(upgradeNewCount)
+    if (isNaN(count) || count <= totalUnits) return
+    setUpgradeLoading(true)
+    setUpgradeError(null)
+    try {
+      const res = await fetch('/api/stripe/upgrade-units', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ new_unit_count: count, preview: true }),
+      })
+      const json = await res.json()
+      if (!res.ok) throw new Error(json.error || 'Fehler beim Laden der Vorschau')
+      setUpgradePreviewAmount(json.proration_amount)
+      setUpgradeStep('preview')
+    } catch (err) {
+      setUpgradeError(err instanceof Error ? err.message : 'Unbekannter Fehler')
+    } finally {
+      setUpgradeLoading(false)
+    }
+  }
+
+  async function handleUpgradeConfirm() {
+    const count = parseInt(upgradeNewCount)
+    setUpgradeLoading(true)
+    setUpgradeError(null)
+    try {
+      const res = await fetch('/api/stripe/upgrade-units', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ new_unit_count: count }),
+      })
+      const json = await res.json()
+      if (!res.ok) throw new Error(json.error || 'Fehler beim Upgraden')
+      setUpgradeStep('success')
+      fetchUnits()
+    } catch (err) {
+      setUpgradeError(err instanceof Error ? err.message : 'Unbekannter Fehler')
+    } finally {
+      setUpgradeLoading(false)
+    }
+  }
+
+  function handleUpgradeClose() {
+    setUpgradeOpen(false)
+    setUpgradeStep('input')
+    setUpgradeNewCount("")
+    setUpgradePreviewAmount(null)
+    setUpgradeError(null)
+  }
+
   function handleSort(field: SortField) {
     if (sortBy === field) { setSortOrder(sortOrder === "asc" ? "desc" : "asc") }
     else { setSortBy(field); setSortOrder(field === "created_at" ? "desc" : "asc") }
@@ -394,13 +453,13 @@ export default function UnitsListPage() {
             <span className="text-sm font-medium">
               {totalUnits} von {unitLimit} Einheiten belegt
             </span>
-            <a href="mailto:kracherdigital@gmail.com?subject=Einheitenlimit%20erhöhen%20SMARTCARL" className="text-xs text-primary underline underline-offset-2">
-              Limit erhöhen anfragen
-            </a>
+            <button onClick={() => setUpgradeOpen(true)} className="text-xs text-primary underline underline-offset-2">
+              Limit erhöhen
+            </button>
           </div>
           <div className="w-full bg-muted rounded-full h-2">
             <div
-              className={`h-2 rounded-full transition-all ${totalUnits / unitLimit > 0.9 ? 'bg-yellow-500' : 'bg-primary'}`}
+              className={`h-2 rounded-full transition-all ${atLimit ? 'bg-green-500' : totalUnits / unitLimit > 0.9 ? 'bg-yellow-500' : 'bg-primary'}`}
               style={{ width: `${Math.min((totalUnits / unitLimit) * 100, 100)}%` }}
             />
           </div>
@@ -885,6 +944,97 @@ export default function UnitsListPage() {
         onClose={() => { setInviteOpen(false); setInviteUnit(null) }}
         onSuccess={handleInviteSuccess}
       />
+
+      {/* Upgrade Dialog */}
+      <Dialog open={upgradeOpen} onOpenChange={(o) => { if (!o) handleUpgradeClose() }}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <TrendingUp className="h-5 w-5 text-primary" />
+              Einheitenlimit erhöhen
+            </DialogTitle>
+            <DialogDescription>
+              {upgradeStep === 'success'
+                ? 'Ihr Abonnement wurde erfolgreich aktualisiert.'
+                : 'Erhöhen Sie Ihr Einheitenlimit — Sie bezahlen nur die anteilige Differenz für den laufenden Monat.'}
+            </DialogDescription>
+          </DialogHeader>
+
+          {upgradeStep === 'input' && (
+            <div className="space-y-4 py-2">
+              <div className="rounded-lg border bg-muted/40 px-4 py-3 text-sm space-y-1">
+                <p className="text-muted-foreground">Aktuelles Limit</p>
+                <p className="text-2xl font-bold">{unitLimit} <span className="text-base font-normal text-muted-foreground">Einheiten</span></p>
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="upgrade-count">Neues Limit</Label>
+                <Input
+                  id="upgrade-count"
+                  type="number"
+                  min={unitLimit + 1}
+                  max={99999}
+                  placeholder={`Mindestens ${unitLimit + 1}`}
+                  value={upgradeNewCount}
+                  onChange={(e) => { setUpgradeNewCount(e.target.value); setUpgradeError(null) }}
+                />
+                <p className="text-xs text-muted-foreground">Muss größer als {unitLimit} sein</p>
+              </div>
+              {upgradeError && <p className="text-sm text-destructive">{upgradeError}</p>}
+              <DialogFooter>
+                <Button variant="outline" onClick={handleUpgradeClose} disabled={upgradeLoading}>Abbrechen</Button>
+                <Button
+                  onClick={handleUpgradePreview}
+                  disabled={upgradeLoading || !upgradeNewCount || parseInt(upgradeNewCount) <= unitLimit}
+                >
+                  {upgradeLoading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Wird berechnet...</> : 'Kosten berechnen'}
+                </Button>
+              </DialogFooter>
+            </div>
+          )}
+
+          {upgradeStep === 'preview' && (
+            <div className="space-y-4 py-2">
+              <div className="rounded-lg border bg-muted/40 px-4 py-3 space-y-3">
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Aktuelles Limit</span>
+                  <span className="font-medium">{unitLimit} Einheiten</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Neues Limit</span>
+                  <span className="font-medium text-primary">{upgradeNewCount} Einheiten</span>
+                </div>
+                <div className="border-t pt-2 flex justify-between">
+                  <span className="text-sm font-medium">Jetzt fällig (anteilig)</span>
+                  <span className="text-lg font-bold">
+                    {upgradePreviewAmount !== null
+                      ? new Intl.NumberFormat('de-AT', { style: 'currency', currency: 'EUR' }).format(upgradePreviewAmount)
+                      : '—'}
+                  </span>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Stripe berechnet nur die verbleibenden Tage im aktuellen Abrechnungszeitraum. Ab dem nächsten Monat gilt der neue Preis.
+                </p>
+              </div>
+              {upgradeError && <p className="text-sm text-destructive">{upgradeError}</p>}
+              <DialogFooter>
+                <Button variant="outline" onClick={() => { setUpgradeStep('input'); setUpgradeError(null) }} disabled={upgradeLoading}>Zurück</Button>
+                <Button onClick={handleUpgradeConfirm} disabled={upgradeLoading}>
+                  {upgradeLoading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Wird verarbeitet...</> : 'Jetzt upgraden & bezahlen'}
+                </Button>
+              </DialogFooter>
+            </div>
+          )}
+
+          {upgradeStep === 'success' && (
+            <div className="py-6 flex flex-col items-center gap-3 text-center">
+              <CheckCircle2 className="h-12 w-12 text-green-500" />
+              <p className="font-medium">Limit auf {upgradeNewCount} Einheiten erhöht!</p>
+              <p className="text-sm text-muted-foreground">Die Zahlung wurde von Stripe verarbeitet. Das neue Limit ist sofort aktiv.</p>
+              <Button className="mt-2" onClick={handleUpgradeClose}>Schließen</Button>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
