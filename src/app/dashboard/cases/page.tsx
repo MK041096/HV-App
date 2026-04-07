@@ -808,7 +808,7 @@ export default function CasesListPage() {
 
             return (
               <Link key={c.id} href={`/dashboard/cases/${c.id}`}>
-                <Card className="hover:bg-accent/50 transition-colors">
+                <Card className="hover:bg-accent/50 hover:ring-1 hover:ring-black/20 transition-all">
                   <CardContent className="pt-4">
                     <div className="flex items-start justify-between gap-2">
                       <div className="min-w-0 flex-1">

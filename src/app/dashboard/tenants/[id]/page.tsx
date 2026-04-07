@@ -652,7 +652,7 @@ export default function TenantDetailPage({
 
                       return (
                         <Link key={report.id} href={`/dashboard/cases/${report.id}`}>
-                          <div className="p-3 rounded-lg border hover:bg-accent/50 transition-colors">
+                          <div className="p-3 rounded-lg border hover:bg-accent/50 hover:ring-1 hover:ring-black/20 transition-all">
                             <div className="flex items-center gap-2 flex-wrap">
                               <span className="text-xs font-mono text-muted-foreground">
                                 {report.case_number}
