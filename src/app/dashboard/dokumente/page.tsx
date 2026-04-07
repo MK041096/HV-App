@@ -101,23 +101,6 @@ export default function DokumentePage() {
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const [uploadMismatch, setUploadMismatch] = useState<string | null>(null)
-  const [generatingUnitId, setGeneratingUnitId] = useState<string | null>(null)
-
-  async function handleGenerateMietvertrag(unitId: string) {
-    setGeneratingUnitId(unitId)
-    try {
-      const res = await fetch('/api/documents/generate-mietvertrag', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ unit_id: unitId, save_to_storage: true }),
-      })
-      const data = await res.json()
-      if (!res.ok) { alert(data.error || 'Fehler beim Generieren'); return }
-      await loadData()
-    } finally {
-      setGeneratingUnitId(null)
-    }
-  }
 
   const [showBulk, setShowBulk] = useState(false)
   const [bulkItems, setBulkItems] = useState<BulkItem[]>([])
@@ -483,29 +466,9 @@ export default function DokumentePage() {
             Mietverträge
           </h1>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={async () => {
-            const ohneVertrag = einheiten.filter(e => e.docs.length === 0)
-            if (ohneVertrag.length === 0) { alert('Alle Einheiten haben bereits einen Mietvertrag.'); return }
-            if (!window.confirm(`Für ${ohneVertrag.length} Einheit${ohneVertrag.length !== 1 ? 'en' : ''} automatisch Mietverträge generieren?`)) return
-            for (const e of ohneVertrag) {
-              setGeneratingUnitId(e.id)
-              await fetch('/api/documents/generate-mietvertrag', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ unit_id: e.id, save_to_storage: true }),
-              })
-            }
-            setGeneratingUnitId(null)
-            await loadData()
-          }}>
-            <Sparkles className="h-4 w-4 mr-2" />
-            Alle generieren ({einheiten.filter(e => e.docs.length === 0).length})
-          </Button>
-          <Button onClick={() => { setShowBulk(!showBulk); setShowForm(false) }}>
-            <Upload className="h-4 w-4 mr-2" /> PDFs importieren
-          </Button>
-        </div>
+        <Button onClick={() => { setShowBulk(!showBulk); setShowForm(false) }}>
+          <Sparkles className="h-4 w-4 mr-2" /> Mietverträge importieren
+        </Button>
       </div>
 
       <Card className="border-blue-200 bg-blue-50">
@@ -785,17 +748,6 @@ export default function DokumentePage() {
                             Noch kein Mietvertrag für diese Einheit hinterlegt
                           </p>
                           <Button size="sm" variant="outline"
-                            disabled={generatingUnitId === einheit.id}
-                            onClick={async (e) => {
-                              e.stopPropagation()
-                              await handleGenerateMietvertrag(einheit.id)
-                            }}>
-                            {generatingUnitId === einheit.id
-                              ? <><Loader2 className="h-3 w-3 mr-1 animate-spin" /> Wird erstellt…</>
-                              : <><Sparkles className="h-3 w-3 mr-1" /> Mietvertrag generieren</>
-                            }
-                          </Button>
-                          <Button size="sm" variant="ghost"
                             onClick={(e) => {
                               e.stopPropagation()
                               setSelectedUnitId(einheit.id)
@@ -803,7 +755,7 @@ export default function DokumentePage() {
                               setShowBulk(false)
                               window.scrollTo({ top: 0, behavior: 'smooth' })
                             }}>
-                            <Plus className="h-3 w-3 mr-1" /> Eigenes hochladen
+                            <Plus className="h-3 w-3 mr-1" /> Mietvertrag hinzufügen
                           </Button>
                         </div>
                       ) : (
