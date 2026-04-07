@@ -6,6 +6,7 @@ import {
   Building2, Users, ClipboardList, Home, TrendingUp,
   ArrowRight, Loader2, AlertTriangle, CheckCircle2,
   Clock, Wrench, XCircle, Zap, Activity, RefreshCw,
+  Ban, ShieldAlert,
 } from "lucide-react"
 import {
   AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell,
@@ -15,6 +16,18 @@ import {
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { Separator } from "@/components/ui/separator"
+
+interface SuspiciousTenant {
+  tenant_id: string
+  tenant_name: string
+  email: string | null
+  report_count: number
+  org_name: string
+  unit_name: string | null
+  blocked_until: string | null
+  is_blocked: boolean | null | undefined
+}
 
 interface PlatformStats {
   total_organizations: number
@@ -95,6 +108,10 @@ export default function AdminOverviewPage() {
   const [error, setError] = useState<string | null>(null)
   const [lastRefresh, setLastRefresh] = useState(new Date())
 
+  // Suspicious activity
+  const [suspicious, setSuspicious] = useState<SuspiciousTenant[]>([])
+  const [blockingId, setBlockingId] = useState<string | null>(null)
+
   async function loadStats() {
     setIsLoading(true)
     try {
@@ -109,7 +126,39 @@ export default function AdminOverviewPage() {
     }
   }
 
-  useEffect(() => { loadStats() }, [])
+  async function loadSuspicious() {
+    try {
+      const res = await fetch("/api/admin/suspicious-activity")
+      if (res.ok) {
+        const json = await res.json()
+        setSuspicious(json.data || [])
+      }
+    } catch { /* still show main page */ }
+  }
+
+  async function handleBlock(tenantId: string, action: "block_1day" | "unblock") {
+    setBlockingId(tenantId)
+    try {
+      const res = await fetch(`/api/admin/tenants/${tenantId}/block`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action }),
+      })
+      if (res.ok) {
+        await loadSuspicious()
+      }
+    } finally {
+      setBlockingId(null)
+    }
+  }
+
+  useEffect(() => {
+    loadStats()
+    loadSuspicious()
+    // Auto-refresh Alarm alle 60 Sekunden
+    const interval = setInterval(loadSuspicious, 60_000)
+    return () => clearInterval(interval)
+  }, [])
 
   if (isLoading) return (
     <div className="flex items-center justify-center py-20">
@@ -161,6 +210,92 @@ export default function AdminOverviewPage() {
           Aktualisieren
         </Button>
       </div>
+
+      {/* Suspicious Activity Alarm */}
+      <Card className={suspicious.length > 0 ? "border-red-300 bg-red-50/50" : ""}>
+        <CardHeader className="pb-3">
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-base flex items-center gap-2">
+              <ShieldAlert className={`h-4 w-4 ${suspicious.length > 0 ? "text-red-600" : "text-muted-foreground"}`} />
+              Alarm: Verdächtige Meldungsaktivität
+            </CardTitle>
+            <div className="flex items-center gap-2">
+              {suspicious.length > 0 && (
+                <Badge className="bg-red-600 text-white text-xs">{suspicious.length} Alarm{suspicious.length !== 1 ? "e" : ""}</Badge>
+              )}
+              <Button variant="ghost" size="sm" onClick={loadSuspicious} className="h-7 text-xs">
+                <RefreshCw className="h-3 w-3 mr-1" />
+                Prüfen
+              </Button>
+            </div>
+          </div>
+          <CardDescription>
+            Mieter mit 5 oder mehr Meldungen in den letzten 2 Stunden — wird jede Minute automatisch aktualisiert
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {suspicious.length === 0 ? (
+            <div className="flex items-center gap-3 py-3 text-green-700">
+              <CheckCircle2 className="h-5 w-5 text-green-600 shrink-0" />
+              <p className="text-sm font-medium">Alles ruhig — keine auffällige Aktivität in den letzten 2 Stunden</p>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {suspicious.map((t, i) => (
+                <div key={t.tenant_id}>
+                  {i > 0 && <Separator />}
+                  <div className="flex items-center justify-between gap-4 py-2">
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="font-medium text-sm">{t.tenant_name}</span>
+                        {t.is_blocked ? (
+                          <Badge variant="outline" className="text-[10px] bg-red-100 text-red-800 border-red-200">
+                            <Ban className="h-2.5 w-2.5 mr-1" />Gesperrt
+                          </Badge>
+                        ) : (
+                          <Badge variant="outline" className="text-[10px] bg-orange-100 text-orange-800 border-orange-200">
+                            {t.report_count}× in 2h
+                          </Badge>
+                        )}
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-0.5">
+                        {t.org_name}{t.unit_name ? ` · ${t.unit_name}` : ""}
+                        {t.email && <span className="ml-1">· {t.email}</span>}
+                      </p>
+                    </div>
+                    <div className="shrink-0">
+                      {t.is_blocked ? (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="h-7 text-xs"
+                          onClick={() => handleBlock(t.tenant_id, "unblock")}
+                          disabled={blockingId === t.tenant_id}
+                        >
+                          {blockingId === t.tenant_id ? <Loader2 className="h-3 w-3 animate-spin" /> : "Freigeben"}
+                        </Button>
+                      ) : (
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          className="h-7 text-xs"
+                          onClick={() => handleBlock(t.tenant_id, "block_1day")}
+                          disabled={blockingId === t.tenant_id}
+                        >
+                          {blockingId === t.tenant_id
+                            ? <Loader2 className="h-3 w-3 animate-spin" />
+                            : <><Ban className="h-3 w-3 mr-1" />1 Tag sperren</>
+                          }
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       {/* KPI Cards */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
