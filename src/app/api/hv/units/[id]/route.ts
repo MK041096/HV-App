@@ -69,7 +69,7 @@ export async function DELETE(
     // Offene Aktivierungscodes für diese Einheit abbrechen
     await admin
       .from('activation_codes')
-      .update({ status: 'cancelled' })
+      .update({ status: 'deactivated' })
       .eq('unit_id', id)
       .eq('organization_id', profile.organization_id)
       .eq('status', 'pending')

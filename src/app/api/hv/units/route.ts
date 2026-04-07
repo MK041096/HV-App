@@ -210,7 +210,7 @@ export async function DELETE(request: NextRequest) {
       // Offene Aktivierungscodes für gelöschte Einheiten abbrechen
       await admin
         .from('activation_codes')
-        .update({ status: 'cancelled' })
+        .update({ status: 'deactivated' })
         .in('unit_id', deletableIds)
         .eq('organization_id', profile.organization_id)
         .eq('status', 'pending')
@@ -517,20 +517,34 @@ export async function GET(request: NextRequest) {
       .eq('is_deleted', false)
       .not('unit_id', 'is', null)
 
-    // Count pending: units with a code that was actually sent (has invited_email)
-    // Uses admin client to bypass RLS (same reason as above)
-    const { data: pendingCodes } = await admin
-      .from('activation_codes')
-      .select('unit_id, invited_email')
+    // Count pending: only for non-deleted units
+    // Uses admin client to bypass RLS
+    const { data: activeUnitRows } = await admin
+      .from('units')
+      .select('id')
       .eq('organization_id', profile.organization_id)
-      .eq('status', 'pending')
+      .eq('is_deleted', false)
 
-    const pendingWithEmail = new Set(
-      (pendingCodes || []).filter((r: { unit_id: string; invited_email: string | null }) => r.invited_email).map((r: { unit_id: string }) => r.unit_id)
-    ).size
-    const pendingNoEmail = new Set(
-      (pendingCodes || []).filter((r: { unit_id: string; invited_email: string | null }) => !r.invited_email).map((r: { unit_id: string }) => r.unit_id)
-    ).size
+    const activeUnitIds = (activeUnitRows || []).map((u: { id: string }) => u.id)
+
+    let pendingWithEmail = 0
+    let pendingNoEmail = 0
+
+    if (activeUnitIds.length > 0) {
+      const { data: pendingCodes } = await admin
+        .from('activation_codes')
+        .select('unit_id, invited_email')
+        .eq('organization_id', profile.organization_id)
+        .eq('status', 'pending')
+        .in('unit_id', activeUnitIds)
+
+      pendingWithEmail = new Set(
+        (pendingCodes || []).filter((r: { unit_id: string; invited_email: string | null }) => r.invited_email).map((r: { unit_id: string }) => r.unit_id)
+      ).size
+      pendingNoEmail = new Set(
+        (pendingCodes || []).filter((r: { unit_id: string; invited_email: string | null }) => !r.invited_email).map((r: { unit_id: string }) => r.unit_id)
+      ).size
+    }
 
     const globalOccupied = occupiedCount || 0
     const globalPending = pendingWithEmail

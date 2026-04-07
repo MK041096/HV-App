@@ -612,7 +612,7 @@ export default function UnitsListPage() {
       )}
 
       {/* Vacant no email hint */}
-      {vacantNoEmailCount > 0 && tenantStatusFilter !== 'vacant_no_email' && (
+      {vacantNoEmailCount > 0 && totalUnits > 0 && tenantStatusFilter !== 'vacant_no_email' && (
         <div className="flex items-start gap-3 rounded-lg border border-yellow-200 bg-yellow-50 px-4 py-3 text-sm">
           <AlertTriangle className="h-4 w-4 text-yellow-600 mt-0.5 shrink-0" />
           <div className="text-yellow-800 space-y-2 flex-1">
