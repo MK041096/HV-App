@@ -590,9 +590,9 @@ export default function UnitsListPage() {
       {summary && (
         <div className="grid gap-4 grid-cols-3">
           {[
-            { key: "occupied", label: "Belegt", count: summary.occupied, icon: UserCheck, color: "text-green-600" },
+            { key: "occupied", label: "Aktiv", count: summary.occupied, icon: UserCheck, color: "text-green-600" },
             { key: "pending", label: "Ausstehend", count: summary.pending, icon: Clock, color: "text-yellow-600" },
-            { key: "vacant", label: "Leer", count: summary.vacant, icon: CircleDashed, color: "text-gray-600" },
+            { key: "vacant", label: "Nicht eingeladen", count: summary.vacant, icon: CircleDashed, color: "text-gray-600" },
           ].map(({ key, label, count, icon: Icon, color }) => (
             <Card
               key={key}
