@@ -161,7 +161,88 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ liegenschaft: null, suggested_name: null, confidence: 'nicht_erkannt' })
     }
 
-    // Check if this is actually an insurance document
+    // ── Gemeinsame Hilfsfunktion: Liegenschaft in Text suchen ──
+    const findMatch = (searchText: string): string | null => {
+      const normalizedSearch = normalize(searchText)
+      let found: string | null = null
+      let foundLen = 0
+      for (const lg of liegenschaften) {
+        const normalizedLg = normalize(lg)
+        if (normalizedSearch.includes(normalizedLg) && normalizedLg.length > foundLen) {
+          found = lg
+          foundLen = normalizedLg.length
+        }
+      }
+      if (!found) {
+        for (const lg of liegenschaften) {
+          const streetPart = lg.split(',')[0].trim()
+          const normalizedStreet = normalize(streetPart)
+          if (normalizedStreet.length > 5 && normalizedSearch.includes(normalizedStreet)) {
+            found = lg
+            break
+          }
+        }
+      }
+      return found
+    }
+
+    // ── Top-Nummer aus PDF extrahieren ──
+    const topMatch =
+      pdfText.match(/\b(?:wohnung|mietobjekt|einheit|mietgegenstand)[^.\n]{0,80}\bTop\s*(\d{1,3})\b(?!\s*[-–]\s*\d)/i) ??
+      pdfText.match(/\bTop\s+Nr\.?\s*(\d{1,3})\b/i) ??
+      pdfText.match(/[/\\]Top\s*(\d{1,3})\b/i) ??
+      pdfText.match(/\bTop\s*(\d{1,3})\b(?!\s*[-–]\s*\d)/i)
+    const unit_top = topMatch ? topMatch[1] : null
+
+    // ── Mietvertrag-Pfad ──
+    const isMietvertrag = NON_INSURANCE_INDICATORS.some(p => p.test(pdfText))
+    if (isMietvertrag) {
+      let bestMatch: string | null = null
+
+      if (liegenschaften.length > 0) {
+        // Kontext-Labels für Mietverträge
+        const mietLabels = [
+          'mietgegenstand',
+          'mietobjekt',
+          'das mietobjekt',
+          'die wohnung',
+          'wohneinheit',
+          'mietgegenstand befindet sich',
+          'objekt:',
+          'adresse:',
+          'lage:',
+          'gelegen in',
+          'befindet sich in',
+          'top',
+        ]
+        const contextWindows: string[] = []
+        const lowerText = pdfText.toLowerCase()
+        for (const label of mietLabels) {
+          let pos = lowerText.indexOf(label)
+          while (pos !== -1) {
+            contextWindows.push(pdfText.slice(pos, pos + 400))
+            pos = lowerText.indexOf(label, pos + 1)
+          }
+        }
+        for (const window of contextWindows) {
+          const match = findMatch(window)
+          if (match) { bestMatch = match; break }
+        }
+        // Volltext-Fallback
+        if (!bestMatch) bestMatch = findMatch(pdfText)
+      }
+
+      return NextResponse.json({
+        liegenschaft: bestMatch,
+        suggested_name: null,
+        unit_top,
+        is_insurance: false,
+        is_mietvertrag: true,
+        confidence: bestMatch ? 'hoch' : 'nicht_erkannt',
+      })
+    }
+
+    // ── Versicherungsdokument-Pfad ──
     const docType = detectDocumentType(pdfText)
     if (docType === 'wrong_type') {
       return NextResponse.json({ liegenschaft: null, suggested_name: null, is_insurance: false, confidence: 'kein_versicherungsdokument' })
@@ -170,106 +251,35 @@ export async function POST(request: NextRequest) {
     // Extract policy name from PDF text
     const suggested_name = extractPolicyName(pdfText)
 
-    // Match Liegenschaft — contextual search first, full-text fallback
     let bestMatch: string | null = null
 
     if (liegenschaften.length > 0) {
-      // Step 1: Extract context windows around "Versichertes Objekt" labels
-      // Covers label variations used by Austrian/German insurers (Wiener Städtische,
-      // Allianz, Generali, UNIQA, HDI, Helvetia, Grazer Wechselseitige, etc.)
       const objectLabels = [
-        // Most common
-        'versichertes objekt',
-        'versicherungsobjekt',
-        'das versicherte objekt',
-        // Liegenschaft-based
-        'liegenschaftsadresse',
-        'geschützte liegenschaft',
-        'geschuetzte liegenschaft',
-        'versicherte liegenschaft',
-        'liegenschaft',
-        // Risiko-based (Allianz, HDI, Helvetia)
-        'risikoanschrift',
-        'risikoadresse',
-        'risikoort',
-        'risikostandort',
-        'ort der risikobelegenheit',
-        'belegenheitsadresse',
-        'belegenheitsort',
-        // Standort / Gebäude
-        'versicherter standort',
-        'versicherungsort',
-        'objektadresse',
-        'gebäudeadresse',
-        'gebaeudeadresse',
-        'versichertes gebäude',
-        'versichertes gebaeude',
-        // Sonstige
-        'versicherter gegenstand',
-        'versichertes risiko',
-        'anschrift des risikos',
-        'lageadresse',
-        'standortadresse',
+        'versichertes objekt', 'versicherungsobjekt', 'das versicherte objekt',
+        'liegenschaftsadresse', 'geschützte liegenschaft', 'geschuetzte liegenschaft',
+        'versicherte liegenschaft', 'liegenschaft',
+        'risikoanschrift', 'risikoadresse', 'risikoort', 'risikostandort',
+        'ort der risikobelegenheit', 'belegenheitsadresse', 'belegenheitsort',
+        'versicherter standort', 'versicherungsort', 'objektadresse',
+        'gebäudeadresse', 'gebaeudeadresse', 'versichertes gebäude', 'versichertes gebaeude',
+        'versicherter gegenstand', 'versichertes risiko', 'anschrift des risikos',
+        'lageadresse', 'standortadresse',
       ]
       const contextWindows: string[] = []
       const lowerText = pdfText.toLowerCase()
       for (const label of objectLabels) {
         let pos = lowerText.indexOf(label)
         while (pos !== -1) {
-          // Take 400 chars after the label (where the address follows)
-          const window = pdfText.slice(pos, pos + 400)
-          contextWindows.push(window)
+          contextWindows.push(pdfText.slice(pos, pos + 400))
           pos = lowerText.indexOf(label, pos + 1)
         }
       }
-
-      // Helper: search liegenschaften in a given text block
-      const findMatch = (searchText: string): string | null => {
-        const normalizedSearch = normalize(searchText)
-        let found: string | null = null
-        let foundLen = 0
-        for (const lg of liegenschaften) {
-          const normalizedLg = normalize(lg)
-          if (normalizedSearch.includes(normalizedLg) && normalizedLg.length > foundLen) {
-            found = lg
-            foundLen = normalizedLg.length
-          }
-        }
-        if (!found) {
-          // Street-only fallback (ignore house number and city)
-          for (const lg of liegenschaften) {
-            const streetPart = lg.split(',')[0].trim()
-            const normalizedStreet = normalize(streetPart)
-            if (normalizedStreet.length > 5 && normalizedSearch.includes(normalizedStreet)) {
-              found = lg
-              break
-            }
-          }
-        }
-        return found
-      }
-
-      // Step 2: Search in context windows (high confidence)
       for (const window of contextWindows) {
         const match = findMatch(window)
         if (match) { bestMatch = match; break }
       }
-
-      // Step 3: Full-text fallback (lower confidence, still useful)
-      if (!bestMatch) {
-        bestMatch = findMatch(pdfText)
-      }
+      if (!bestMatch) bestMatch = findMatch(pdfText)
     }
-
-    // Extract Top/unit number from PDF text (for Mietvertrag matching)
-    // Priority: specific context (Wohnung/Mietobjekt + Top N) → Top Nr. N → standalone Top N
-    // Negative lookahead (?!\s*[-–]\s*\d) prevents matching "Top 1" in ranges like "Top 1-10"
-    const topMatch =
-      pdfText.match(/\b(?:wohnung|mietobjekt|einheit)[^.\n]{0,80}\bTop\s*(\d{1,3})\b(?!\s*[-–]\s*\d)/i) ??
-      pdfText.match(/\bTop\s+Nr\.?\s*(\d{1,3})\b/i) ??
-      pdfText.match(/[/\\]Top\s*(\d{1,3})\b/i) ??
-      pdfText.match(/\bTop\s*(\d{1,3})\b(?!\s*[-–]\s*\d)/i)
-    const unit_top = topMatch ? topMatch[1] : null
 
     return NextResponse.json({
       liegenschaft: bestMatch,
