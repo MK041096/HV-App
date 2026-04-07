@@ -532,6 +532,14 @@ export default function VersicherungenPage() {
         </div>
       </div>
 
+      <Card className="border-blue-200 bg-blue-50">
+        <CardContent className="pt-4 pb-4">
+          <p className="text-sm text-blue-800">
+            Hinterlegen Sie für jede Liegenschaft die zugehörigen Versicherungspolicen. Das System übernimmt die Zuordnung automatisch. Einheitsspezifische Policen, wie etwa eine Maschinenversicherung für eingebaute Geräte, können ebenfalls hochgeladen und direkt der jeweiligen Einheit zugewiesen werden.
+          </p>
+        </CardContent>
+      </Card>
+
       {/* ── Bulk Upload ─────────────────────────────────────────────────────── */}
       {showBulk && (
         <Card className="border-primary/30">
