@@ -247,15 +247,26 @@ export async function POST(request: NextRequest) {
       return bestLg
     }
 
-    // ── Top-Nummer aus PDF extrahieren ──
+    // ── Einheitsnummer aus PDF extrahieren ──
+    // Deckt alle österreichischen/deutschen Schreibweisen ab
     const topMatch =
+      // "Top X" in Wohnungskontext
       pdfText.match(/\b(?:wohnung|mietobjekt|einheit|mietgegenstand)[^.\n]{0,80}\bTop\s*(\d{1,3})\b(?!\s*[-–]\s*\d)/i) ??
-      pdfText.match(/\bTop\s+Nr\.?\s*(\d{1,3})\b/i) ??
+      // "Top Nr. X" oder "Top-Nr. X"
+      pdfText.match(/\bTop[-.\s]*Nr\.?\s*(\d{1,3})\b/i) ??
+      // "/Top X" in Adresse
       pdfText.match(/[/\\]Top\s*(\d{1,3})\b/i) ??
-      // Versicherungs-spezifische Kontexte (Risikoanschrift, Bewohnte Einheit etc.)
+      // Versicherungs-spezifische Kontexte (Risikoanschrift, Risikoort etc.)
       pdfText.match(/(?:risikoanschrift|risikostandort|versicherungsort|bewohnte?\s*einheit|versicherte?\s*einheit)[^\n]{0,150}Top\s*(\d{1,3})\b/i) ??
-      // Adressformat: "Top 1, 1060 Wien"
+      // "Top X, 1060 Wien" (Adressformat mit PLZ)
       pdfText.match(/\bTop\s*(\d{1,3})[,\s]+\d{4}/i) ??
+      // "Wohnungsnummer X", "Wohnungs-Nr. X", "Türnummer X", "Tür-Nr. X"
+      pdfText.match(/\b(?:wohnungsnummer|wohnungs[-.]?nr\.?|türnummer|tür[-.]?nr\.?|apt\.?[-.\s]*nr\.?)\s*:?\s*(\d{1,3})\b/i) ??
+      // "Einheit Nr. X", "Einheit-Nr. X"
+      pdfText.match(/\beinheit[-.]?nr\.?\s*:?\s*(\d{1,3})\b/i) ??
+      // "Stiege X, Tür Y" — österreichisches Adressformat
+      pdfText.match(/\bTür\s*(\d{1,3})\b/i) ??
+      // Generischer Fallback: "Top X" irgendwo im Text
       pdfText.match(/\bTop\s*(\d{1,3})\b(?!\s*[-–]\s*\d)/i)
     const unit_top = topMatch ? topMatch[1] : null
 
