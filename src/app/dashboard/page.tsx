@@ -438,7 +438,7 @@ export default function DashboardPage() {
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Übersicht</h1>
         <p className="text-muted-foreground mt-1">
-          Alle Schadensfälle und Kennzahlen auf einen Blick
+          Kennzahlen und zuletzt eingegangene Meldungen
         </p>
       </div>
 
