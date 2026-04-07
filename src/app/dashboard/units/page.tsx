@@ -783,7 +783,7 @@ export default function UnitsListPage() {
                 return (
                   <TableRow
                     key={unit.id}
-                    className={`transition-colors ${selectedUnitIds.has(unit.id) ? "bg-muted/40" : unit.tenant ? "cursor-pointer hover:bg-accent/50" : "hover:bg-accent/50"}`}
+                    className={`transition-all ${selectedUnitIds.has(unit.id) ? "bg-muted/40" : unit.tenant ? "cursor-pointer hover:bg-accent/50 hover:ring-1 hover:ring-black/20" : "hover:bg-accent/50"}`}
                     onClick={() => unit.tenant && router.push(`/dashboard/tenants/${unit.tenant.id}`)}
                     onMouseEnter={unit.tenant ? (e) => { (e.currentTarget as HTMLElement).style.outline = '2px solid rgba(0,0,0,0.7)'; (e.currentTarget as HTMLElement).style.outlineOffset = '-2px' } : undefined}
                     onMouseLeave={unit.tenant ? (e) => { (e.currentTarget as HTMLElement).style.outline = '' } : undefined}
@@ -907,7 +907,7 @@ export default function UnitsListPage() {
           return (
             <Card
               key={unit.id}
-              className={`transition-all ${unit.tenant ? "cursor-pointer hover:bg-accent/50 hover:ring-2 hover:ring-inset hover:ring-black/70" : "hover:bg-accent/50"}`}
+              className={`transition-all ${unit.tenant ? "cursor-pointer hover:bg-accent/50 hover:ring-1 hover:ring-black/20" : "hover:bg-accent/50"}`}
               onClick={() => unit.tenant && router.push(`/dashboard/tenants/${unit.tenant.id}`)}
             >
               <CardContent className="pt-4 pb-3">

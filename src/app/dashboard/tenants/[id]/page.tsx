@@ -596,7 +596,7 @@ export default function TenantDetailPage({
                           return (
                             <TableRow
                               key={report.id}
-                              className="cursor-pointer hover:bg-accent/50"
+                              className="cursor-pointer transition-all hover:bg-accent/50 hover:ring-1 hover:ring-black/20"
                               onClick={() => router.push(`/dashboard/cases/${report.id}`)}
                             >
                               <TableCell className="font-mono text-xs">
