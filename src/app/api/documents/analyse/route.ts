@@ -143,23 +143,45 @@ export async function POST(request: NextRequest) {
       )
     )
 
-    // Helper: find specific unit_id when liegenschaft + Top number are both known
-    const findUnitId = (liegenschaft: string, topNr: string): { unit_id: string; unit_name: string } | null => {
+    // Helper: find specific unit_id — handles both "Top X" and Austrian "/X" address formats
+    const findUnit = (liegenschaft: string, topNr: string | null, pdfFullText: string): { unit_id: string; unit_name: string } | null => {
       if (!units) return null
       const normalizedLg = normalize(liegenschaft.split(',')[0])
-      const topInt = parseInt(topNr, 10)
+      const normalizedPdf = normalize(pdfFullText)
+
+      // Strategy 1: Top-number match ("Top 1", "Top 01", "/Top 1")
+      if (topNr) {
+        const topInt = parseInt(topNr, 10)
+        for (const u of units) {
+          if (!u.address) continue
+          const addr = u.address as string
+          const normAddr = normalize(addr)
+          if (!normAddr.includes(normalizedLg)) continue
+          if (new RegExp(`\\bTop\\s*0*${topInt}\\b`, 'i').test(addr) ||
+              new RegExp(`/\\s*0*${topInt}(?:\\b|,|\\s|$)`).test(addr)) {
+            return { unit_id: u.id, unit_name: u.name || addr }
+          }
+        }
+      }
+
+      // Strategy 2: Full unit-address appears in PDF text
+      // Covers Austrian format "Straße 8/2, 7400 Ort" without "Top" keyword.
+      // Only applies to units whose address contains "/" or "Top" (= sub-unit indicator).
       for (const u of units) {
         if (!u.address) continue
         const addr = u.address as string
         const normAddr = normalize(addr)
-        // Must be in the same liegenschaft
+        // Must belong to this liegenschaft AND be more specific than it
         if (!normAddr.includes(normalizedLg)) continue
-        // Must contain the Top number (Top 1, Top 01, /1, /01 etc.)
-        if (new RegExp(`\\bTop\\s*0*${topInt}\\b`, 'i').test(addr) ||
-            new RegExp(`/\\s*0*${topInt}(?:\\b|,|\\s|$)`).test(addr)) {
+        if (normAddr.length <= normalizedLg.length + 1) continue
+        // Must look like a sub-unit address (contains "/" or "Top")
+        if (!addr.includes('/') && !/\bTop\s*\d/i.test(addr)) continue
+        // Check if the unit's normalized address appears in the normalized PDF text
+        if (normalizedPdf.includes(normAddr)) {
           return { unit_id: u.id, unit_name: u.name || addr }
         }
       }
+
       return null
     }
 
@@ -336,10 +358,9 @@ export async function POST(request: NextRequest) {
       if (!bestMatch) bestMatch = findMatch(pdfText)
     }
 
-    // If unit_top + liegenschaft both found → look up the concrete unit_id
-    const unitMatch = (is_unit_police && bestMatch && unit_top)
-      ? findUnitId(bestMatch, unit_top)
-      : null
+    // Look up the concrete unit_id — works for both "Top X" and "/X" address formats
+    const unitMatch = bestMatch ? findUnit(bestMatch, unit_top, pdfText) : null
+    const finalIsUnitPolice = unitMatch !== null
 
     return NextResponse.json({
       liegenschaft: unitMatch ? null : bestMatch,
@@ -348,7 +369,7 @@ export async function POST(request: NextRequest) {
       suggested_name,
       unit_top,
       is_insurance: true,
-      is_unit_police,
+      is_unit_police: finalIsUnitPolice,
       confidence: (bestMatch || unitMatch) ? 'hoch' : 'nicht_erkannt',
     })
   } catch (err) {
