@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { supabase } from '@/lib/supabase'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -19,16 +18,21 @@ export default function EmailChangeSection({ currentEmail }: { currentEmail: str
     setError('')
     setSuccess(false)
 
-    const { error: authError } = await supabase.auth.updateUser({ email: newEmail })
-    setIsLoading(false)
-
-    if (authError) {
-      setError('E-Mail konnte nicht geändert werden. Bitte prüfen Sie die Adresse.')
-      return
+    try {
+      const res = await fetch('/api/mieter/email-change', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: newEmail.trim() }),
+      })
+      const json = await res.json()
+      if (!res.ok) throw new Error(json.error || 'Fehler beim Ändern der E-Mail-Adresse')
+      setSuccess(true)
+      setNewEmail('')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Fehler beim Ändern der E-Mail-Adresse')
+    } finally {
+      setIsLoading(false)
     }
-
-    setSuccess(true)
-    setNewEmail('')
   }
 
   return (
