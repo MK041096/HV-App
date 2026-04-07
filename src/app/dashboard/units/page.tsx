@@ -70,7 +70,7 @@ type SortOrder = "asc" | "desc"
 
 function getTenantStatusConfig(status: string) {
   switch (status) {
-    case "occupied": return { label: "Aktiver Mieter", icon: UserCheck, className: "bg-green-100 text-green-800 border-green-200" }
+    case "occupied": return { label: "Aktiv", icon: UserCheck, className: "bg-green-100 text-green-800 border-green-200" }
     case "pending": return { label: "Ausstehend", icon: Clock, className: "bg-yellow-100 text-yellow-800 border-yellow-200" }
     default: return { label: "Kein Mieter", icon: CircleDashed, className: "bg-gray-100 text-gray-600 border-gray-200" }
   }
@@ -526,17 +526,35 @@ export default function UnitsListPage() {
       )}
 
       {/* Vacant hint */}
-      {vacantCount > 0 && !tenantStatusFilter && (
+      {vacantCount > 0 && tenantStatusFilter !== 'vacant' && (
         <div className="flex items-start gap-3 rounded-lg border border-yellow-200 bg-yellow-50 px-4 py-3 text-sm">
           <AlertTriangle className="h-4 w-4 text-yellow-600 mt-0.5 shrink-0" />
-          <div className="text-yellow-800 space-y-1">
+          <div className="text-yellow-800 space-y-2 flex-1">
             <p className="font-medium">
               {vacantCount} {vacantCount !== 1 ? "Einheiten haben noch keinen Mieter" : "Einheit hat noch keinen Mieter"}
             </p>
             <p>
               Klicken Sie bei der jeweiligen Einheit auf <span className="font-medium">„Einladen"</span>, geben Sie die E-Mail-Adresse des Mieters ein und der Aktivierungscode wird automatisch versendet.
             </p>
+            <button
+              onClick={() => { setTenantStatusFilter('vacant'); setPage(1) }}
+              className="inline-flex items-center gap-1 font-medium underline underline-offset-2 hover:opacity-80"
+            >
+              Nur diese {vacantCount} {vacantCount !== 1 ? "Einheiten" : "Einheit"} anzeigen →
+            </button>
           </div>
+        </div>
+      )}
+
+      {/* Active vacant filter indicator */}
+      {tenantStatusFilter === 'vacant' && (
+        <div className="flex items-center justify-between rounded-lg border border-yellow-300 bg-yellow-50 px-4 py-2.5 text-sm">
+          <span className="text-yellow-800 font-medium">
+            Filter aktiv: Einheiten ohne Mieter ({vacantCount})
+          </span>
+          <button onClick={() => { setTenantStatusFilter(""); setPage(1) }} className="text-yellow-700 hover:text-yellow-900 flex items-center gap-1 text-xs underline underline-offset-2">
+            <X className="h-3.5 w-3.5" />Filter aufheben
+          </button>
         </div>
       )}
 
@@ -679,13 +697,14 @@ export default function UnitsListPage() {
                       {unit.tenant ? (
                         <div className="flex items-center gap-1.5">
                           <Users className="h-3.5 w-3.5 text-muted-foreground" />
-                          <Link href={`/dashboard/tenants/${unit.tenant.id}`} className="text-sm text-primary hover:underline">{unit.tenant.full_name}</Link>
+                          <Link href={`/dashboard/tenants/${unit.tenant.id}`} className="text-sm font-medium text-primary hover:underline">{unit.tenant.full_name}</Link>
                         </div>
-                      ) : unit.pending_code ? (
+                      ) : unit.pending_code?.invited_first_name || unit.pending_code?.invited_last_name ? (
                         <div className="flex items-center gap-1.5">
-                          {unit.pending_code.invited_first_name || unit.pending_code.invited_last_name
-                            ? <span className="text-xs text-muted-foreground">{[unit.pending_code.invited_first_name, unit.pending_code.invited_last_name].filter(Boolean).join(" ")}</span>
-                            : <span className="text-xs text-muted-foreground italic">Eingeladen</span>}
+                          <Users className="h-3.5 w-3.5 text-muted-foreground" />
+                          <span className="text-sm font-medium text-foreground">
+                            {[unit.pending_code.invited_first_name, unit.pending_code.invited_last_name].filter(Boolean).join(" ")}
+                          </span>
                         </div>
                       ) : <span className="text-xs text-muted-foreground">—</span>}
                     </TableCell>
