@@ -6,7 +6,7 @@ export const hvTenantListSchema = z.object({
   per_page: z.coerce.number().int().min(1).max(100).default(50),
 
   // Filters
-  status: z.enum(['active', 'inactive', 'all']).default('all'),
+  status: z.enum(['active', 'inactive', 'all']).default('active'),
 
   // Search (name, email)
   search: z.string().max(200).optional(),

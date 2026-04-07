@@ -231,22 +231,25 @@ export async function PATCH(
         )
       }
 
-      // Soft-delete the profile
-      const { data: updated, error: updateError } = await supabase
+      // Soft-delete via admin client (RLS auf profiles erlaubt nur eigene Profil-Updates)
+      const adminClient = createAdminClient()
+      const now = new Date().toISOString()
+      const { data: updated, error: updateError } = await adminClient
         .from('profiles')
         .update({
           is_deleted: true,
-          deleted_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
+          deleted_at: now,
+          updated_at: now,
         })
         .eq('id', id)
+        .eq('organization_id', hvProfile.organization_id)
         .select('id, first_name, last_name, is_deleted, deleted_at, updated_at')
         .single()
 
       if (updateError) {
         console.error('Error deactivating tenant:', updateError)
         return NextResponse.json(
-          { error: 'Fehler beim Deaktivieren des Mieters' },
+          { error: 'Fehler beim Löschen des Mieters' },
           { status: 500 }
         )
       }
@@ -289,8 +292,9 @@ export async function PATCH(
         )
       }
 
-      // Reactivate the profile
-      const { data: updated, error: updateError } = await supabase
+      // Reactivate via admin client (RLS auf profiles erlaubt nur eigene Profil-Updates)
+      const adminClient = createAdminClient()
+      const { data: updated, error: updateError } = await adminClient
         .from('profiles')
         .update({
           is_deleted: false,
@@ -298,6 +302,7 @@ export async function PATCH(
           updated_at: new Date().toISOString(),
         })
         .eq('id', id)
+        .eq('organization_id', hvProfile.organization_id)
         .select('id, first_name, last_name, is_deleted, updated_at')
         .single()
 

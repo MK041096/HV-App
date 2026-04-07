@@ -653,15 +653,15 @@ export default function TenantDetailPage({
                   <DialogTrigger asChild>
                     <Button variant="destructive" className="w-full">
                       <UserX className="mr-2 h-4 w-4" />
-                      Mieter deaktivieren
+                      Mieter löschen
                     </Button>
                   </DialogTrigger>
                   <DialogContent>
                     <DialogHeader>
-                      <DialogTitle>Mieter deaktivieren</DialogTitle>
+                      <DialogTitle>Mieter löschen</DialogTitle>
                       <DialogDescription>
-                        Der Mieter &quot;{tenant.full_name}&quot; wird deaktiviert und kann sich
-                        nicht mehr einloggen. Diese Aktion kann rueckgaengig gemacht werden.
+                        Der Mieter &quot;{tenant.full_name}&quot; wird aus dem System entfernt und kann sich
+                        nicht mehr einloggen. Der Mieter kann bei Bedarf wiederhergestellt werden.
                       </DialogDescription>
                     </DialogHeader>
                     <div className="py-4">
@@ -670,7 +670,7 @@ export default function TenantDetailPage({
                       </Label>
                       <Input
                         id="deactivate-reason"
-                        placeholder="z.B. Auszug, Vertragskuendigung..."
+                        placeholder="z.B. Auszug, Vertragskündigung..."
                         value={deactivateReason}
                         onChange={(e) => setDeactivateReason(e.target.value)}
                       />
@@ -693,7 +693,7 @@ export default function TenantDetailPage({
                         ) : (
                           <UserX className="mr-2 h-4 w-4" />
                         )}
-                        Deaktivieren
+                        Löschen
                       </Button>
                     </DialogFooter>
                   </DialogContent>
