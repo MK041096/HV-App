@@ -817,7 +817,7 @@ export default function UnitsListPage() {
                       {unit.tenant ? (
                         <div className="flex items-center gap-1.5">
                           <Users className="h-3.5 w-3.5 text-muted-foreground" />
-                          <Link href={`/dashboard/tenants/${unit.tenant.id}`} className="text-sm font-medium text-primary hover:underline">{unit.tenant.full_name}</Link>
+                          <Link href={`/dashboard/tenants/${unit.tenant.id}`} className="text-sm font-medium hover:underline">{unit.tenant.full_name}</Link>
                         </div>
                       ) : (unit.imported_first_name || unit.imported_last_name) ? (
                         <div className="flex items-center gap-1.5">
@@ -920,7 +920,7 @@ export default function UnitsListPage() {
                   </div>
                   {unit.address && <p className="text-xs text-muted-foreground mt-1">{unit.address}</p>}
                   {unit.tenant && (
-                    <Link href={`/dashboard/tenants/${unit.tenant.id}`} className="text-xs text-primary hover:underline flex items-center gap-1 mt-2">
+                    <Link href={`/dashboard/tenants/${unit.tenant.id}`} className="text-xs hover:underline flex items-center gap-1 mt-2">
                       <Users className="h-3 w-3" />{unit.tenant.full_name}
                     </Link>
                   )}
