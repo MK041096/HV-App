@@ -52,10 +52,12 @@ export async function DELETE(
       }, { status: 409 })
     }
 
+    const now = new Date().toISOString()
+
     // Soft-Delete via admin (RLS auf units prüft user_roles, nicht profiles)
     const { error: deleteError } = await admin
       .from('units')
-      .update({ is_deleted: true, deleted_at: new Date().toISOString() })
+      .update({ is_deleted: true, deleted_at: now })
       .eq('id', id)
       .eq('organization_id', profile.organization_id)
 
@@ -63,6 +65,23 @@ export async function DELETE(
       console.error('Error deleting unit:', deleteError)
       return NextResponse.json({ error: 'Fehler beim Löschen' }, { status: 500 })
     }
+
+    // Offene Aktivierungscodes für diese Einheit abbrechen
+    await admin
+      .from('activation_codes')
+      .update({ status: 'cancelled' })
+      .eq('unit_id', id)
+      .eq('organization_id', profile.organization_id)
+      .eq('status', 'pending')
+
+    // Verknüpfte Mieter-Profile soft-deleten
+    await admin
+      .from('profiles')
+      .update({ is_deleted: true, deleted_at: now })
+      .eq('unit_id', id)
+      .eq('organization_id', profile.organization_id)
+      .eq('role', 'mieter')
+      .eq('is_deleted', false)
 
     await admin.from('audit_logs').insert({
       user_id: user.id,

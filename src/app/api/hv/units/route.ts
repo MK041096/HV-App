@@ -199,11 +199,30 @@ export async function DELETE(request: NextRequest) {
     const skippedNames = (units || []).filter(u => blockedUnitIds.has(u.id)).map(u => u.name)
 
     if (deletableIds.length > 0) {
+      const now = new Date().toISOString()
+
       await admin
         .from('units')
-        .update({ is_deleted: true, deleted_at: new Date().toISOString() })
+        .update({ is_deleted: true, deleted_at: now })
         .in('id', deletableIds)
         .eq('organization_id', profile.organization_id)
+
+      // Offene Aktivierungscodes für gelöschte Einheiten abbrechen
+      await admin
+        .from('activation_codes')
+        .update({ status: 'cancelled' })
+        .in('unit_id', deletableIds)
+        .eq('organization_id', profile.organization_id)
+        .eq('status', 'pending')
+
+      // Verknüpfte Mieter-Profile soft-deleten
+      await admin
+        .from('profiles')
+        .update({ is_deleted: true, deleted_at: now })
+        .in('unit_id', deletableIds)
+        .eq('organization_id', profile.organization_id)
+        .eq('role', 'mieter')
+        .eq('is_deleted', false)
 
       await admin.from('audit_logs').insert({
         user_id: user.id,

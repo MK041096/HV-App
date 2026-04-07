@@ -7,7 +7,7 @@ import {
   Search, Filter, ArrowUpDown, ArrowUp, ArrowDown,
   ChevronLeft, ChevronRight, Loader2, Home, X,
   UserCheck, Clock, CircleDashed, ClipboardList, MapPin,
-  Users, FileSpreadsheet, Copy, Check, Mail, AlertTriangle, Trash2, FileText, Plus, TrendingUp, CheckCircle2,
+  Users, FileSpreadsheet, Copy, Check, Mail, AlertTriangle, Trash2, FileText, Plus, TrendingUp, CheckCircle2, Pencil,
 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
@@ -181,6 +181,103 @@ function InviteDialog({ unit, open, onClose, onSuccess }: InviteDialogProps) {
   )
 }
 
+// ── Edit Email Dialog (für ausstehende Mieter) ──
+
+interface EditEmailDialogProps {
+  unit: UnitItem | null
+  open: boolean
+  onClose: () => void
+  onSuccess: () => void
+}
+
+function EditEmailDialog({ unit, open, onClose, onSuccess }: EditEmailDialogProps) {
+  const [email, setEmail] = useState("")
+  const [resend, setResend] = useState(true)
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (open && unit?.pending_code) {
+      setEmail(unit.pending_code.invited_email || "")
+      setResend(true)
+      setError(null)
+    } else if (!open) {
+      setEmail(""); setResend(true); setError(null)
+    }
+  }, [open, unit])
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    if (!unit?.pending_code) return
+    setIsLoading(true)
+    setError(null)
+    try {
+      const res = await fetch(`/api/hv/activation-codes/${unit.pending_code.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: email.trim(), resend }),
+      })
+      const json = await res.json()
+      if (!res.ok) throw new Error(json.error || "Fehler beim Speichern")
+      onSuccess()
+      onClose()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Unbekannter Fehler")
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>E-Mail-Adresse bearbeiten</DialogTitle>
+          <DialogDescription>
+            {unit ? `Einladung für "${unit.name}"` : ""}
+            {unit?.address && <span className="block text-xs mt-0.5 text-muted-foreground">{unit.address}</span>}
+          </DialogDescription>
+        </DialogHeader>
+        <form onSubmit={handleSubmit} className="space-y-4 py-2">
+          <div className="space-y-1.5">
+            <Label htmlFor="editEmail">Neue E-Mail-Adresse</Label>
+            <Input
+              id="editEmail"
+              type="email"
+              placeholder="mieter@beispiel.at"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              autoFocus
+            />
+          </div>
+          <div className="flex items-center gap-2">
+            <Checkbox
+              id="resendCheck"
+              checked={resend}
+              onCheckedChange={(v) => setResend(v === true)}
+            />
+            <Label htmlFor="resendCheck" className="text-sm font-normal cursor-pointer">
+              Einladung an neue E-Mail-Adresse neu senden
+            </Label>
+          </div>
+          {error && <p className="text-sm text-destructive">{error}</p>}
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={onClose} disabled={isLoading}>Abbrechen</Button>
+            <Button type="submit" disabled={isLoading || !email.trim()}>
+              {isLoading
+                ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Wird gespeichert...</>
+                : resend
+                  ? <><Mail className="mr-2 h-4 w-4" />Speichern &amp; neu senden</>
+                  : "Speichern"}
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
 // ── Page ──
 
 export default function UnitsListPage() {
@@ -219,6 +316,10 @@ export default function UnitsListPage() {
   const [upgradePreviewAmount, setUpgradePreviewAmount] = useState<number | null>(null)
   const [upgradeLoading, setUpgradeLoading] = useState(false)
   const [upgradeError, setUpgradeError] = useState<string | null>(null)
+
+  // Edit email state (für ausstehende Mieter)
+  const [editEmailUnit, setEditEmailUnit] = useState<UnitItem | null>(null)
+  const [editEmailOpen, setEditEmailOpen] = useState(false)
 
   // Bulk selection state
   const [selectedUnitIds, setSelectedUnitIds] = useState<Set<string>>(new Set())
@@ -735,7 +836,20 @@ export default function UnitsListPage() {
                           <div className="flex items-center gap-1">
                             <code className="text-xs font-mono bg-muted px-1.5 py-0.5 rounded tracking-wider">{unit.pending_code.code}</code>
                             <CopyCodeButton code={unit.pending_code.code} />
+                            <Button
+                              variant="ghost" size="icon"
+                              className="h-5 w-5 text-muted-foreground hover:text-foreground"
+                              title="E-Mail bearbeiten"
+                              onClick={(e) => { e.stopPropagation(); setEditEmailUnit(unit); setEditEmailOpen(true) }}
+                            >
+                              <Pencil className="h-3 w-3" />
+                            </Button>
                           </div>
+                          {unit.pending_code.invited_email ? (
+                            <p className="text-[10px] text-muted-foreground truncate max-w-[160px]">{unit.pending_code.invited_email}</p>
+                          ) : (
+                            <p className="text-[10px] text-orange-600">Keine E-Mail hinterlegt</p>
+                          )}
                           <p className="text-[10px] text-muted-foreground">
                             Gültig bis {new Date(unit.pending_code.expires_at).toLocaleDateString("de-AT", { day: "2-digit", month: "2-digit", year: "numeric" })}
                             {new Date(unit.pending_code.expires_at) < new Date() && (
@@ -821,14 +935,29 @@ export default function UnitsListPage() {
                             <div className="flex items-center gap-1">
                               <code className="text-xs font-mono bg-muted px-1.5 py-0.5 rounded tracking-wider">{unit.pending_code.code}</code>
                               <CopyCodeButton code={unit.pending_code.code} />
+                              <Button
+                                variant="ghost" size="icon"
+                                className="h-5 w-5 text-muted-foreground hover:text-foreground"
+                                title="E-Mail bearbeiten"
+                                onClick={(e) => { e.stopPropagation(); setEditEmailUnit(unit); setEditEmailOpen(true) }}
+                              >
+                                <Pencil className="h-3 w-3" />
+                              </Button>
                             </div>
+                            {unit.pending_code.invited_email ? (
+                              <p className="text-[10px] text-muted-foreground truncate max-w-[140px]">{unit.pending_code.invited_email}</p>
+                            ) : (
+                              <p className="text-[10px] text-orange-600">Keine E-Mail</p>
+                            )}
                             <p className="text-[10px] text-muted-foreground">
                               bis {new Date(unit.pending_code.expires_at).toLocaleDateString("de-AT", { day: "2-digit", month: "2-digit", year: "numeric" })}
                               {new Date(unit.pending_code.expires_at) < new Date() && <span className="ml-1 text-red-600 font-medium">· Abgelaufen</span>}
                             </p>
                           </div>
                         ) : (
-                          <Button variant="outline" size="sm" className="h-7 text-xs" onClick={(e) => { e.stopPropagation(); setInviteUnit(unit); setInviteOpen(true) }}>Einladen</Button>
+                          <Button variant="outline" size="sm" className="h-7 text-xs" onClick={(e) => { e.stopPropagation(); setInviteUnit(unit); setInviteOpen(true) }}>
+                            {unit.imported_first_name || unit.imported_last_name ? "E-Mail ergänzen" : "Einladen"}
+                          </Button>
                         )
                       )}
                       <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:bg-destructive/10" onClick={(e) => { e.stopPropagation(); setDeleteUnitTarget(unit); setDeleteUnitError(null); setDeleteUnitOpen(true) }} title="Einheit löschen">
@@ -1022,6 +1151,13 @@ export default function UnitsListPage() {
         open={inviteOpen}
         onClose={() => { setInviteOpen(false); setInviteUnit(null) }}
         onSuccess={handleInviteSuccess}
+      />
+
+      <EditEmailDialog
+        unit={editEmailUnit}
+        open={editEmailOpen}
+        onClose={() => { setEditEmailOpen(false); setEditEmailUnit(null) }}
+        onSuccess={() => { fetchUnits() }}
       />
 
       {/* Upgrade Dialog */}
