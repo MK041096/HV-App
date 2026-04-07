@@ -28,7 +28,7 @@ const INSURANCE_TYPES: { pattern: RegExp; label: string }[] = [
   { pattern: /betriebsunterbrechungsversicherung|betriebs.?unterbrechung/i, label: 'Betriebsunterbrechungsversicherung' },
   { pattern: /elementarschadenversicherung|elementar.?schaden.?versicherung/i, label: 'Elementarschadenversicherung' },
   { pattern: /rechtsschutzversicherung|rechtsschutz.?versicherung/i, label: 'Rechtsschutzversicherung' },
-  { pattern: /leitungswasserversicherung|leitungswasser.?versicherung/i, label: 'Leitungswasserversicherung' },
+  { pattern: /leitungswasser[- ]*(?:zusatz[- ]*)?versicherung|leitungswasserversicherung|leitungswasser[- ]*polizze/i, label: 'Leitungswasserversicherung' },
   { pattern: /haftpflichtversicherung|haftpflicht.?versicherung/i, label: 'Haftpflichtversicherung' },
   { pattern: /glasbruchversicherung|glas.{0,8}bruch.{0,8}versicherung/i, label: 'Glasbruchversicherung' },
   { pattern: /geräteversicherung|geraete.{0,4}versicherung|gerät.{0,4}versicherung/i, label: 'Geräteversicherung' },
@@ -169,8 +169,10 @@ export async function POST(request: NextRequest) {
         }
       }
 
-      // Strategy 2: Normalized unit name or address appears in normalized PDF text.
-      // Covers "/X" Austrian format AND cases where Top number is only in u.name.
+      // Strategy 2: Unit NAME (which includes "Top X") appears in normalized PDF text.
+      // We deliberately do NOT match on normAddr alone because the unit's address is
+      // usually just the building address (no Top number) — it would also appear in
+      // Liegenschafts-PDFs and cause false positives.
       for (const u of units) {
         const addr = (u.address || '') as string
         const name = (u.name || '') as string
@@ -178,18 +180,18 @@ export async function POST(request: NextRequest) {
         const normName = normalize(name)
         // Must belong to this liegenschaft
         if (!normAddr.includes(normalizedLg) && !normName.includes(normalizedLg)) continue
-        // Must be more specific than just the liegenschaft (has unit info beyond building address)
-        const addrExtra = normAddr.length > normalizedLg.length + 2
-        const nameExtra = normName.length > normalizedLg.length + 2
-        if (!addrExtra && !nameExtra) continue
-        // Must contain a unit indicator in address OR name
-        const hasUnitIndicator =
-          addr.includes('/') || /\bTop\s*\d/i.test(addr) ||
+        // Must contain a unit indicator in the name (Top X, Wohnung, Stiege, Tür)
+        const nameHasUnitIndicator =
           /\bTop\s*\d/i.test(name) || /Wohnung|Stiege|Tür\b/i.test(name)
-        if (!hasUnitIndicator) continue
-        // Check if normalized address or name appears in normalized PDF text
-        if ((addrExtra && normalizedPdf.includes(normAddr)) ||
-            (nameExtra && normalizedPdf.includes(normName))) {
+        // For address-based matching, only if the address itself contains "/X" (Austrian format)
+        const addrHasUnitIndicator = /\/\s*\d/.test(addr)
+        if (!nameHasUnitIndicator && !addrHasUnitIndicator) continue
+        // Unit name must be longer than just the building address
+        const nameExtra = normName.length > normalizedLg.length + 2
+        const addrExtra = normAddr.length > normalizedLg.length && addrHasUnitIndicator
+        // Only match if the unit-specific name or unit-specific address appears in PDF text
+        if ((nameExtra && normalizedPdf.includes(normName)) ||
+            (addrExtra && normalizedPdf.includes(normAddr))) {
           return { unit_id: u.id, unit_name: name || addr }
         }
       }
