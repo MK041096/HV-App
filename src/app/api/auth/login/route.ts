@@ -106,6 +106,16 @@ export async function POST(request: NextRequest) {
     const hasOrganization = profile?.organization_id != null
     const redirectTo = hasOrganization ? '/dashboard' : '/no-organization'
 
+    // Check if MFA (2FA) is required for this user
+    const { data: aal } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel()
+    if (aal?.nextLevel === 'aal2' && aal.currentLevel !== 'aal2') {
+      // Session is set (AAL1) but 2FA code still needed — tell frontend to show TOTP input
+      return NextResponse.json({
+        mfa_required: true,
+        data: { redirectTo },
+      })
+    }
+
     return NextResponse.json({
       data: {
         user: {
