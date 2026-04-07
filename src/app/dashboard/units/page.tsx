@@ -492,18 +492,36 @@ export default function UnitsListPage() {
       )}
 
       {/* Vacant no email hint */}
-      {vacantNoEmailCount > 0 && !tenantStatusFilter && (
+      {vacantNoEmailCount > 0 && tenantStatusFilter !== 'vacant_no_email' && (
         <div className="flex items-start gap-3 rounded-lg border border-yellow-200 bg-yellow-50 px-4 py-3 text-sm">
           <AlertTriangle className="h-4 w-4 text-yellow-600 mt-0.5 shrink-0" />
-          <div className="text-yellow-800 space-y-1">
+          <div className="text-yellow-800 space-y-2 flex-1">
             <p className="font-medium">
               {vacantNoEmailCount} {vacantNoEmailCount !== 1 ? "Einheiten wurden importiert, aber kein Aktivierungscode wurde versendet" : "Einheit wurde importiert, aber kein Aktivierungscode wurde versendet"}
             </p>
             <p>
-              Für {vacantNoEmailCount !== 1 ? "diese Einheiten" : "diese Einheit"} war im Import keine E-Mail-Adresse hinterlegt — deshalb konnte der Einladungscode nicht automatisch verschickt werden.
-              Klicken Sie bei der jeweiligen Einheit auf <span className="font-medium">„Einladen"</span>, tragen Sie die E-Mail-Adresse des Mieters nach und der Code wird sofort versendet.
+              Im Import {vacantNoEmailCount !== 1 ? "fehlte bei diesen Einheiten" : "fehlte bei dieser Einheit"} die E-Mail-Adresse — deshalb konnte der Code nicht automatisch verschickt werden.
+              Klicken Sie bei der jeweiligen Einheit auf <span className="font-medium">„Einladen"</span>, tragen Sie die E-Mail nach und der Code wird sofort versendet.
             </p>
+            <button
+              onClick={() => { setTenantStatusFilter('vacant_no_email'); setPage(1) }}
+              className="inline-flex items-center gap-1 font-medium underline underline-offset-2 hover:opacity-80"
+            >
+              Nur diese {vacantNoEmailCount} {vacantNoEmailCount !== 1 ? "Einheiten" : "Einheit"} anzeigen →
+            </button>
           </div>
+        </div>
+      )}
+
+      {/* Active vacant_no_email filter indicator */}
+      {tenantStatusFilter === 'vacant_no_email' && (
+        <div className="flex items-center justify-between rounded-lg border border-yellow-300 bg-yellow-50 px-4 py-2.5 text-sm">
+          <span className="text-yellow-800 font-medium">
+            Filter aktiv: Einheiten ohne E-Mail-Adresse ({vacantNoEmailCount})
+          </span>
+          <button onClick={() => { setTenantStatusFilter(""); setPage(1) }} className="text-yellow-700 hover:text-yellow-900 flex items-center gap-1 text-xs underline underline-offset-2">
+            <X className="h-3.5 w-3.5" />Filter aufheben
+          </button>
         </div>
       )}
 

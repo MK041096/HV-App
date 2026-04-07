@@ -381,7 +381,10 @@ export async function GET(request: NextRequest) {
 
     // Apply tenant_status filter (post-query since it depends on joined data)
     let filtered = enriched
-    if (tenant_status !== 'all') {
+    if (tenant_status === 'vacant_no_email') {
+      // Pending code exists but no email was sent (import without email)
+      filtered = enriched.filter((u) => u.tenant_status === 'pending' && !u.pending_code?.invited_email)
+    } else if (tenant_status !== 'all') {
       filtered = enriched.filter((u) => u.tenant_status === tenant_status)
     }
 

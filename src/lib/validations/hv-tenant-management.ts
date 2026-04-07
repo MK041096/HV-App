@@ -25,7 +25,7 @@ export const hvUnitListSchema = z.object({
 
   // Filters
   tenant_status: z
-    .enum(['occupied', 'vacant', 'pending', 'all'])
+    .enum(['occupied', 'vacant', 'pending', 'vacant_no_email', 'all'])
     .default('all'),
 
   // Search (address, unit name)
