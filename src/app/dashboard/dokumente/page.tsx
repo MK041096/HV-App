@@ -101,6 +101,23 @@ export default function DokumentePage() {
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const [uploadMismatch, setUploadMismatch] = useState<string | null>(null)
+  const [generatingUnitId, setGeneratingUnitId] = useState<string | null>(null)
+
+  async function handleGenerateMietvertrag(unitId: string) {
+    setGeneratingUnitId(unitId)
+    try {
+      const res = await fetch('/api/documents/generate-mietvertrag', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ unit_id: unitId, save_to_storage: true }),
+      })
+      const data = await res.json()
+      if (!res.ok) { alert(data.error || 'Fehler beim Generieren'); return }
+      await loadData()
+    } finally {
+      setGeneratingUnitId(null)
+    }
+  }
 
   const [showBulk, setShowBulk] = useState(false)
   const [bulkItems, setBulkItems] = useState<BulkItem[]>([])
@@ -743,11 +760,22 @@ export default function DokumentePage() {
                   {isExpanded && (
                     <CardContent className="pt-0">
                       {einheit.docs.length === 0 ? (
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 flex-wrap">
                           <p className="text-sm text-muted-foreground flex-1">
                             Noch kein Mietvertrag für diese Einheit hinterlegt
                           </p>
                           <Button size="sm" variant="outline"
+                            disabled={generatingUnitId === einheit.id}
+                            onClick={async (e) => {
+                              e.stopPropagation()
+                              await handleGenerateMietvertrag(einheit.id)
+                            }}>
+                            {generatingUnitId === einheit.id
+                              ? <><Loader2 className="h-3 w-3 mr-1 animate-spin" /> Wird erstellt…</>
+                              : <><Sparkles className="h-3 w-3 mr-1" /> Mietvertrag generieren</>
+                            }
+                          </Button>
+                          <Button size="sm" variant="ghost"
                             onClick={(e) => {
                               e.stopPropagation()
                               setSelectedUnitId(einheit.id)
@@ -755,7 +783,7 @@ export default function DokumentePage() {
                               setShowBulk(false)
                               window.scrollTo({ top: 0, behavior: 'smooth' })
                             }}>
-                            <Plus className="h-3 w-3 mr-1" /> Mietvertrag hinzufügen
+                            <Plus className="h-3 w-3 mr-1" /> Eigenes hochladen
                           </Button>
                         </div>
                       ) : (
