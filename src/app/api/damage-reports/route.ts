@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabaseClient, createAdminClient } from '@/lib/supabase-server'
-import { sendDamageReportNotificationEmail } from '@/lib/email'
+import { sendDamageReportNotificationEmail, sendAdminSuspiciousActivityAlert } from '@/lib/email'
 import { runKiAnalyse } from '@/lib/ki-analyse'
 import {
   createDamageReportSchema,
@@ -183,20 +183,30 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Rate limiting: max 5 reports per hour per user
-    const { data: isAllowed } = await supabase.rpc('check_rate_limit', {
+    // Stunden-Limit: max 5 pro Stunde
+    const { data: hourlyAllowed } = await supabase.rpc('check_rate_limit', {
       check_action: 'create_damage_report',
       check_identifier: user.id,
       max_attempts: 5,
       window_minutes: 60,
     })
-
-    if (isAllowed === false) {
+    if (hourlyAllowed === false) {
       return NextResponse.json(
-        {
-          error:
-            'Zu viele Schadensmeldungen. Maximal 5 Meldungen pro Stunde erlaubt. Bitte versuchen Sie es später erneut.',
-        },
+        { error: 'Zu viele Schadensmeldungen. Maximal 5 Meldungen pro Stunde erlaubt. Bitte versuchen Sie es später erneut.' },
+        { status: 429 }
+      )
+    }
+
+    // Tages-Limit: max 10 pro Tag
+    const { data: dailyAllowed } = await supabase.rpc('check_rate_limit', {
+      check_action: 'create_damage_report',
+      check_identifier: user.id,
+      max_attempts: 10,
+      window_minutes: 1440,
+    })
+    if (dailyAllowed === false) {
+      return NextResponse.json(
+        { error: 'Tageslimit erreicht. Maximal 10 Schadensmeldungen pro Tag erlaubt. Bitte versuchen Sie es morgen erneut.' },
         { status: 429 }
       )
     }
@@ -212,10 +222,10 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Get user profile (organization_id + unit_id + name)
+    // Get user profile (organization_id + unit_id + name + blocked_until)
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
-      .select('organization_id, unit_id, role, first_name, last_name')
+      .select('organization_id, unit_id, role, first_name, last_name, blocked_until')
       .eq('id', user.id)
       .eq('is_deleted', false)
       .single()
@@ -223,6 +233,15 @@ export async function POST(request: NextRequest) {
     if (profileError || !profile) {
       return NextResponse.json(
         { error: 'Benutzerprofil nicht gefunden' },
+        { status: 403 }
+      )
+    }
+
+    // Sperr-Check: Mieter vom HV gesperrt?
+    if (profile.blocked_until && new Date(profile.blocked_until) > new Date()) {
+      const until = new Date(profile.blocked_until).toLocaleDateString('de-AT', { day: '2-digit', month: '2-digit', year: 'numeric' })
+      return NextResponse.json(
+        { error: `Ihr Konto wurde vorübergehend gesperrt. Bitte versuchen Sie es ab ${until} erneut oder wenden Sie sich an Ihre Hausverwaltung.` },
         { status: 403 }
       )
     }
@@ -319,6 +338,41 @@ export async function POST(request: NextRequest) {
       attempt_identifier: user.id,
       attempt_success: true,
     })
+
+    // Admin-Alert wenn Mieter heute 5 Meldungen erreicht
+    try {
+      const { data: todayCount } = await supabase.rpc('check_rate_limit', {
+        check_action: 'create_damage_report',
+        check_identifier: user.id,
+        max_attempts: 9999,
+        window_minutes: 1440,
+      })
+      // check_rate_limit gibt false zurück wenn Limit überschritten, sonst true
+      // Wir zählen direkt über damage_reports
+      const { count: reportsToday } = await supabase
+        .from('damage_reports')
+        .select('id', { count: 'exact', head: true })
+        .eq('reporter_id', user.id)
+        .eq('is_deleted', false)
+        .gte('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
+
+      if ((reportsToday ?? 0) === 5) {
+        const { data: unitData } = await supabase
+          .from('units').select('name').eq('id', profile.unit_id).single()
+        const { data: orgData } = await supabase
+          .from('organizations').select('name').eq('id', profile.organization_id).single()
+        const tenantName = [profile.first_name, profile.last_name].filter(Boolean).join(' ') || 'Unbekannt'
+
+        await sendAdminSuspiciousActivityAlert({
+          tenantName,
+          tenantEmail: user.email || null,
+          orgName: orgData?.name || 'Unbekannt',
+          reportCount: 5,
+          unitName: unitData?.name || 'Unbekannt',
+          dashboardUrl: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/tenants`,
+        }).catch(console.error)
+      }
+    } catch { /* Alert-Fehler soll den Hauptfluss nicht blockieren */ }
 
     // Audit log
     await supabase.from('audit_logs').insert({

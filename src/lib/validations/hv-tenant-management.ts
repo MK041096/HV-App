@@ -43,8 +43,8 @@ export const hvUnitListSchema = z.object({
 
 // ── Deactivate / Reactivate Tenant Schema ──
 export const hvTenantStatusSchema = z.object({
-  action: z.enum(['deactivate', 'reactivate'], {
-    error: 'Aktion muss "deactivate" oder "reactivate" sein',
+  action: z.enum(['deactivate', 'reactivate', 'block_1day', 'block_1week', 'unblock'], {
+    error: 'Ungültige Aktion',
   }),
   reason: z
     .string()

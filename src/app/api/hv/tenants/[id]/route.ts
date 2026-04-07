@@ -55,7 +55,7 @@ export async function GET(
     const { data: tenant, error: tenantError } = await supabase
       .from('profiles')
       .select(`
-        id, first_name, last_name, role, unit_id, is_deleted, deleted_at, created_at, updated_at,
+        id, first_name, last_name, role, unit_id, is_deleted, deleted_at, blocked_until, created_at, updated_at,
         unit:units(id, name, address, floor)
       `)
       .eq('id', id)
@@ -151,6 +151,7 @@ export async function GET(
         email: tenantEmail,
         is_active: !tenant.is_deleted,
         deleted_at: tenant.deleted_at,
+        blocked_until: tenant.blocked_until ?? null,
         created_at: tenant.created_at,
         updated_at: tenant.updated_at,
         unit: tenant.unit,
@@ -318,6 +319,73 @@ export async function PATCH(
       return NextResponse.json({
         data: updated,
         message: `Mieter ${[tenant.first_name, tenant.last_name].filter(Boolean).join(' ')} wurde reaktiviert.`,
+      })
+    }
+
+    if (action === 'block_1day' || action === 'block_1week') {
+      const blockedUntil = new Date()
+      if (action === 'block_1day') {
+        blockedUntil.setDate(blockedUntil.getDate() + 1)
+      } else {
+        blockedUntil.setDate(blockedUntil.getDate() + 7)
+      }
+
+      const adminClient = createAdminClient()
+      const { error: blockError } = await adminClient
+        .from('profiles')
+        .update({ blocked_until: blockedUntil.toISOString() })
+        .eq('id', id)
+        .eq('organization_id', hvProfile.organization_id)
+
+      if (blockError) {
+        console.error('Error blocking tenant:', blockError)
+        return NextResponse.json({ error: 'Fehler beim Sperren des Mieters' }, { status: 500 })
+      }
+
+      const duration = action === 'block_1day' ? '1 Tag' : '1 Woche'
+      const tenantName = [tenant.first_name, tenant.last_name].filter(Boolean).join(' ')
+
+      await supabase.from('audit_logs').insert({
+        user_id: user.id,
+        organization_id: hvProfile.organization_id,
+        action: 'tenant_blocked',
+        entity_type: 'profile',
+        entity_id: id,
+        details: { tenant_name: tenantName, duration, blocked_until: blockedUntil.toISOString(), reason: reason || null },
+      })
+
+      return NextResponse.json({
+        message: `Mieter ${tenantName} wurde für ${duration} gesperrt.`,
+        blocked_until: blockedUntil.toISOString(),
+      })
+    }
+
+    if (action === 'unblock') {
+      const adminClient = createAdminClient()
+      const { error: unblockError } = await adminClient
+        .from('profiles')
+        .update({ blocked_until: null })
+        .eq('id', id)
+        .eq('organization_id', hvProfile.organization_id)
+
+      if (unblockError) {
+        console.error('Error unblocking tenant:', unblockError)
+        return NextResponse.json({ error: 'Fehler beim Aufheben der Sperre' }, { status: 500 })
+      }
+
+      const tenantName = [tenant.first_name, tenant.last_name].filter(Boolean).join(' ')
+
+      await supabase.from('audit_logs').insert({
+        user_id: user.id,
+        organization_id: hvProfile.organization_id,
+        action: 'tenant_unblocked',
+        entity_type: 'profile',
+        entity_id: id,
+        details: { tenant_name: tenantName, reason: reason || null },
+      })
+
+      return NextResponse.json({
+        message: `Sperre für Mieter ${tenantName} wurde aufgehoben.`,
       })
     }
 

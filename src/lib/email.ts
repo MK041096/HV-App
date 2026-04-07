@@ -887,3 +887,45 @@ export async function sendWerkstattWillkommensmail(params: {
     html: baseTemplate(content, orgName),
   })
 }
+
+export async function sendAdminSuspiciousActivityAlert(params: {
+  tenantName: string
+  tenantEmail: string | null
+  orgName: string
+  reportCount: number
+  unitName: string
+  dashboardUrl: string
+}): Promise<void> {
+  const { tenantName, tenantEmail, orgName, reportCount, unitName, dashboardUrl } = params
+  const ADMIN_EMAIL = 'Kracherdigital@gmail.com'
+
+  const content = `
+    <h2 style="color:#dc2626;font-size:22px;font-weight:700;margin:0 0 16px 0;">
+      &#9888; Verdächtige Aktivität erkannt
+    </h2>
+    <p style="color:#52525b;font-size:15px;margin:0 0 20px 0;">
+      Ein Mieter hat heute bereits <strong>${reportCount} Schadensmeldungen</strong> erstellt.
+      Bitte prüfen Sie ob dies legitim ist.
+    </p>
+    <div style="background-color:#fef2f2;border:1px solid #fecaca;border-radius:8px;padding:16px 20px;margin-bottom:24px;">
+      <p style="color:#7f1d1d;font-size:12px;font-weight:600;text-transform:uppercase;margin:0 0 8px 0;">Mieter-Details</p>
+      <p style="color:#18181b;font-size:15px;font-weight:600;margin:0 0 4px 0;">${tenantName}</p>
+      ${tenantEmail ? `<p style="color:#52525b;font-size:14px;margin:0 0 4px 0;">${tenantEmail}</p>` : ''}
+      <p style="color:#52525b;font-size:14px;margin:0 0 4px 0;">Einheit: <strong>${unitName}</strong></p>
+      <p style="color:#52525b;font-size:14px;margin:0;">Organisation: <strong>${orgName}</strong></p>
+    </div>
+    <p style="color:#52525b;font-size:14px;margin:0 0 20px 0;">
+      Falls Sie den Mieter sperren möchten, klicken Sie auf den Button unten und gehen Sie zum Mieterprofil.
+    </p>
+    <a href="${dashboardUrl}" style="display:inline-block;background-color:#dc2626;color:#ffffff;font-size:14px;font-weight:600;padding:12px 24px;border-radius:8px;text-decoration:none;">
+      Zum Dashboard &rarr;
+    </a>
+  `
+
+  await resend.emails.send({
+    from: FROM_EMAIL,
+    to: ADMIN_EMAIL,
+    subject: `⚠️ ${reportCount} Schadensmeldungen heute — ${tenantName} (${orgName})`,
+    html: baseTemplate(content, 'SMARTCARL Admin-Alert'),
+  })
+}

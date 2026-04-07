@@ -18,6 +18,8 @@ import {
   Eye,
   ShieldAlert,
   FileText,
+  Ban,
+  ShieldOff,
 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
@@ -93,6 +95,7 @@ interface TenantDetail {
   email: string | null
   is_active: boolean
   deleted_at: string | null
+  blocked_until: string | null
   created_at: string
   updated_at: string
   unit: TenantUnit | null
@@ -205,6 +208,11 @@ export default function TenantDetailPage({
   const [deactivateReason, setDeactivateReason] = useState("")
   const [dialogOpen, setDialogOpen] = useState(false)
 
+  // Block state
+  const [isBlocking, setIsBlocking] = useState(false)
+  const [blockDialogOpen, setBlockDialogOpen] = useState(false)
+  const [blockAction, setBlockAction] = useState<"block_1day" | "block_1week" | null>(null)
+
   // Fetch tenant
   async function fetchTenant() {
     setIsLoading(true)
@@ -265,6 +273,32 @@ export default function TenantDetailPage({
       })
     } finally {
       setIsUpdating(false)
+    }
+  }
+
+  // Handle block / unblock
+  async function handleBlock(action: "block_1day" | "block_1week" | "unblock") {
+    setIsBlocking(true)
+    setUpdateMessage(null)
+    try {
+      const res = await fetch(`/api/hv/tenants/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action }),
+      })
+      const json = await res.json()
+      if (!res.ok) throw new Error(json.error || "Fehler")
+      setBlockDialogOpen(false)
+      setBlockAction(null)
+      setUpdateMessage({ type: "success", text: json.message })
+      await fetchTenant()
+    } catch (err) {
+      setUpdateMessage({
+        type: "error",
+        text: err instanceof Error ? err.message : "Fehler beim Aktualisieren",
+      })
+    } finally {
+      setIsBlocking(false)
     }
   }
 
@@ -346,6 +380,15 @@ export default function TenantDetailPage({
                 >
                   <UserX className="mr-1 h-3 w-3" />
                   Deaktiviert
+                </Badge>
+              )}
+              {tenant.blocked_until && new Date(tenant.blocked_until) > new Date() && (
+                <Badge
+                  variant="outline"
+                  className="bg-red-100 text-red-800 border-red-200"
+                >
+                  <Ban className="mr-1 h-3 w-3" />
+                  Gesperrt bis {formatDate(tenant.blocked_until)}
                 </Badge>
               )}
             </div>
@@ -721,6 +764,91 @@ export default function TenantDetailPage({
               )}
             </CardContent>
           </Card>
+
+          {/* Block / Unblock */}
+          {tenant.is_active && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">Zugang sperren</CardTitle>
+                <CardDescription>
+                  Mieter vorübergehend vom Einreichen neuer Meldungen sperren
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                {tenant.blocked_until && new Date(tenant.blocked_until) > new Date() ? (
+                  <>
+                    <p className="text-sm text-red-600 font-medium flex items-center gap-1.5">
+                      <Ban className="h-4 w-4 shrink-0" />
+                      Gesperrt bis {formatDate(tenant.blocked_until)}
+                    </p>
+                    <Button
+                      variant="outline"
+                      className="w-full"
+                      onClick={() => handleBlock("unblock")}
+                      disabled={isBlocking}
+                    >
+                      {isBlocking ? (
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      ) : (
+                        <ShieldOff className="mr-2 h-4 w-4" />
+                      )}
+                      Sperre aufheben
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <Dialog open={blockDialogOpen} onOpenChange={setBlockDialogOpen}>
+                      <DialogTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className="w-full border-orange-300 text-orange-700 hover:bg-orange-50"
+                          onClick={() => setBlockAction("block_1day")}
+                        >
+                          <Ban className="mr-2 h-4 w-4" />
+                          1 Tag sperren
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent>
+                        <DialogHeader>
+                          <DialogTitle>Mieter sperren</DialogTitle>
+                          <DialogDescription>
+                            {blockAction === "block_1day"
+                              ? `"${tenant.full_name}" wird für 24 Stunden gesperrt und kann keine neuen Schadensmeldungen einreichen.`
+                              : `"${tenant.full_name}" wird für 1 Woche gesperrt und kann keine neuen Schadensmeldungen einreichen.`}
+                          </DialogDescription>
+                        </DialogHeader>
+                        <DialogFooter>
+                          <Button variant="outline" onClick={() => setBlockDialogOpen(false)} disabled={isBlocking}>
+                            Abbrechen
+                          </Button>
+                          <Button
+                            variant="destructive"
+                            onClick={() => blockAction && handleBlock(blockAction)}
+                            disabled={isBlocking}
+                          >
+                            {isBlocking ? (
+                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            ) : (
+                              <Ban className="mr-2 h-4 w-4" />
+                            )}
+                            Sperren
+                          </Button>
+                        </DialogFooter>
+                      </DialogContent>
+                    </Dialog>
+                    <Button
+                      variant="outline"
+                      className="w-full border-red-300 text-red-700 hover:bg-red-50"
+                      onClick={() => { setBlockAction("block_1week"); setBlockDialogOpen(true) }}
+                    >
+                      <Ban className="mr-2 h-4 w-4" />
+                      1 Woche sperren
+                    </Button>
+                  </>
+                )}
+              </CardContent>
+            </Card>
+          )}
 
           {/* Activation Codes (if any) */}
           {tenant.activation_codes && tenant.activation_codes.length > 0 && (
