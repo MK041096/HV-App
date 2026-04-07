@@ -23,22 +23,22 @@ const INSURERS = [
   'VIG', 'Vienna Insurance Group',
 ]
 
-// Insurance type keywords (most specific first — NO catch-all fallbacks)
+// Insurance type keywords — most specific first (longer/rarer names win over broader ones)
 const INSURANCE_TYPES: { pattern: RegExp; label: string }[] = [
-  { pattern: /gebäudeversicherung|gebaeude.?versicherung/i, label: 'Gebäudeversicherung' },
-  { pattern: /haftpflichtversicherung|haftpflicht.?versicherung/i, label: 'Haftpflichtversicherung' },
+  { pattern: /betriebsunterbrechungsversicherung|betriebs.?unterbrechung/i, label: 'Betriebsunterbrechungsversicherung' },
+  { pattern: /elementarschadenversicherung|elementar.?schaden.?versicherung/i, label: 'Elementarschadenversicherung' },
   { pattern: /rechtsschutzversicherung|rechtsschutz.?versicherung/i, label: 'Rechtsschutzversicherung' },
-  { pattern: /elementarschadenversicherung|elementar.?schaden|elementar.?versicherung/i, label: 'Elementarschadenversicherung' },
-  { pattern: /feuerversicherung|feuer.?versicherung/i, label: 'Feuerversicherung' },
   { pattern: /leitungswasserversicherung|leitungswasser.?versicherung/i, label: 'Leitungswasserversicherung' },
-  { pattern: /sturmversicherung|sturm.?versicherung/i, label: 'Sturmversicherung' },
+  { pattern: /haftpflichtversicherung|haftpflicht.?versicherung/i, label: 'Haftpflichtversicherung' },
   { pattern: /glasbruchversicherung|glas.{0,8}bruch.{0,8}versicherung/i, label: 'Glasbruchversicherung' },
-  { pattern: /glasversicherung|glas.{0,8}versicherung/i, label: 'Glasversicherung' },
   { pattern: /geräteversicherung|geraete.{0,4}versicherung|gerät.{0,4}versicherung/i, label: 'Geräteversicherung' },
-  { pattern: /einbruchversicherung|einbruch.?versicherung/i, label: 'Einbruchversicherung' },
   { pattern: /haushaltsversicherung|haushalt.?versicherung/i, label: 'Haushaltsversicherung' },
   { pattern: /maschinenversicherung|maschinen.?versicherung/i, label: 'Maschinenversicherung' },
-  { pattern: /betriebsunterbrechungsversicherung|betriebs.?unterbrechung/i, label: 'Betriebsunterbrechungsversicherung' },
+  { pattern: /einbruchversicherung|einbruch.?versicherung/i, label: 'Einbruchversicherung' },
+  { pattern: /sturmversicherung|sturm.?versicherung/i, label: 'Sturmversicherung' },
+  { pattern: /feuerversicherung|feuer.?versicherung/i, label: 'Feuerversicherung' },
+  { pattern: /glasversicherung|glas.{0,8}versicherung/i, label: 'Glasversicherung' },
+  { pattern: /gebäudeversicherung|gebaeude.?versicherung/i, label: 'Gebäudeversicherung' },
 ]
 
 // Indicators that a document IS an insurance policy (at least one must match)
@@ -381,8 +381,25 @@ export async function POST(request: NextRequest) {
       if (!bestMatch) bestMatch = findMatch(pdfText)
     }
 
-    // Look up the concrete unit_id — works for both "Top X" and "/X" address formats
-    const unitMatch = bestMatch ? findUnit(bestMatch, unit_top, pdfText) : null
+    // Extract risk address context — ONLY this determines if it's a unit or building policy.
+    // "Risikoanschrift: Mariahilfer Straße 88, 1060 Wien"     → no unit number → Liegenschaft
+    // "Risikoanschrift: Mariahilfer Straße 88, Top 1, 1060 Wien" → unit number → Einheit
+    const RISK_LABELS = [
+      'risikoanschrift', 'risikostandort', 'versicherungsort', 'risikoort',
+      'objektadresse', 'bewohnte einheit', 'versicherte einheit',
+      'versichertes objekt', 'versicherungsobjekt',
+    ]
+    let riskContext = ''
+    const lowerPdf = pdfText.toLowerCase()
+    for (const label of RISK_LABELS) {
+      const pos = lowerPdf.indexOf(label)
+      if (pos !== -1) riskContext += pdfText.slice(pos, pos + 300) + '\n'
+    }
+    // Fall back to full text only if no risk address field found at all
+    const unitSearchText = riskContext || pdfText
+
+    // Look up the concrete unit_id — only within the risk address context
+    const unitMatch = bestMatch ? findUnit(bestMatch, unit_top, unitSearchText) : null
     const finalIsUnitPolice = unitMatch !== null
 
     return NextResponse.json({
