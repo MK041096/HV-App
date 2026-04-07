@@ -249,9 +249,9 @@ export default function VersicherungenPage() {
         if (analyseData.suggested_name) name = analyseData.suggested_name
 
         // Scope-Check: Einheits-Police im Liegenschaft-Bereich?
-        if (analyseData.unit_top && analyseData.is_insurance !== false) {
+        if (analyseData.is_unit_police && analyseData.is_insurance !== false) {
           setLgUploadMismatch(
-            `Diese Police ist für eine einzelne Einheit (Top ${analyseData.unit_top}) ausgestellt, nicht für eine ganze Liegenschaft. Bitte laden Sie sie im Tab „Pro Einheit" hoch.`
+            `Diese Police gilt nur für eine einzelne Einheit${analyseData.unit_top ? ` (Top ${analyseData.unit_top})` : ''}, nicht für eine ganze Liegenschaft. Bitte laden Sie sie im Tab „Pro Einheit" hoch.`
           )
           return
         }
@@ -304,9 +304,9 @@ export default function VersicherungenPage() {
         if (analyseData.suggested_name) name = analyseData.suggested_name
 
         // Scope-Check: Liegenschaft-Police im Einheit-Bereich?
-        if (analyseData.is_insurance === true && !analyseData.unit_top) {
+        if (analyseData.is_insurance === true && !analyseData.is_unit_police) {
           setUnitUploadMismatch(
-            `Diese Police enthält keine Top-Nummer und gilt offenbar für eine ganze Liegenschaft (nicht für eine einzelne Einheit). Bitte laden Sie sie im Tab „Pro Liegenschaft" hoch.`
+            `Diese Police gilt für eine ganze Liegenschaft, nicht für eine einzelne Einheit. Bitte laden Sie sie im Tab „Pro Liegenschaft" hoch.`
           )
           return
         }
@@ -418,14 +418,14 @@ export default function VersicherungenPage() {
 
         if (analyseData.is_insurance === false) {
           updated[i] = { ...updated[i], status: 'wrong_type', liegenschaft: null, suggestedName: null }
-        } else if (analyseData.unit_top && analyseData.is_insurance !== false) {
+        } else if (analyseData.is_unit_police && analyseData.is_insurance !== false) {
           // Einheits-Police im Liegenschaft-Bulk-Upload
           updated[i] = {
             ...updated[i],
             status: 'wrong_type',
             liegenschaft: null,
             suggestedName: null,
-            errorMsg: `Einheits-Police (Top ${analyseData.unit_top}) — bitte im Tab „Pro Einheit" hochladen`,
+            errorMsg: `Einheits-Police${analyseData.unit_top ? ` (Top ${analyseData.unit_top})` : ''} — bitte im Tab „Pro Einheit" hochladen`,
           }
         } else if (analyseData.liegenschaft) {
           updated[i] = { ...updated[i], status: 'done', liegenschaft: analyseData.liegenschaft, suggestedName: analyseData.suggested_name || null }

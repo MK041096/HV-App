@@ -208,8 +208,30 @@ export async function POST(request: NextRequest) {
       pdfText.match(/\b(?:wohnung|mietobjekt|einheit|mietgegenstand)[^.\n]{0,80}\bTop\s*(\d{1,3})\b(?!\s*[-–]\s*\d)/i) ??
       pdfText.match(/\bTop\s+Nr\.?\s*(\d{1,3})\b/i) ??
       pdfText.match(/[/\\]Top\s*(\d{1,3})\b/i) ??
+      // Versicherungs-spezifische Kontexte (Risikoanschrift, Bewohnte Einheit etc.)
+      pdfText.match(/(?:risikoanschrift|risikostandort|versicherungsort|bewohnte?\s*einheit|versicherte?\s*einheit)[^\n]{0,150}Top\s*(\d{1,3})\b/i) ??
+      // Adressformat: "Top 1, 1060 Wien"
+      pdfText.match(/\bTop\s*(\d{1,3})[,\s]+\d{4}/i) ??
       pdfText.match(/\bTop\s*(\d{1,3})\b(?!\s*[-–]\s*\d)/i)
     const unit_top = topMatch ? topMatch[1] : null
+
+    // ── Einheits-spezifische Versicherungstypen erkennen ──
+    // Diese Typen gelten immer nur für eine einzelne Einheit
+    const ALWAYS_UNIT_TYPES: RegExp[] = [
+      /geräteversicherung|geraeteversicherung/i,
+      /haushaltsversicherung/i,
+      /mietrechtsschutzversicherung/i,
+      /mietausfallversicherung/i,
+    ]
+    // Diese Typen sind einheits-spezifisch NUR wenn auch "Top X" vorkommt
+    const MAYBE_UNIT_TYPES: RegExp[] = [
+      /glasbruchversicherung|glas.?versicherung/i,
+    ]
+    const hasTopAnywhere = unit_top !== null || /\bTop\s+\d{1,3}\b/i.test(pdfText)
+    const is_unit_police =
+      ALWAYS_UNIT_TYPES.some(p => p.test(pdfText)) ||
+      (MAYBE_UNIT_TYPES.some(p => p.test(pdfText)) && hasTopAnywhere) ||
+      unit_top !== null
 
     // ── Mietvertrag-Pfad ──
     // Mietvertrag erkennen: mind. ein Mietvertrag-typisches Wort vorhanden
@@ -309,6 +331,7 @@ export async function POST(request: NextRequest) {
       suggested_name,
       unit_top,
       is_insurance: true,
+      is_unit_police,
       confidence: bestMatch ? 'hoch' : 'nicht_erkannt',
     })
   } catch (err) {
