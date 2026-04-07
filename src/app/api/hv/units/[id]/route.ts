@@ -54,19 +54,14 @@ export async function DELETE(
 
     const now = new Date().toISOString()
 
-    // Soft-Delete via admin (RLS auf units prüft user_roles, nicht profiles)
-    const { error: deleteError } = await admin
-      .from('units')
-      .update({ is_deleted: true, deleted_at: now })
-      .eq('id', id)
-      .eq('organization_id', profile.organization_id)
+    // Prüfen ob es überhaupt Schadensmeldungen gibt (auch abgeschlossene)
+    const { count: anyReports } = await admin
+      .from('damage_reports')
+      .select('id', { count: 'exact', head: true })
+      .eq('unit_id', id)
+      .eq('is_deleted', false)
 
-    if (deleteError) {
-      console.error('Error deleting unit:', deleteError)
-      return NextResponse.json({ error: 'Fehler beim Löschen' }, { status: 500 })
-    }
-
-    // Offene Aktivierungscodes für diese Einheit abbrechen
+    // Aktivierungscodes deaktivieren
     await admin
       .from('activation_codes')
       .update({ status: 'deactivated' })
@@ -74,7 +69,7 @@ export async function DELETE(
       .eq('organization_id', profile.organization_id)
       .eq('status', 'pending')
 
-    // Verknüpfte Mieter-Profile soft-deleten
+    // Verknüpfte Mieter-Profile soft-deleten (auth.users hard-delete passiert separat über Mieter-Löschen)
     await admin
       .from('profiles')
       .update({ is_deleted: true, deleted_at: now })
@@ -82,6 +77,32 @@ export async function DELETE(
       .eq('organization_id', profile.organization_id)
       .eq('role', 'mieter')
       .eq('is_deleted', false)
+
+    if ((anyReports ?? 0) === 0) {
+      // Keine Schadensmeldungen → hard-delete (DB bleibt sauber für häufige Import-/Löschzyklen)
+      const { error: deleteError } = await admin
+        .from('units')
+        .delete()
+        .eq('id', id)
+        .eq('organization_id', profile.organization_id)
+
+      if (deleteError) {
+        console.error('Error hard-deleting unit:', deleteError)
+        return NextResponse.json({ error: 'Fehler beim Löschen' }, { status: 500 })
+      }
+    } else {
+      // Hat Schadensmeldungen → soft-delete (Geschichte bleibt für 7-Jahres-Aufbewahrung)
+      const { error: deleteError } = await admin
+        .from('units')
+        .update({ is_deleted: true, deleted_at: now })
+        .eq('id', id)
+        .eq('organization_id', profile.organization_id)
+
+      if (deleteError) {
+        console.error('Error soft-deleting unit:', deleteError)
+        return NextResponse.json({ error: 'Fehler beim Löschen' }, { status: 500 })
+      }
+    }
 
     await admin.from('audit_logs').insert({
       user_id: user.id,

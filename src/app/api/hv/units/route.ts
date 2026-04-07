@@ -201,13 +201,7 @@ export async function DELETE(request: NextRequest) {
     if (deletableIds.length > 0) {
       const now = new Date().toISOString()
 
-      await admin
-        .from('units')
-        .update({ is_deleted: true, deleted_at: now })
-        .in('id', deletableIds)
-        .eq('organization_id', profile.organization_id)
-
-      // Offene Aktivierungscodes für gelöschte Einheiten abbrechen
+      // Aktivierungscodes deaktivieren
       await admin
         .from('activation_codes')
         .update({ status: 'deactivated' })
@@ -224,13 +218,46 @@ export async function DELETE(request: NextRequest) {
         .eq('role', 'mieter')
         .eq('is_deleted', false)
 
+      // Einheiten ohne Schadensmeldungen → hard-delete (DB bleibt sauber)
+      // Einheiten mit Schadensmeldungen → soft-delete (7-Jahres-Aufbewahrung)
+      const { data: reportsExist } = await admin
+        .from('damage_reports')
+        .select('unit_id')
+        .in('unit_id', deletableIds)
+        .eq('is_deleted', false)
+
+      const unitIdsWithReports = new Set((reportsExist || []).map(r => r.unit_id))
+      const hardDeleteIds = deletableIds.filter(id => !unitIdsWithReports.has(id))
+      const softDeleteIds = deletableIds.filter(id => unitIdsWithReports.has(id))
+
+      if (hardDeleteIds.length > 0) {
+        await admin
+          .from('units')
+          .delete()
+          .in('id', hardDeleteIds)
+          .eq('organization_id', profile.organization_id)
+      }
+
+      if (softDeleteIds.length > 0) {
+        await admin
+          .from('units')
+          .update({ is_deleted: true, deleted_at: now })
+          .in('id', softDeleteIds)
+          .eq('organization_id', profile.organization_id)
+      }
+
       await admin.from('audit_logs').insert({
         user_id: user.id,
         organization_id: profile.organization_id,
         action: 'units_bulk_deleted',
         entity_type: 'unit',
         entity_id: profile.organization_id,
-        details: { deleted_count: deletableIds.length, skipped_count: skippedNames.length },
+        details: {
+          deleted_count: deletableIds.length,
+          hard_deleted: hardDeleteIds.length,
+          soft_deleted: softDeleteIds.length,
+          skipped_count: skippedNames.length,
+        },
       })
     }
 
