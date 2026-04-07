@@ -450,8 +450,8 @@ export default function UnitsListPage() {
       {unitLimit > 0 && (
         <div className="rounded-lg border px-4 py-3 border-border bg-muted/30">
           <div className="flex items-center justify-between mb-1.5">
-            <span className="text-sm font-medium">
-              {totalUnits} von {unitLimit} Einheiten belegt
+            <span className="text-sm font-medium text-foreground">
+              {totalUnits} von {unitLimit} Einheiten genutzt
             </span>
             <button onClick={() => setUpgradeOpen(true)} className="text-xs text-primary underline underline-offset-2">
               Limit erhöhen
