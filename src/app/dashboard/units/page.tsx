@@ -495,10 +495,15 @@ export default function UnitsListPage() {
       {vacantNoEmailCount > 0 && !tenantStatusFilter && (
         <div className="flex items-start gap-3 rounded-lg border border-yellow-200 bg-yellow-50 px-4 py-3 text-sm">
           <AlertTriangle className="h-4 w-4 text-yellow-600 mt-0.5 shrink-0" />
-          <p className="text-yellow-800">
-            <span className="font-medium">{vacantNoEmailCount} Einheit{vacantNoEmailCount !== 1 ? "en" : ""} ohne E-Mail-Adresse</span>
-            {" — beim Import war keine E-Mail hinterlegt, daher wurde kein Aktivierungscode versendet. Klicken Sie bei der jeweiligen Einheit auf \"Einladen\" um die E-Mail-Adresse nachzutragen und den Code manuell zu senden."}
-          </p>
+          <div className="text-yellow-800 space-y-1">
+            <p className="font-medium">
+              {vacantNoEmailCount} {vacantNoEmailCount !== 1 ? "Einheiten wurden importiert, aber kein Aktivierungscode wurde versendet" : "Einheit wurde importiert, aber kein Aktivierungscode wurde versendet"}
+            </p>
+            <p>
+              Für {vacantNoEmailCount !== 1 ? "diese Einheiten" : "diese Einheit"} war im Import keine E-Mail-Adresse hinterlegt — deshalb konnte der Einladungscode nicht automatisch verschickt werden.
+              Klicken Sie bei der jeweiligen Einheit auf <span className="font-medium">„Einladen"</span>, tragen Sie die E-Mail-Adresse des Mieters nach und der Code wird sofort versendet.
+            </p>
+          </div>
         </div>
       )}
 
@@ -506,10 +511,14 @@ export default function UnitsListPage() {
       {vacantCount > 0 && !tenantStatusFilter && (
         <div className="flex items-start gap-3 rounded-lg border border-yellow-200 bg-yellow-50 px-4 py-3 text-sm">
           <AlertTriangle className="h-4 w-4 text-yellow-600 mt-0.5 shrink-0" />
-          <p className="text-yellow-800">
-            <span className="font-medium">{vacantCount} Einheit{vacantCount !== 1 ? "en" : ""} ohne Mieter</span>
-            {" — klicken Sie bei der jeweiligen Einheit auf \"Einladen\" um einen Aktivierungscode zu senden."}
-          </p>
+          <div className="text-yellow-800 space-y-1">
+            <p className="font-medium">
+              {vacantCount} {vacantCount !== 1 ? "Einheiten haben noch keinen Mieter" : "Einheit hat noch keinen Mieter"}
+            </p>
+            <p>
+              Klicken Sie bei der jeweiligen Einheit auf <span className="font-medium">„Einladen"</span>, geben Sie die E-Mail-Adresse des Mieters ein und der Aktivierungscode wird automatisch versendet.
+            </p>
+          </div>
         </div>
       )}
 
