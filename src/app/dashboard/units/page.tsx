@@ -708,12 +708,49 @@ export default function UnitsListPage() {
       {pagination && pagination.total_pages > 1 && (
         <div className="flex items-center justify-between">
           <p className="text-sm text-muted-foreground">Seite {pagination.page} von {pagination.total_pages}</p>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 flex-wrap justify-end">
+            <Button variant="outline" size="sm" disabled={!pagination.has_prev || isLoading} onClick={() => setPage(1)}>
+              <ChevronLeft className="h-4 w-4" /><ChevronLeft className="h-4 w-4 -ml-2" />
+            </Button>
             <Button variant="outline" size="sm" disabled={!pagination.has_prev || isLoading} onClick={() => setPage(page - 1)}>
               <ChevronLeft className="h-4 w-4 mr-1" />Zurück
             </Button>
+            {/* Page number buttons */}
+            {(() => {
+              const total = pagination.total_pages
+              const current = pagination.page
+              const pages: (number | '...')[] = []
+              if (total <= 7) {
+                for (let i = 1; i <= total; i++) pages.push(i)
+              } else {
+                pages.push(1)
+                if (current > 3) pages.push('...')
+                for (let i = Math.max(2, current - 1); i <= Math.min(total - 1, current + 1); i++) pages.push(i)
+                if (current < total - 2) pages.push('...')
+                pages.push(total)
+              }
+              return pages.map((p, i) =>
+                p === '...' ? (
+                  <span key={`dots-${i}`} className="px-1 text-muted-foreground text-sm">…</span>
+                ) : (
+                  <Button
+                    key={p}
+                    variant={p === current ? 'default' : 'outline'}
+                    size="sm"
+                    className="w-9"
+                    disabled={isLoading}
+                    onClick={() => setPage(p as number)}
+                  >
+                    {p}
+                  </Button>
+                )
+              )
+            })()}
             <Button variant="outline" size="sm" disabled={!pagination.has_next || isLoading} onClick={() => setPage(page + 1)}>
               Weiter<ChevronRight className="h-4 w-4 ml-1" />
+            </Button>
+            <Button variant="outline" size="sm" disabled={!pagination.has_next || isLoading} onClick={() => setPage(pagination.total_pages)}>
+              <ChevronRight className="h-4 w-4" /><ChevronRight className="h-4 w-4 -ml-2" />
             </Button>
           </div>
         </div>
