@@ -65,6 +65,7 @@ interface OnboardingState {
   hasWerkstaetten: boolean
   hasVersicherung: boolean
   hasMietvertraege: boolean
+  hasDokumente: boolean
   hasMieter: boolean
   hasCases: boolean
   loaded: boolean
@@ -95,15 +96,15 @@ const ONBOARDING_STEPS: OnboardingStep[] = [
     icon: Home,
   },
   {
-    id: "hasMietvertraege",
+    id: "hasDokumente",
     number: 2,
-    title: "Mietverträge hochladen",
+    title: "Dokumente hochladen",
     description:
-      "Laden Sie die Mietverträge für Ihre Einheiten hoch. CARL analysiert automatisch wichtige Klauseln — z.B. wer ist für Kleinreparaturen zuständig, gibt es eine Glasklausel, welche Haustierhaltung ist erlaubt. Das spart bei jeder Meldung das Nachschlagen im Vertrag.",
+      "Laden Sie Mietverträge und Versicherungspolicen für Ihre Einheiten und Liegenschaften hoch — alles in einem Schritt. CARL analysiert die Dokumente automatisch: aus Mietverträgen liest er Klauseln wie Glasbruch, Kleinreparaturen und Haustierhaltung aus; aus Versicherungspolicen erkennt er, welche Schäden versichert sind (Wasserschaden, Sturm, Einbruch etc.). Bei jeder neuen Schadensmeldung weiß CARL sofort: Wer zahlt, wer ist zuständig, ist es ein Versicherungsfall?",
     whyBox:
-      "Wenn ein Mieter meldet \"Fensterscheibe kaputt\" sehen Sie sofort: Glasklausel vorhanden → Versicherungsfall. CARL erledigt das Nachschlagen für Sie — kein manuelles Suchen mehr.",
+      "Wenn ein Mieter \"Fensterscheibe kaputt\" meldet, sieht CARL sofort: Glasklausel im Mietvertrag vorhanden, Glasbruch in der Police gedeckt → Versicherungsfall, keine Kosten für die HV. Das spart bei jeder Meldung wertvolle Minuten.",
     href: "/dashboard/dokumente",
-    linkText: "Mietverträge hochladen",
+    linkText: "Dokumente hochladen",
     icon: FileText,
   },
   {
@@ -119,20 +120,8 @@ const ONBOARDING_STEPS: OnboardingStep[] = [
     icon: Wrench,
   },
   {
-    id: "hasVersicherung",
-    number: 4,
-    title: "Versicherungspolice hochladen",
-    description:
-      "Laden Sie die Versicherungspolicen aller Liegenschaften hoch. CARL liest das Dokument automatisch aus und erkennt, was versichert ist — z.B. Glasbruch, Wasserschäden, Sturmschäden. Bei einer neuen Schadensmeldung zeigt CARL dann direkt an: \"Dieser Schaden ist versichert.\"",
-    whyBox:
-      "Sie verlieren nie wieder Zeit damit, die Police zu suchen oder zu lesen. CARL sagt Ihnen sofort ob und was versichert ist.",
-    href: "/dashboard/dokumente",
-    linkText: "Dokumente hochladen",
-    icon: ShieldCheck,
-  },
-  {
     id: "hasCases",
-    number: 5,
+    number: 4,
     title: "Erste Schadensmeldung",
     description:
       "Sobald ein Mieter registriert ist, kann er über sein Portal eine Schadensmeldung abschicken. Sie sehen die Meldung sofort in Ihrem Dashboard und können mit einem Klick: Status setzen, Handwerker zuweisen, Notizen hinzufügen und die Meldung abschließen.",
@@ -158,6 +147,7 @@ export default function DashboardPage() {
     hasWerkstaetten: false,
     hasVersicherung: false,
     hasMietvertraege: false,
+    hasDokumente: false,
     hasMieter: false,
     hasCases: false,
     loaded: false,
@@ -254,6 +244,7 @@ export default function DashboardPage() {
           hasWerkstaetten: (werkRes.count ?? 0) > 0,
           hasVersicherung,
           hasMietvertraege,
+          hasDokumente: hasMietvertraege || hasVersicherung,
           hasMieter: (mieterRes.count ?? 0) > 0,
           hasCases: (casesRes.count ?? 0) > 0,
           loaded: true,
