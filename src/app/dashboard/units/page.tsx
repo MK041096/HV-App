@@ -204,6 +204,7 @@ export default function UnitsListPage() {
   const [sortBy, setSortBy] = useState<SortField>("name")
   const [sortOrder, setSortOrder] = useState<SortOrder>("asc")
   const [page, setPage] = useState(1)
+  const [perPage, setPerPage] = useState(50)
   const [filtersOpen, setFiltersOpen] = useState(false)
   const [debouncedSearch, setDebouncedSearch] = useState(searchQuery)
   const [newUnitOpen, setNewUnitOpen] = useState(false)
@@ -224,7 +225,6 @@ export default function UnitsListPage() {
   const [bulkDeleteUnitsOpen, setBulkDeleteUnitsOpen] = useState(false)
   const [isBulkDeletingUnits, setIsBulkDeletingUnits] = useState(false)
   const [bulkDeleteErrors, setBulkDeleteErrors] = useState<string[]>([])
-  const [isSelectingAll, setIsSelectingAll] = useState(false)
 
   useEffect(() => {
     const timer = setTimeout(() => { setDebouncedSearch(searchQuery); setPage(1) }, 400)
@@ -237,7 +237,7 @@ export default function UnitsListPage() {
     try {
       const params = new URLSearchParams()
       params.set("page", String(page))
-      params.set("per_page", "50")
+      params.set("per_page", String(perPage))
       params.set("sort_by", sortBy)
       params.set("sort_order", sortOrder)
       if (debouncedSearch) params.set("search", debouncedSearch)
@@ -256,7 +256,7 @@ export default function UnitsListPage() {
     } finally {
       setIsLoading(false)
     }
-  }, [page, sortBy, sortOrder, debouncedSearch, tenantStatusFilter])
+  }, [page, perPage, sortBy, sortOrder, debouncedSearch, tenantStatusFilter])
 
   useEffect(() => { fetchUnits() }, [fetchUnits])
 
@@ -330,23 +330,6 @@ export default function UnitsListPage() {
       setSelectedUnitIds(new Set())
     } else {
       setSelectedUnitIds(new Set(units.map(u => u.id)))
-    }
-  }
-
-  async function handleSelectAllAcrossPages() {
-    setIsSelectingAll(true)
-    try {
-      const params = new URLSearchParams()
-      params.set("ids_only", "true")
-      if (debouncedSearch) params.set("search", debouncedSearch)
-      if (tenantStatusFilter) params.set("tenant_status", tenantStatusFilter)
-      const res = await fetch(`/api/hv/units?${params.toString()}`)
-      const json = await res.json()
-      setSelectedUnitIds(new Set<string>(json.ids || []))
-    } catch {
-      setSelectedUnitIds(new Set(units.map(u => u.id)))
-    } finally {
-      setIsSelectingAll(false)
     }
   }
 
@@ -643,19 +626,8 @@ export default function UnitsListPage() {
 
       {/* Bulk Action Bar */}
       {selectedUnitIds.size > 0 && (
-        <div className="flex items-center justify-between rounded-lg border bg-muted/50 px-4 py-2.5 gap-3">
-          <div className="flex items-center gap-3">
-            <span className="text-sm font-medium">{selectedUnitIds.size} ausgewählt</span>
-            {pagination && selectedUnitIds.size < (summary?.total_units ?? 0) && (
-              <button
-                onClick={handleSelectAllAcrossPages}
-                disabled={isSelectingAll}
-                className="text-xs text-primary underline underline-offset-2 hover:opacity-80 disabled:opacity-50"
-              >
-                {isSelectingAll ? 'Wird geladen...' : `Alle ${summary?.total_units} auswählen`}
-              </button>
-            )}
-          </div>
+        <div className="flex items-center justify-between rounded-lg border bg-muted/50 px-4 py-2.5">
+          <span className="text-sm font-medium">{selectedUnitIds.size} ausgewählt</span>
           <Button variant="destructive" size="sm" onClick={() => { setBulkDeleteErrors([]); setBulkDeleteUnitsOpen(true) }}>
             <Trash2 className="mr-2 h-4 w-4" />Ausgewählte löschen
           </Button>
@@ -872,10 +844,22 @@ export default function UnitsListPage() {
       </div>
 
       {/* Pagination */}
-      {pagination && pagination.total_pages > 1 && (
-        <div className="flex items-center justify-between">
-          <p className="text-sm text-muted-foreground">Seite {pagination.page} von {pagination.total_pages}</p>
-          <div className="flex items-center gap-1 flex-wrap justify-end">
+      {pagination && (
+        <div className="flex items-center justify-between gap-4 flex-wrap">
+          <div className="flex items-center gap-3">
+            <p className="text-sm text-muted-foreground">Seite {pagination.page} von {pagination.total_pages}</p>
+            <Select value={String(perPage)} onValueChange={(v) => { setPerPage(Number(v)); setPage(1); setSelectedUnitIds(new Set()) }}>
+              <SelectTrigger className="h-8 w-[110px] text-xs">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="50">50 / Seite</SelectItem>
+                <SelectItem value="100">100 / Seite</SelectItem>
+                <SelectItem value="250">250 / Seite</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          {pagination.total_pages > 1 && <div className="flex items-center gap-1 flex-wrap justify-end">
             <Button variant="outline" size="sm" disabled={!pagination.has_prev || isLoading} onClick={() => setPage(1)}>
               <ChevronLeft className="h-4 w-4" /><ChevronLeft className="h-4 w-4 -ml-2" />
             </Button>
@@ -919,7 +903,7 @@ export default function UnitsListPage() {
             <Button variant="outline" size="sm" disabled={!pagination.has_next || isLoading} onClick={() => setPage(pagination.total_pages)}>
               <ChevronRight className="h-4 w-4" /><ChevronRight className="h-4 w-4 -ml-2" />
             </Button>
-          </div>
+          </div>}
         </div>
       )}
 
