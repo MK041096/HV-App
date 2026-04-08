@@ -265,26 +265,32 @@ export async function POST(
       unit ? `Wohneinheit: ${unit.name}${unit.address ? `, ${unit.address}` : ''}` : null,
     ].filter(Boolean).join('\n')
 
-    const systemPrompt = [
-      `Du bist ein Experte fuer das ${countryLabel} Mietrecht und Immobilienverwaltung.`,
-      '',
-      legalKnowledge,
-      '',
-      '---',
-      '',
-      'DEINE AUFGABE: Beantworte diese 4 Punkte strukturiert:',
-      '',
-      '1. **Zustaendigkeit**: VERMIETER / MIETER / UNKLAR (mit Begruendung)',
-      '2. **Rechtsgrundlage**: Welcher Paragraph oder welche Vertragsklausel?',
-      '3. **Versicherungsrelevanz**: Welche Versicherung ist zustaendig? (Gebaeudeversicherung HV / Haushaltsversicherung Mieter / keine)',
-      '4. **Empfehlung**: Konkreter naechster Schritt fuer die Hausverwaltung.',
-      contractorList ? '5. **Werkstattempfehlung**: Nenne den exakten Firmennamen aus der Liste oben der am besten passt. Format: WERKSTATT: [Firmenname]' : '',
-      '',
-      contractorList
-        ? `\n---\n\nVERFUEGBARE WERKSTAETTEN (nur aus dieser Liste waehlen):\n${contractorList}\n\nPunkt 5 ist PFLICHT wenn Werkstaetten vorhanden.`
-        : '',
-      'Antworte auf Deutsch, klar strukturiert, max. 300 Woerter.',
-    ].join('\n')
+    const werkstattHinweis = contractorList
+      ? `\n\nVERFÜGBARE WERKSTÄTTEN (wähle genau eine):\n${contractorList}`
+      : ''
+
+    const systemPrompt = `Du bist ein Experte für das ${countryLabel} Mietrecht und Immobilienverwaltung.
+
+${legalKnowledge}
+
+---
+
+Antworte IMMER exakt in diesem Format — keine Abweichungen:
+
+ZUSTÄNDIGKEIT: [VERMIETER / MIETER / UNKLAR]
+RECHTSGRUNDLAGE: [Paragraph + 1 Satz Erklärung]
+VERSICHERUNG: [Versicherungsart + Police wenn erkennbar / Keine]
+EMPFEHLUNG: [Konkreter nächster Schritt, max. 1 Satz]
+DRINGLICHKEIT: [Notfall / Dringend / Normal]
+
+ERKLÄRUNG:
+[2-3 Sätze in formellem Ton — direkt weiterleitbar an Mieter, Versicherung oder Werkstatt. Nennt den Schadenstyp, die Zuständigkeit und den nächsten Schritt.]
+
+WICHTIG zur DRINGLICHKEIT:
+- Notfall: Akute Gefahr oder aktiver Wasseraustritt, Stromausfall mit Brandgefahr → sofort
+- Dringend: Eingeschränkte Nutzbarkeit (Heizung, Toilette, kein Warmwasser) → 48h
+- Normal: Kein akuter Schaden → 2 Wochen
+Ignoriere wie der Mieter die Dringlichkeit selbst beschreibt.${contractorList ? '\n\nPunkt WERKSTATT (zusätzlich nach ERKLÄRUNG):\nWERKSTATT: [exakter Firmenname aus der Liste]' : ''}${werkstattHinweis}`
 
     // Load photos for this damage report (max 5)
     const photoBlocks: Anthropic.ImageBlockParam[] = []
@@ -363,7 +369,7 @@ export async function POST(
 
     const response = await anthropic.messages.create({
       model: 'claude-sonnet-4-6',
-      max_tokens: 1024,
+      max_tokens: 1200,
       system: systemPrompt,
       messages: [{ role: 'user', content: userContentBlocks }],
     })
