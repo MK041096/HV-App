@@ -1,3 +1,4 @@
+import { deriveSpecialties } from '@/lib/contractors'
 import { NextRequest, NextResponse } from 'next/server'
 import * as XLSX from 'xlsx'
 import { createServerSupabaseClient, createAdminClient } from '@/lib/supabase-server'
@@ -86,7 +87,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
       const notes = beschreibung ? `${taetigkeit}\n${beschreibung}` : taetigkeit
       const { error: insertErr } = await adminSupabase.from('contractors').insert({
-        organization_id: orgId, name: company, company, phone, email, specialties: [], notes, is_active: true,
+        organization_id: orgId, name: company, company, phone, email, specialties: deriveSpecialties(notes), notes, is_active: true,
       })
 
       if (insertErr) { result.errors.push({ row: i + 1, message: `"${company}": ${insertErr.message}` }); continue }

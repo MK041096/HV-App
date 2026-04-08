@@ -1,3 +1,4 @@
+import { deriveSpecialties } from '@/lib/contractors'
 import { NextRequest, NextResponse } from 'next/server'
 import * as XLSX from 'xlsx'
 import { createServerSupabaseClient, createAdminClient } from '@/lib/supabase-server'
@@ -151,7 +152,7 @@ export async function POST(request: NextRequest) {
           company: c.company,
           phone: c.phone,
           email: c.email,
-          specialties: [],
+          specialties: deriveSpecialties(c.notes || ""),
           notes: c.notes,
           is_active: true,
         }))
