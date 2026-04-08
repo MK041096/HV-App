@@ -30,6 +30,7 @@ import {
   Shield,
   ExternalLink,
   List,
+  CheckCircle2,
 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
@@ -410,6 +411,11 @@ export default function CaseDetailPage({
   const [ablehnungText, setAblehnungText] = useState('')
   const [isSendingAblehnung, setIsSendingAblehnung] = useState(false)
   const [isSendingWeiterleitung, setIsSendingWeiterleitung] = useState(false)
+  const [naechsterSchrittDate, setNaechsterSchrittDate] = useState('')
+  const [isSendingSchnell, setIsSendingSchnell] = useState(false)
+  const [schnellError, setSchnellError] = useState<string | null>(null)
+  const [schnellSuccess, setSchnellSuccess] = useState<string | null>(null)
+  const [showContractorChange, setShowContractorChange] = useState(false)
   const [aktionSuccess, setAktionSuccess] = useState<string | null>(null)
   const [aktionError, setAktionError] = useState<string | null>(null)
 
@@ -493,6 +499,13 @@ export default function CaseDetailPage({
       // Populate appointment
       setAppointmentDate(
         data.scheduled_appointment ? toDateTimeLocal(data.scheduled_appointment) : ""
+      )
+      setNaechsterSchrittDate(
+        data.scheduled_appointment
+          ? toDateTimeLocal(data.scheduled_appointment)
+          : data.preferred_appointment
+          ? toDateTimeLocal(data.preferred_appointment)
+          : ''
       )
 
       // Load existing KI analysis if available
@@ -1626,6 +1639,159 @@ export default function CaseDetailPage({
 
         {/* Right Column - Actions */}
         <div className="space-y-6">
+          {/* ── Nächster Schritt (Smart Action Panel) ── */}
+          {!['abgelehnt', 'erledigt'].includes(caseData.status) && (
+            <Card className="border-2 border-primary/40 bg-primary/5 shadow-sm">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base flex items-center gap-2">
+                  {caseData.status === 'neu' && <span>🔵</span>}
+                  {['in_bearbeitung', 'warte_auf_handwerker'].includes(caseData.status) && <span>🟡</span>}
+                  {caseData.status === 'termin_vereinbart' && <span>🟢</span>}
+                  Nächster Schritt
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {schnellSuccess && (
+                  <div className="rounded-lg bg-green-100 border border-green-300 px-3 py-2 text-sm text-green-800 font-medium">{schnellSuccess}</div>
+                )}
+                {schnellError && (
+                  <div className="rounded-lg bg-red-100 border border-red-300 px-3 py-2 text-sm text-red-800">{schnellError}</div>
+                )}
+
+                {/* NEU: Werkstatt beauftragen */}
+                {caseData.status === 'neu' && (() => {
+                  const recommended = contractors.find(ct => ct.id === selectedContractorId)
+                  return (
+                    <div className="space-y-3">
+                      {recommended && !showContractorChange ? (
+                        <div className="space-y-1">
+                          <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">CARL empfiehlt</p>
+                          <div className="flex items-center justify-between rounded-md border bg-background px-3 py-2">
+                            <div>
+                              <p className="text-sm font-medium">{recommended.name}</p>
+                            </div>
+                            <button type="button" onClick={() => setShowContractorChange(true)} className="text-xs text-primary underline underline-offset-2 ml-3 shrink-0">
+                              Ändern
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="space-y-1.5">
+                          <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Werkstatt wählen</p>
+                          <Select value={selectedContractorId} onValueChange={v => { setSelectedContractorId(v); setShowContractorChange(false) }}>
+                            <SelectTrigger className="text-sm"><SelectValue placeholder="Werkstatt wählen..." /></SelectTrigger>
+                            <SelectContent>
+                              {contractors.map(ct => <SelectItem key={ct.id} value={ct.id}>{ct.name}</SelectItem>)}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      )}
+                      {caseData.preferred_appointment && (
+                        <p className="text-xs text-muted-foreground">
+                          Wunschtermin Mieter: <span className="font-medium text-foreground">{formatDateTime(caseData.preferred_appointment)}</span>
+                        </p>
+                      )}
+                      <Button
+                        className="w-full bg-green-700 hover:bg-green-800 text-white"
+                        disabled={isSendingSchnell || !selectedContractorId}
+                        onClick={async () => {
+                          setIsSendingSchnell(true); setSchnellError(null); setSchnellSuccess(null)
+                          try {
+                            const res = await fetch(`/api/hv/cases/${id}/weiterleiten`, {
+                              method: 'POST',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({ contractor_id: selectedContractorId, scheduled_appointment: caseData.preferred_appointment || null }),
+                            })
+                            if (!res.ok) throw new Error((await res.json()).error)
+                            setSchnellSuccess('✓ Werkstatt beauftragt — Mieter & Werkstatt wurden informiert')
+                            await fetchCase()
+                          } catch (err) { setSchnellError(err instanceof Error ? err.message : 'Fehler') }
+                          finally { setIsSendingSchnell(false) }
+                        }}
+                      >
+                        {isSendingSchnell ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Send className="mr-2 h-4 w-4" />}
+                        Annehmen & Werkstatt beauftragen
+                      </Button>
+                      {contractors.length === 0 && (
+                        <p className="text-xs text-muted-foreground text-center">
+                          <Link href="/dashboard/werkstaetten" className="underline">Werkstätten anlegen</Link> um die Zuweisung zu nutzen.
+                        </p>
+                      )}
+                    </div>
+                  )
+                })()}
+
+                {/* IN_BEARBEITUNG / WARTE_AUF_HANDWERKER: Termin */}
+                {['in_bearbeitung', 'warte_auf_handwerker'].includes(caseData.status) && (
+                  <div className="space-y-3">
+                    {caseData.assigned_to_company && (
+                      <p className="text-sm text-muted-foreground">Werkstatt: <span className="font-medium text-foreground">{caseData.assigned_to_company}</span></p>
+                    )}
+                    <div className="space-y-1.5">
+                      <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Wann kommt die Werkstatt?</p>
+                      <Input type="datetime-local" value={naechsterSchrittDate} onChange={e => setNaechsterSchrittDate(e.target.value)} className="text-sm" />
+                    </div>
+                    <Button
+                      className="w-full"
+                      disabled={isSendingSchnell || !naechsterSchrittDate}
+                      onClick={async () => {
+                        setIsSendingSchnell(true); setSchnellError(null); setSchnellSuccess(null)
+                        try {
+                          const res = await fetch(`/api/hv/cases/${id}`, {
+                            method: 'PATCH',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                              status: 'termin_vereinbart',
+                              comment: `Termin festgelegt: ${new Date(naechsterSchrittDate).toLocaleString('de-AT')}`,
+                              scheduled_appointment: new Date(naechsterSchrittDate).toISOString(),
+                            }),
+                          })
+                          if (!res.ok) throw new Error((await res.json()).error)
+                          setSchnellSuccess('✓ Termin gespeichert — Mieter wurde informiert')
+                          await fetchCase()
+                        } catch (err) { setSchnellError(err instanceof Error ? err.message : 'Fehler') }
+                        finally { setIsSendingSchnell(false) }
+                      }}
+                    >
+                      {isSendingSchnell ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Calendar className="mr-2 h-4 w-4" />}
+                      Termin festlegen & Mieter informieren
+                    </Button>
+                  </div>
+                )}
+
+                {/* TERMIN_VEREINBART: Abschließen */}
+                {caseData.status === 'termin_vereinbart' && (
+                  <div className="space-y-3">
+                    {caseData.scheduled_appointment && (
+                      <p className="text-sm text-muted-foreground">Termin: <span className="font-medium text-foreground">{formatDateTime(caseData.scheduled_appointment)}</span></p>
+                    )}
+                    <Button
+                      className="w-full bg-green-700 hover:bg-green-800 text-white"
+                      disabled={isSendingSchnell}
+                      onClick={async () => {
+                        setIsSendingSchnell(true); setSchnellError(null); setSchnellSuccess(null)
+                        try {
+                          const res = await fetch(`/api/hv/cases/${id}`, {
+                            method: 'PATCH',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ status: 'erledigt', comment: 'Schaden behoben — Fall abgeschlossen.' }),
+                          })
+                          if (!res.ok) throw new Error((await res.json()).error)
+                          setSchnellSuccess('✓ Fall abgeschlossen')
+                          await fetchCase()
+                        } catch (err) { setSchnellError(err instanceof Error ? err.message : 'Fehler') }
+                        finally { setIsSendingSchnell(false) }
+                      }}
+                    >
+                      {isSendingSchnell ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <CheckCircle2 className="mr-2 h-4 w-4" />}
+                      Schaden behoben — Fall abschließen
+                    </Button>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
+
           {/* Status Update */}
           <Card>
             <CardHeader>
