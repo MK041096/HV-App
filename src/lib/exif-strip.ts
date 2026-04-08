@@ -3,7 +3,7 @@
 import sharp from 'sharp'
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10 MB
-const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/heic'] as const
+const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/heic', 'image/avif'] as const
 
 export type AllowedMimeType = typeof ALLOWED_MIME_TYPES[number]
 
@@ -27,7 +27,7 @@ export async function stripExifAndValidate(
   // Validate mime type
   if (!ALLOWED_MIME_TYPES.includes(originalMimeType as AllowedMimeType)) {
     throw new Error(
-      `Ungültiger Dateityp: ${originalMimeType}. Erlaubt sind: JPG, PNG, HEIC`
+      `Ungültiger Dateityp: ${originalMimeType}. Erlaubt sind: JPG, PNG, HEIC, AVIF`
     )
   }
 
@@ -47,8 +47,8 @@ export async function stripExifAndValidate(
 
   let outputMimeType: AllowedMimeType = originalMimeType as AllowedMimeType
 
-  // Convert HEIC to JPEG (wider browser/viewer support)
-  if (originalMimeType === 'image/heic') {
+  // Convert HEIC/AVIF to JPEG (wider browser/viewer support)
+  if (originalMimeType === 'image/heic' || originalMimeType === 'image/avif') {
     pipeline = pipeline.jpeg({ quality: 85 })
     outputMimeType = 'image/jpeg'
   } else if (originalMimeType === 'image/jpeg') {
@@ -79,6 +79,8 @@ export function getExtensionForMimeType(mimeType: AllowedMimeType): string {
       return 'png'
     case 'image/heic':
       return 'jpg' // HEIC gets converted to JPEG
+    case 'image/avif':
+      return 'jpg' // AVIF gets converted to JPEG
     default:
       return 'jpg'
   }

@@ -212,7 +212,7 @@ const DAMAGE_SIDE_CONFIG: Record<DamageSide, { icon: React.ElementType; color: s
 
 const MAX_PHOTOS = 5
 const MAX_FILE_SIZE = 10 * 1024 * 1024
-const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/heic"]
+const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/heic", "image/avif"]
 const TOTAL_STEPS = 5
 
 // ─── Component ───────────────────────────────────────────────────────────────
@@ -288,7 +288,7 @@ export default function NeueMeldungPage() {
       const filesToUpload = Array.from(files).slice(0, remaining)
       for (const file of filesToUpload) {
         if (!ALLOWED_TYPES.includes(file.type)) {
-          setUploadError(`"${file.name}" hat ein ungültiges Format. Erlaubt: JPG, PNG, HEIC.`)
+          setUploadError(`"${file.name}" hat ein ungültiges Format. Erlaubt: JPG, PNG, HEIC, AVIF.`)
           continue
         }
         if (file.size > MAX_FILE_SIZE) {
@@ -819,14 +819,14 @@ function Step4PhotosAppointment({
 
         {photos.length < MAX_PHOTOS && (
           <div>
-            <input ref={fileInputRef} type="file" accept="image/jpeg,image/png,image/heic" multiple onChange={onPhotoSelect} className="sr-only" id="photo-upload" />
+            <input ref={fileInputRef} type="file" accept="image/jpeg,image/png,image/heic,image/avif" multiple onChange={onPhotoSelect} className="sr-only" id="photo-upload" />
             <label htmlFor="photo-upload" className={cn("flex flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed p-8 cursor-pointer transition-colors", isUploading ? "opacity-60 pointer-events-none" : "hover:bg-accent/80 hover:border-primary/50")}>
               {isUploading ? (
                 <><Loader2 className="h-8 w-8 text-muted-foreground animate-spin" /><span className="text-sm text-muted-foreground">Wird hochgeladen...</span></>
               ) : (
                 <><Camera className="h-8 w-8 text-muted-foreground" />
                   <span className="text-sm font-medium text-muted-foreground">Foto auswählen oder aufnehmen</span>
-                  <span className="text-xs text-muted-foreground">JPG, PNG, HEIC · max. 10 MB pro Foto</span>
+                  <span className="text-xs text-muted-foreground">JPG, PNG, HEIC, AVIF · max. 10 MB pro Foto</span>
                 </>
               )}
             </label>
