@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { waitUntil } from '@vercel/functions'
 import { createServerSupabaseClient, createAdminClient } from '@/lib/supabase-server'
 import { sendDamageReportNotificationEmail, sendAdminSuspiciousActivityAlert } from '@/lib/email'
 import { runKiAnalyse } from '@/lib/ki-analyse'
@@ -396,8 +397,8 @@ export async function POST(request: NextRequest) {
       .eq('damage_report_id', report.id)
       .order('sort_order')
 
-    // Fire-and-forget: KI-Analyse + E-Mail an HV-Admins
-    ;(async () => {
+    // Fire-and-forget: KI-Analyse + E-Mail an HV-Admins (waitUntil ensures Vercel does not kill the task)
+    waitUntil((async () => {
       try {
         const adminClient = createAdminClient()
         const [{ data: orgAdmins }, { data: org }, { data: { users: allUsers } }] = await Promise.all([
@@ -467,7 +468,7 @@ export async function POST(request: NextRequest) {
       } catch (emailErr) {
         console.error('Failed to send damage report notification email:', emailErr)
       }
-    })()
+    })())
 
     return NextResponse.json(
       {

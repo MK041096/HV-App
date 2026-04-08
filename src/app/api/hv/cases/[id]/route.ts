@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { waitUntil } from '@vercel/functions'
 import { createServerSupabaseClient, createAdminClient } from '@/lib/supabase-server'
 import {
   hvStatusUpdateSchema,
@@ -307,9 +308,9 @@ export async function PATCH(
         details: { old_status, new_status, comment },
       })
 
-      // Send email notification for termin_vereinbart (fire-and-forget)
+      // Send email notification for termin_vereinbart
       if (new_status === 'termin_vereinbart' && existingReport.reporter_id) {
-        ;(async () => {
+        waitUntil((async () => {
           try {
             const adminClient = createAdminClient()
             const [reporterResult, orgResult, reporterProfileResult] = await Promise.all([
@@ -335,12 +336,12 @@ export async function PATCH(
           } catch (err) {
             console.error('Termin email notification error:', err)
           }
-        })()
+        })())
       }
 
       // Send email when HV confirms report (in_bearbeitung = first action on case)
       if (new_status === 'in_bearbeitung' && existingReport.reporter_id) {
-        ;(async () => {
+        waitUntil((async () => {
           try {
             const adminClient = createAdminClient()
             const [reporterResult, orgResult, reporterProfileResult] = await Promise.all([
@@ -366,7 +367,7 @@ export async function PATCH(
           } catch (err) {
             console.error('Bestätigung email notification error:', err)
           }
-        })()
+        })())
       }
 
       // Legacy: generic status change emails (currently none configured)
