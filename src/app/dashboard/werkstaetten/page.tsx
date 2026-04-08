@@ -71,6 +71,20 @@ function extractBeschreibung(notes: string | null): string {
   return notes.split("\n").slice(1).join("\n").trim()
 }
 
+function deriveSpecialties(taetigkeit: string, beschreibung: string): string[] {
+  const text = (taetigkeit + " " + beschreibung).toLowerCase()
+  const specialties: string[] = []
+  if (text.includes("wasser") || text.includes("sanitär") || text.includes("rohrbruch") || text.includes("leitungswasser")) specialties.push("wasser")
+  if (text.includes("heizung") || text.includes("therme") || text.includes("warmwasser") || text.includes("heizkörper")) specialties.push("heizung")
+  if (text.includes("elektrik") || text.includes("elektrisch") || text.includes("strom") || text.includes("licht")) specialties.push("elektrik")
+  if (text.includes("fenster") || text.includes("tür") || text.includes("türen") || text.includes("schloss")) specialties.push("fenster_tueren")
+  if (text.includes("boden") || text.includes("wand") || text.includes("fliesen") || text.includes("parkett") || text.includes("maler") || text.includes("verputz")) specialties.push("boeden")
+  if (text.includes("schimmel")) specialties.push("schimmel")
+  if (text.includes("außen") || text.includes("aussen") || text.includes("garten") || text.includes("fassade") || text.includes("dach")) specialties.push("aussenbereich")
+  if (specialties.length === 0) specialties.push("allgemein")
+  return specialties
+}
+
 // ── Page ──
 
 export default function WerkstaettenPage() {
@@ -188,7 +202,7 @@ export default function WerkstaettenPage() {
       company: form.name.trim(),
       email: form.email.trim(),
       phone: form.phone.trim(),
-      specialties: [],
+      specialties: deriveSpecialties(form.taetigkeit.trim(), form.beschreibung.trim()),
       notes,
     }
 
