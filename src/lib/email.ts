@@ -239,7 +239,7 @@ export async function sendDamageReportNotificationEmail(params: {
   let kiVerdikt: string | null = null
   let kiVerdiktColor = '#7c3aed'
   if (kiAnalysis) {
-    const match = kiAnalysis.match(new RegExp('\*\*VERANTWORTLICH:\*\*\s*(.+)', 'i'))
+    const match = kiAnalysis.match(/(?:Zust[äa]ndigkeit|VERANTWORTLICH)[*\s]*:?\s*\*?\*?\s*(VERMIETER|MIETER|UNKLAR)/i)
     if (match) {
       kiVerdikt = match[1].trim()
       if (kiVerdikt.toLowerCase().includes('mieter')) kiVerdiktColor = '#dc2626'
