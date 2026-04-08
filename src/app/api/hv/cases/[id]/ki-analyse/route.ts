@@ -227,6 +227,24 @@ export async function POST(
       }
     }
 
+    // Load contractors so CARL can recommend the right one
+    const { data: contractors } = await supabase
+      .from('contractors')
+      .select('id, name, notes')
+      .eq('organization_id', profile.organization_id)
+      .eq('is_active', true)
+      .eq('is_deleted', false)
+      .order('name')
+
+    const contractorList = contractors && contractors.length > 0
+      ? contractors.map((ct, i) => {
+          const lines = (ct.notes || '').split('\n')
+          const taetigkeit = lines[0] || ''
+          const beschreibung = lines.slice(1).join(' ').trim()
+          return `${i + 1}. ${ct.name} — ${taetigkeit}${beschreibung ? ' | ' + beschreibung : ''}`
+        }).join('\n')
+      : null
+
     // Build damage info text
     const categoryLabels: Record<string, string> = {
       wasserschaden: 'Wasserschaden', heizung: 'Heizung/Warmwasser', elektrik: 'Elektrik',
@@ -260,7 +278,11 @@ export async function POST(
       '2. **Rechtsgrundlage**: Welcher Paragraph oder welche Vertragsklausel?',
       '3. **Versicherungsrelevanz**: Welche Versicherung ist zustaendig? (Gebaeudeversicherung HV / Haushaltsversicherung Mieter / keine)',
       '4. **Empfehlung**: Konkreter naechster Schritt fuer die Hausverwaltung.',
+      contractorList ? '5. **Werkstattempfehlung**: Nenne den exakten Firmennamen aus der Liste oben der am besten passt. Format: WERKSTATT: [Firmenname]' : '',
       '',
+      contractorList
+        ? `\n---\n\nVERFUEGBARE WERKSTAETTEN (nur aus dieser Liste waehlen):\n${contractorList}\n\nPunkt 5 ist PFLICHT wenn Werkstaetten vorhanden.`
+        : '',
       'Antworte auf Deutsch, klar strukturiert, max. 300 Woerter.',
     ].join('\n')
 
@@ -352,6 +374,24 @@ export async function POST(
       .join('\n')
 
     // Dringlichkeit aus CARL-Analyse ableiten und in DB setzen
+    // Parse CARL's workshop recommendation
+    let recommendedContractorId: string | null = null
+    let recommendedContractorName: string | null = null
+    if (contractors && contractors.length > 0) {
+      const werkstattMatch = analysisText.match(/WERKSTATT:\s*(.+)/i)
+      if (werkstattMatch) {
+        const named = werkstattMatch[1].trim().replace(/[*_.]/g, '')
+        const found = contractors.find(ct =>
+          named.toLowerCase().includes(ct.name.toLowerCase()) ||
+          ct.name.toLowerCase().includes(named.toLowerCase())
+        )
+        if (found) {
+          recommendedContractorId = found.id
+          recommendedContractorName = found.name
+        }
+      }
+    }
+
     const analysisLower = analysisText.toLowerCase()
     let detectedUrgency: string | null = null
     if (

@@ -517,6 +517,10 @@ export default function CaseDetailPage({
       setKiLeaseFound(data.lease_found ?? false)
       setKiInsuranceFound(data.insurance_found ?? false)
       setKiPhotoCount(data.photo_count ?? 0)
+      // Auto-select CARL's recommended contractor if not already set
+      if (data.recommended_contractor_id && !selectedContractorId) {
+        setSelectedContractorId(data.recommended_contractor_id)
+      }
     } catch (err) {
       setKiError(err instanceof Error ? err.message : 'Fehler')
     } finally {
