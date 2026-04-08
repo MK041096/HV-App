@@ -567,7 +567,7 @@ export default function CaseDetailPage({
       fenster_tueren: 'fenster_tueren',
       boeden_waende: 'boeden',
       schimmel: 'schimmel',
-      sanitaer: 'sanitaer',
+      sanitaer: 'wasser',
       aussenbereich: 'aussenbereich',
       sonstiges: 'allgemein',
     }
@@ -2037,13 +2037,13 @@ export default function CaseDetailPage({
             const hvMentioned = hvKeywords.some(k => kiLower.includes(k))
             const mieterMentioned = mieterKeywords.some(k => kiLower.includes(k))
             const isMieterVerantwortlich = mieterMentioned && !hvMentioned
-            const matchingContractors = contractors.filter(c => c.specialties.includes(caseData.category))
-            const suggestedContractor = matchingContractors[0] || contractors[0]
-
-            // Auto-set suggested contractor
-            if (suggestedContractor && !selectedContractorId) {
-              setTimeout(() => setSelectedContractorId(suggestedContractor.id), 0)
+            const categoryToSpecialty: Record<string, string> = {
+              wasserschaden: 'wasser', heizung: 'heizung', elektrik: 'elektrik',
+              fenster_tueren: 'fenster_tueren', boeden_waende: 'boeden', schimmel: 'schimmel',
+              sanitaer: 'wasser', aussenbereich: 'aussenbereich', sonstiges: 'allgemein',
             }
+            const neededSpecialty = categoryToSpecialty[caseData.category] || ''
+            const matchingContractors = contractors.filter(c => c.specialties.includes(neededSpecialty))
 
             // Auto-fill ablehnung text from KI
             if (isMieterVerantwortlich && !ablehnungText) {
