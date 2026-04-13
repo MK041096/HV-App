@@ -232,7 +232,7 @@ export default function LoginPage() {
             <Building2 className="h-7 w-7" />
           </div>
           <h1 className="text-2xl font-bold tracking-tight">SMARTCARL</h1>
-          <p className="text-sm text-muted-foreground">Hausverwaltungs-Portal</p>
+          <p className="text-sm text-muted-foreground">Ihr persönlicher Zugang</p>
         </div>
 
         <Card>
@@ -332,8 +332,6 @@ export default function LoginPage() {
         </Card>
 
         <p className="text-center text-xs text-muted-foreground">
-          Nur für autorisierte Hausverwaltungs-Mitarbeiter.
-          <br />
           Bei Problemen kontaktieren Sie Ihren Administrator.
         </p>
       </div>

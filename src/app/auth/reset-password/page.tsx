@@ -124,7 +124,7 @@ export default function ResetPasswordPage() {
           </div>
           <h1 className="text-2xl font-bold tracking-tight">SMARTCARL</h1>
           <p className="text-sm text-muted-foreground">
-            Hausverwaltungs-Portal
+            Ihr persönlicher Zugang
           </p>
         </div>
 

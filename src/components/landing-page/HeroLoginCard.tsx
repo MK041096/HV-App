@@ -164,7 +164,7 @@ export default function HeroLoginCard() {
               Anmelden
             </h2>
             <p style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 14, color: 'rgba(160,157,153,0.8)', margin: '6px 0 0' }}>
-              Zugang zum Hausverwaltungs-Portal
+              Ihr persönlicher Zugang
             </p>
           </div>
 
