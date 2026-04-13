@@ -1,13 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createServerSupabaseClient } from '@/lib/supabase-server'
+import { createServerSupabaseClient, createAdminClient } from '@/lib/supabase-server'
 import { z } from 'zod'
 
 const schema = z.object({
-  password: z
-    .string()
-    .min(8, 'Mindestens 8 Zeichen')
-    .regex(/[A-Z]/, 'Mindestens ein Großbuchstabe')
-    .regex(/[0-9]/, 'Mindestens eine Zahl'),
+  password: z.string().min(8, 'Mindestens 8 Zeichen'),
 })
 
 export async function POST(request: NextRequest) {
@@ -29,7 +25,9 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const { error } = await supabase.auth.updateUser({
+    // Admin-Client verwenden um MFA-Anforderung bei Recovery-Sessions zu umgehen
+    const adminClient = createAdminClient()
+    const { error } = await adminClient.auth.admin.updateUserById(user.id, {
       password: parsed.data.password,
     })
 

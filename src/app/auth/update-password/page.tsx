@@ -91,11 +91,14 @@ export default function UpdatePasswordPage() {
     setIsLoading(true)
     setError(null)
     try {
-      const { error: updateError } = await supabase.auth.updateUser({
-        password: values.password,
+      const res = await fetch('/api/auth/change-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password: values.password }),
       })
-      if (updateError) {
-        setError("Passwort konnte nicht gesetzt werden. Bitte fordere einen neuen Link an.")
+      const json = await res.json()
+      if (!res.ok) {
+        setError(json.error ?? "Passwort konnte nicht gesetzt werden. Bitte fordere einen neuen Link an.")
         return
       }
       setIsSuccess(true)
