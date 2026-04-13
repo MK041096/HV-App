@@ -102,9 +102,14 @@ export async function POST(request: NextRequest) {
       })
     }
 
-    // Determine redirect based on organization membership
+    // Determine redirect based on role
     const hasOrganization = profile?.organization_id != null
-    const redirectTo = hasOrganization ? '/dashboard' : '/no-organization'
+    const isTenant = profile?.role === 'mieter'
+    const redirectTo = !hasOrganization
+      ? '/no-organization'
+      : isTenant
+        ? '/mein-bereich'
+        : '/dashboard'
 
     // Check if MFA (2FA) is required for this user
     const { data: aal } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel()
