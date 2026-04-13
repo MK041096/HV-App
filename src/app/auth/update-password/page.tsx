@@ -53,36 +53,38 @@ export default function UpdatePasswordPage() {
   })
 
   useEffect(() => {
-    // PKCE flow: code in URL query params
-    const params = new URLSearchParams(window.location.search)
-    const code = params.get("code")
+    // Zuerst prüfen ob Supabase den Code bereits automatisch verarbeitet hat
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
+        setIsReady(true)
+        return
+      }
 
-    if (code) {
-      supabase.auth.exchangeCodeForSession(code).then(({ error }) => {
-        if (error) {
-          setError("Link ungültig oder abgelaufen. Bitte fordere einen neuen an.")
-        } else {
+      // Noch keine Session — Code manuell austauschen
+      const params = new URLSearchParams(window.location.search)
+      const code = params.get("code")
+
+      if (code) {
+        supabase.auth.exchangeCodeForSession(code).then(({ error }) => {
+          if (error) {
+            setError("Link ungültig oder abgelaufen. Bitte fordere einen neuen an.")
+          } else {
+            setIsReady(true)
+            window.history.replaceState({}, "", "/auth/update-password")
+          }
+        })
+        return
+      }
+
+      // Implicit flow: auf PASSWORD_RECOVERY Event warten
+      const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+        if (event === "PASSWORD_RECOVERY" || event === "SIGNED_IN") {
           setIsReady(true)
-          // URL säubern
-          window.history.replaceState({}, "", "/auth/update-password")
         }
       })
-      return
-    }
 
-    // Implicit flow: token in hash fragment
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
-      if (event === "PASSWORD_RECOVERY") {
-        setIsReady(true)
-      }
+      return () => subscription.unsubscribe()
     })
-
-    // Falls schon eingeloggt via Recovery-Session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) setIsReady(true)
-    })
-
-    return () => subscription.unsubscribe()
   }, [])
 
   async function onSubmit(values: UpdateFormValues) {
