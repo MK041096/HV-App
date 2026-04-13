@@ -155,8 +155,8 @@ export default function PricingSection() {
             </div>
             <div style={{ background: '#FFF5F3', border: '1px solid rgba(199,66,41,0.2)', borderRadius: 8, padding: '16px 20px' }}>
               <p style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 12, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#C74229', margin: '0 0 8px' }}>Jährlich (empfohlen)</p>
-              <p style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 28, fontWeight: 700, color: '#000', margin: '0 0 2px' }}>{(units * 0.43).toFixed(2).replace('.', ',')} €</p>
-              <p style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 13, color: '#555', margin: 0 }}>pro Monat im 1. Jahr</p>
+              <p style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 28, fontWeight: 700, color: '#000', margin: '0 0 2px' }}>{(units * 0.43 * 12).toFixed(2).replace('.', ',')} €</p>
+              <p style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 13, color: '#555', margin: 0 }}>pro Jahr im 1. Jahr</p>
             </div>
             <div style={{ background: '#F9F9F9', borderRadius: 8, padding: '16px 20px' }}>
               <p style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 12, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#888', margin: '0 0 8px' }}>Onboarding</p>
