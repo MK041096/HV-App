@@ -43,6 +43,16 @@ export async function middleware(request: NextRequest) {
   } = await supabase.auth.getUser()
 
   const pathname = request.nextUrl.pathname
+  const searchParams = request.nextUrl.searchParams
+
+  // Sicherheitsnetz: ?code= auf der Landingpage oder falschen Seiten → immer zu update-password
+  // Verhindert dass Supabase den Recovery-Code automatisch austauscht bevor der User ein Passwort setzen kann
+  const code = searchParams.get('code')
+  if (code && (pathname === '/' || pathname === '/login')) {
+    const url = new URL('/auth/update-password', request.url)
+    url.searchParams.set('code', code)
+    return NextResponse.redirect(url)
+  }
 
   const isProtectedRoute =
     PROTECTED_PREFIXES.some((prefix) => pathname.startsWith(prefix)) &&
