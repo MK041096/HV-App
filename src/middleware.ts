@@ -8,7 +8,8 @@ const PROTECTED_PREFIXES = ['/dashboard', '/mein-bereich', '/admin']
 const PROTECTED_EXCEPTIONS = ['/admin/login']
 
 // Routes that should redirect if already authenticated
-const AUTH_ROUTES = ['/login', '/auth/reset-password', '/admin/login']
+// Wichtig: /auth/reset-password und /auth/update-password NICHT hier drin — eingeloggte User sollen Passwort ändern können
+const AUTH_ROUTES = ['/login', '/admin/login']
 
 export async function middleware(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
@@ -76,8 +77,10 @@ export async function middleware(request: NextRequest) {
       .eq('is_deleted', false)
       .single()
 
-    const isHV = profile && ['hv_admin', 'hv_mitarbeiter', 'platform_admin'].includes(profile.role)
-    return NextResponse.redirect(new URL(isHV ? '/dashboard' : '/mein-bereich', request.url))
+    if (!profile) return NextResponse.redirect(new URL('/login', request.url))
+    if (profile.role === 'platform_admin') return NextResponse.redirect(new URL('/admin', request.url))
+    if (['hv_admin', 'hv_mitarbeiter'].includes(profile.role)) return NextResponse.redirect(new URL('/dashboard', request.url))
+    return NextResponse.redirect(new URL('/mein-bereich', request.url))
   }
 
   return supabaseResponse
