@@ -12,15 +12,7 @@ export async function GET(request: Request) {
     const { error } = await supabase.auth.exchangeCodeForSession(code)
 
     if (!error) {
-      // Determine redirect based on the type of callback
-      const type = searchParams.get('type')
-
-      if (type === 'recovery') {
-        // Password reset flow - redirect to reset password page
-        return NextResponse.redirect(`${origin}/auth/reset-password`)
-      }
-
-      // Default: redirect to next page (dashboard)
+      // Default: redirect to next page (update-password or dashboard)
       return NextResponse.redirect(`${origin}${next}`)
     }
   }
