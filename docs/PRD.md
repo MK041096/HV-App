@@ -2,7 +2,7 @@
 
 ## Vision
 
-SchadensMelder ist eine mandantenfähige SaaS-Plattform, die Hausverwaltungen in Österreich den gesamten Prozess der Schadensmeldungsabwicklung digitalisiert und automatisiert. Mieter melden Schäden über ein Self-Service-Portal, die Hausverwaltung bearbeitet sie in einem strukturierten Case-Management — von der Ersatzmeldung bis zur automatisch befüllten Versicherungsdokumentation. Ziel ist: ein HV-Mitarbeiter benötigt für eine Schadensmeldung maximal 3 manuelle Klicks.
+SMARTCARL ist eine mandantenfähige SaaS-Plattform, die Hausverwaltungen in Österreich den gesamten Prozess der Schadensmeldungsabwicklung digitalisiert und automatisiert. Mieter melden Schäden über ein Self-Service-Portal, die Hausverwaltung bearbeitet sie in einem strukturierten Case-Management — von der Ersatzmeldung bis zur automatisch befüllten Versicherungsdokumentation. Ziel ist: ein HV-Mitarbeiter benötigt für eine Schadensmeldung maximal 3 manuelle Klicks.
 
 ## Target Users
 

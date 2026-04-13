@@ -1,12 +1,12 @@
 # PROJ-16: Öffentliche Landing-Page für Kundengewinnung
 
 ## Overview
-Erstelle eine professionelle, responsive Landing-Page für die Marke **Zerodamage.de** als Einstiegspunkt für Hausverwaltungen. Die Seite dient ausschließlich der Kundengewinnung, präsentiert das Angebot, stellt das Gründerteam vor und ermöglicht das Buchen bzw. Starten eines kostenlosen Tests. Potenzielle Kunden können auf der Domain zerodamage.de alles "buchen", was sie benötigen. Bereits eingeloggte Nutzer werden automatisch zum Dashboard weitergeleitet.
+Erstelle eine professionelle, responsive Landing-Page für die Marke **Zerodamage.de** als Einstiegspunkt für Hausverwaltungen. Die Seite dient ausschließlich der Kundengewinnung, präsentiert das Angebot, stellt das Gründerteam vor und ermöglicht das Buchen bzw. Starten eines kostenlosen Tests. Potenzielle Kunden können auf der Domain smartcarl.com alles "buchen", was sie benötigen. Bereits eingeloggte Nutzer werden automatisch zum Dashboard weitergeleitet.
 
 ## User Stories
 
 ### Als potenzieller HV-Kunde
-- möchte ich auf der Startseite sofort verstehen, was SchadensMelder ist und welchen Nutzen es bringt
+- möchte ich auf der Startseite sofort verstehen, was SMARTCARL ist und welchen Nutzen es bringt
 - möchte ich die Preise sehen und einen kostenlosen Test starten können
 - möchte ich mehr über das Unternehmen und die Gründer erfahren
 - möchte ich mich einfach einloggen können, wenn ich bereits Kunde bin
@@ -73,7 +73,7 @@ Erstelle eine professionelle, responsive Landing-Page für die Marke **Zerodamag
 ## QA Report (09.03.2026)
 - **Pass:** Seite unter `/` erreichbar, responsive Layout, Auth-Redirects korrekt.
 - **Blocker:** Header benötigt `"use client"`; Footer-Links führten zu 404s (nun vorhanden); canonical URL korrigiert.
-- **SEO:** JSON-LD eingefügt; OG Meta erweitert; canonical auf `zerodamage.de` eingestellt.
+- **SEO:** JSON-LD eingefügt; OG Meta erweitert; canonical auf `smartcarl.com` eingestellt.
 - **Bugs behoben:** Team-Bild entfernt, Generator-Fallback für Gründerkarte.
 
 > Nach Bereinigung der kritischen Fehler ist das Feature bereit für die nächste QA/Runde und kann anschließend deployt werden.

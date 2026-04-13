@@ -82,7 +82,7 @@ This project is configured for automatic deployment to **Vercel**. Follow these 
    - Prefix client-side vars with `NEXT_PUBLIC_`.
 
 4. **DNS & Custom Domain**
-   - In Vercel settings, add `zerodamage.de` as a custom domain.
+   - In Vercel settings, add `smartcarl.com` as a custom domain.
    - Follow the DNS instructions (A/CAA/CNAME records) provided by Vercel to point your domain.
 
 5. **GitHub Action**
@@ -97,8 +97,8 @@ This project is configured for automatic deployment to **Vercel**. Follow these 
    - Run `npx vercel --prod` from the repo root to deploy manually.
 
 7. **Verify**
-   - Visit `https://zerodamage.de` after the build finishes. You should see the landing page.
-   - Test login links to `https://zerodamage.de/login` and the dashboard.
+   - Visit `https://smartcarl.com` after the build finishes. You should see the landing page.
+   - Test login links to `https://smartcarl.com/login` and the dashboard.
 
 > Note: I cannot perform these steps on your behalf – they require access to your Vercel account, domain DNS, and GitHub settings. Once you complete them, the site will be live to everyone.
 

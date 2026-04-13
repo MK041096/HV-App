@@ -1,5 +1,5 @@
-# Test-Anleitung: SchadensMelder
-Umgebung: https://zerodamage.de | Aktualisiert: 2026-03-17
+# Test-Anleitung: SMARTCARL
+Umgebung: https://smartcarl.com | Aktualisiert: 2026-03-17
 
 ---
 
@@ -37,9 +37,9 @@ HINWEIS: Die PDFs in scripts/test-docs/ werden einmalig generiert mit:
 
 ## Portale
 
-    kracherdigital@gmail.com  ->  zerodamage.de/admin         (Platform-Admin: Betreiber-Ansicht)
-    kracherdigital@gmx.at     ->  zerodamage.de/dashboard     (HV-Admin: Hausverwaltungs-Portal)
-    mathiaskracher@gmx.at     ->  zerodamage.de/mein-bereich  (Mieter-Portal)
+    kracherdigital@gmail.com  ->  smartcarl.com/admin         (Platform-Admin: Betreiber-Ansicht)
+    kracherdigital@gmx.at     ->  smartcarl.com/dashboard     (HV-Admin: Hausverwaltungs-Portal)
+    mathiaskracher@gmx.at     ->  smartcarl.com/mein-bereich  (Mieter-Portal)
     tradingworld@gmx.at       ->  kein Login, nur E-Mails     (Werkstatt)
 
 ---
@@ -66,7 +66,7 @@ HINWEIS: Die PDFs in scripts/test-docs/ werden einmalig generiert mit:
 
 Konto: kracherdigital@gmx.at
 
-1. Seite oeffnen: https://zerodamage.de/hv-registrierung
+1. Seite oeffnen: https://smartcarl.com/hv-registrierung
 2. Formular ausfullen:
    - Firmenname: Kracher ImmoGmbH
    - Vorname: Mathias | Nachname: Kracher
@@ -75,14 +75,14 @@ Konto: kracherdigital@gmx.at
 3. Beide Checkboxen ankreuzen (Datenschutz + AVV)
 4. "Kostenlos registrieren" klicken
 5. GMX oeffnen (kracherdigital@gmx.at) -> Bestaetigungslink klicken
-6. Einloggen: https://zerodamage.de/login
+6. Einloggen: https://smartcarl.com/login
 7. Pruefe: HV-Dashboard mit Onboarding-Widget sichtbar?
 
 ---
 
 ## BLOCK 1: Als HV-Admin testen
 
-Konto: kracherdigital@gmx.at | Portal: https://zerodamage.de/dashboard
+Konto: kracherdigital@gmx.at | Portal: https://smartcarl.com/dashboard
 
 ### 1.1 Einheiten per Excel importieren
 
@@ -98,7 +98,7 @@ Wo: Dashboard -> Einheiten -> "Excel importieren" (rechts oben)
    - 20 Codes generiert?
    - 20 E-Mails gesendet? (alle an mathiaskracher@gmx.at)
 6. GMX oeffnen (mathiaskracher@gmx.at) -> 20 Einladungsmails angekommen?
-   Betreff: "Einladung zu SchadensMelder - Ihr Aktivierungscode"
+   Betreff: "Einladung zu SMARTCARL - Ihr Aktivierungscode"
 
 ### 1.2 Werkstaetten per Excel importieren
 
@@ -243,14 +243,14 @@ Anna Berger in der Liste? | Einheit, Name, E-Mail korrekt?
 
 ## BLOCK 2: Als Mieter testen
 
-Konto: mathiaskracher@gmx.at | Portal: https://zerodamage.de/mein-bereich
+Konto: mathiaskracher@gmx.at | Portal: https://smartcarl.com/mein-bereich
 
 !! INKOGNITO-FENSTER OEFFNEN damit du gleichzeitig als HV eingeloggt bleibst !!
 
 ### 2.1 Mieter-Registrierung
 
 1. GMX oeffnen (mathiaskracher@gmx.at) im Inkognito-Fenster
-2. Einladungsmail suchen: Betreff "Einladung zu SchadensMelder - Ihr Aktivierungscode"
+2. Einladungsmail suchen: Betreff "Einladung zu SMARTCARL - Ihr Aktivierungscode"
 3. "Jetzt registrieren" Button in der Mail klicken
 4. Aktivierungscode eingeben (steht gross in der E-Mail)
 5. Formular ist vorausgefuellt (Anna Berger, mathiaskracher@gmx.at)
@@ -258,7 +258,7 @@ Konto: mathiaskracher@gmx.at | Portal: https://zerodamage.de/mein-bereich
    -> Passwort bestaetigen: MieterTest123!
    -> Datenschutz-Checkbox ankreuzen
 6. "Konto erstellen" klicken
-7. Pruefe: Weiterleitung zu zerodamage.de/mein-bereich?
+7. Pruefe: Weiterleitung zu smartcarl.com/mein-bereich?
 8. Pruefe: Einheit "Wohnung Top 1" und Name "Anna Berger" sichtbar?
 
 ### 2.2 Schadensmeldung einreichen
@@ -306,11 +306,11 @@ Nach dem HV-Klick auf "Weiterleiten & informieren" (Block 1.4 - Fall A):
 ## BLOCK 4: Als Platform-Admin
 
 Konto: kracherdigital@gmail.com | Passwort: AdminTest123!
-Portal: https://zerodamage.de/admin
+Portal: https://smartcarl.com/admin
 
 HINWEIS: Dieser Account ist bereits fertig eingerichtet. Einfach einloggen!
 
-1. https://zerodamage.de/login oeffnen
+1. https://smartcarl.com/login oeffnen
 2. kracherdigital@gmail.com + AdminTest123! eingeben
 3. -> Weiterleitung zu /admin?
 
@@ -331,10 +331,10 @@ HINWEIS: Dieser Account ist bereits fertig eingerichtet. Einfach einloggen!
 
 | Seite | URL |
 |-------|-----|
-| AVV | https://zerodamage.de/avv |
-| Impressum | https://zerodamage.de/impressum |
-| Datenschutz | https://zerodamage.de/datenschutz |
-| Kontakt | https://zerodamage.de/kontakt |
+| AVV | https://smartcarl.com/avv |
+| Impressum | https://smartcarl.com/impressum |
+| Datenschutz | https://smartcarl.com/datenschutz |
+| Kontakt | https://smartcarl.com/kontakt |
 
 AVV: Paragraphen 1-12, Name Mathias Kracher, Adresse Oberwart, UID ATU81585679
 Impressum: Adresse Wildgansgasse 8/2, 7400 Oberwart, UID ATU81585679, GISA 37695736
@@ -358,7 +358,7 @@ Impressum: Adresse Wildgansgasse 8/2, 7400 Oberwart, UID ATU81585679, GISA 37695
 
 ## BLOCK 7: Mobile Ansicht
 
-1. https://zerodamage.de am Smartphone oeffnen
+1. https://smartcarl.com am Smartphone oeffnen
 2. Landing Page: Sieht gut aus?
 3. Login-Formular: Benutzbar?
 4. Als HV einloggen (kracherdigital@gmx.at): Hamburger-Menue sichtbar?
@@ -398,4 +398,4 @@ Impressum: Adresse Wildgansgasse 8/2, 7400 Oberwart, UID ATU81585679, GISA 37695
 
 ---
 
-Aktualisiert: 2026-03-17 | SchadensMelder by Mathias Kracher
+Aktualisiert: 2026-03-17 | SMARTCARL by Mathias Kracher
