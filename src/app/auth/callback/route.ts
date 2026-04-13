@@ -12,7 +12,11 @@ export async function GET(request: Request) {
     const { error } = await supabase.auth.exchangeCodeForSession(code)
 
     if (!error) {
-      // Default: redirect to next page (update-password or dashboard)
+      // Recovery type = password reset → immer zur update-password Seite
+      const type = searchParams.get('type')
+      if (type === 'recovery') {
+        return NextResponse.redirect(`${origin}/auth/update-password`)
+      }
       return NextResponse.redirect(`${origin}${next}`)
     }
   }

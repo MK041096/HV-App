@@ -72,7 +72,7 @@ export default function ResetPasswordPage() {
     try {
       const { error: resetError } =
         await supabase.auth.resetPasswordForEmail(values.email, {
-          redirectTo: `${window.location.origin}/auth/callback?next=/auth/update-password`,
+          redirectTo: `${window.location.origin}/auth/callback`,
         })
 
       if (resetError) {
@@ -104,7 +104,7 @@ export default function ResetPasswordPage() {
 
     try {
       await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/auth/callback?next=/auth/update-password`,
+        redirectTo: `${window.location.origin}/auth/callback`,
       })
       startCooldown()
     } catch {
