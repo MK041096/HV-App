@@ -28,7 +28,9 @@ export default async function RootPage() {
       .single()
 
     if (profile && profile.role) {
-      if (["hv_admin", "hv_mitarbeiter", "platform_admin"].includes(profile.role)) {
+      if (profile.role === 'platform_admin') {
+        redirect("/admin")
+      } else if (["hv_admin", "hv_mitarbeiter"].includes(profile.role)) {
         redirect("/dashboard")
       } else {
         redirect("/mein-bereich")
