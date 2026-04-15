@@ -1374,11 +1374,13 @@ export default function CaseDetailPage({
                           {isSendingSchnell?<Loader2 className="mr-2 h-4 w-4 animate-spin"/>:<Send className="mr-2 h-4 w-4"/>}Annehmen & Werkstatt beauftragen
                         </Button>
 
-                        {/* Externe Werkstatt (alternative) */}
-                        <div className="border-t pt-2 space-y-1">
-                          <p className="text-xs text-muted-foreground">Keine passende Werkstatt in der Liste?</p>
-                          {ManualWerkstattForm}
-                        </div>
+                        {/* Externe Werkstatt — nur wenn CARL keine Empfehlung hat */}
+                        {!recommended&&(
+                          <div className="border-t pt-2 space-y-1">
+                            <p className="text-xs text-muted-foreground">Keine passende Werkstatt in der Liste?</p>
+                            {ManualWerkstattForm}
+                          </div>
+                        )}
 
                         {/* Ablehnen */}
                         <div className="border-t pt-3 space-y-2">
