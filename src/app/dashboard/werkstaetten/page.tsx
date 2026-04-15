@@ -47,6 +47,7 @@ interface Contractor {
   phone: string | null
   specialties: string[]
   notes: string | null
+  description: string | null
   is_active: boolean
   created_at: string
   updated_at: string
@@ -158,7 +159,7 @@ export default function WerkstaettenPage() {
       email: contractor.email || "",
       phone: contractor.phone || "",
       taetigkeit: extractTaetigkeit(contractor.notes),
-      beschreibung: extractBeschreibung(contractor.notes),
+      beschreibung: contractor.description || extractBeschreibung(contractor.notes),
     })
     setFormError(null)
     setDialogOpen(true)
@@ -180,17 +181,14 @@ export default function WerkstaettenPage() {
     setIsSaving(true)
     setFormError(null)
 
-    const notes = form.beschreibung.trim()
-      ? `${form.taetigkeit.trim()}\n${form.beschreibung.trim()}`
-      : form.taetigkeit.trim()
-
     const payload = {
       name: form.name.trim(),
       company: form.name.trim(),
       email: form.email.trim(),
       phone: form.phone.trim(),
       specialties: deriveSpecialties(form.taetigkeit.trim(), form.beschreibung.trim()),
-      notes,
+      notes: form.taetigkeit.trim(),
+      description: form.beschreibung.trim() || null,
     }
 
     try {

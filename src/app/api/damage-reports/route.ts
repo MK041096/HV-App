@@ -442,6 +442,8 @@ export async function POST(request: NextRequest) {
               unitId: profile.unit_id,
               unitName,
               unitAddress: unit?.address || null,
+              tenantName,
+              tenantPhone: parsed.data.reporter_phone || null,
             })
             kiAnalysis = kiResult.analysisText
             kiLeaseFound = kiResult.leaseFound

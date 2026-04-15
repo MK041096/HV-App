@@ -45,7 +45,7 @@ export async function PATCH(
     }
 
     const body = await request.json()
-    const { name, company, email, phone, specialties, notes, is_active } = body
+    const { name, company, email, phone, specialties, notes, description, is_active } = body
 
     const updateData: Record<string, unknown> = { updated_at: new Date().toISOString() }
 
@@ -60,6 +60,7 @@ export async function PATCH(
     if (phone !== undefined) updateData.phone = phone?.trim() || null
     if (specialties !== undefined) updateData.specialties = Array.isArray(specialties) ? specialties : []
     if (notes !== undefined) updateData.notes = notes?.trim() || null
+    if (description !== undefined) updateData.description = description?.trim() || null
     if (is_active !== undefined) updateData.is_active = Boolean(is_active)
 
     const { data: contractor, error: dbError } = await supabase
@@ -67,7 +68,7 @@ export async function PATCH(
       .update(updateData)
       .eq('id', id)
       .eq('organization_id', profile.organization_id)
-      .select('id, name, company, email, phone, specialties, notes, is_active, created_at, updated_at')
+      .select('id, name, company, email, phone, specialties, notes, description, is_active, created_at, updated_at')
       .single()
 
     if (dbError) {

@@ -30,7 +30,7 @@ export async function GET() {
 
     const { data: contractors, error: dbError } = await supabase
       .from('contractors')
-      .select('id, name, company, email, phone, specialties, notes, is_active, created_at, updated_at')
+      .select('id, name, company, email, phone, specialties, notes, description, is_active, created_at, updated_at')
       .eq('organization_id', profile.organization_id)
       .eq('is_active', true)
       .order('name', { ascending: true })
@@ -57,7 +57,7 @@ export async function POST(request: NextRequest) {
     if (error || !profile) return NextResponse.json({ error }, { status })
 
     const body = await request.json()
-    const { name, company, email, phone, specialties, notes } = body
+    const { name, company, email, phone, specialties, notes, description } = body
 
     if (!name || typeof name !== 'string' || !name.trim()) {
       return NextResponse.json({ error: 'Name ist ein Pflichtfeld' }, { status: 400 })
@@ -73,9 +73,10 @@ export async function POST(request: NextRequest) {
         phone: phone?.trim() || null,
         specialties: Array.isArray(specialties) ? specialties : [],
         notes: notes?.trim() || null,
+        description: description?.trim() || null,
         is_active: true,
       })
-      .select('id, name, company, email, phone, specialties, notes, is_active, created_at, updated_at')
+      .select('id, name, company, email, phone, specialties, notes, description, is_active, created_at, updated_at')
       .single()
 
     if (dbError) {
