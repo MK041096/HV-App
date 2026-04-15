@@ -888,6 +888,124 @@ export async function sendWerkstattWillkommensmail(params: {
   })
 }
 
+// Anfrage-E-Mail an unbekannte Werkstatt — KEIN SMARTCARL-Branding, HV schreibt im eigenen Namen
+function anfrageTemplate(content: string, orgName: string): string {
+  return `
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="margin:0;padding:0;background-color:#f4f4f5;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#f4f4f5;padding:32px 16px;">
+    <tr>
+      <td align="center">
+        <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;">
+          <tr>
+            <td style="background-color:#1e3a5f;border-radius:12px 12px 0 0;padding:24px 32px;">
+              <span style="color:#ffffff;font-size:18px;font-weight:700;">${orgName}</span>
+            </td>
+          </tr>
+          <tr>
+            <td style="background-color:#ffffff;padding:32px;border-radius:0 0 12px 12px;">
+              ${content}
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:20px 0;text-align:center;">
+              <p style="color:#a1a1aa;font-size:12px;margin:0;">
+                Diese E-Mail wurde von ${orgName} versendet.
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`
+}
+
+export async function sendAnfrageEmail(params: {
+  to: string
+  caseNumber: string
+  caseTitle: string
+  category: string
+  description: string | null
+  unitAddress: string
+  unitName: string
+  wunschtermin: string | null
+  wunschtermin2: string | null
+  orgName: string
+  orgPhone?: string
+  orgEmail?: string
+}): Promise<void> {
+  const { to, caseNumber, caseTitle, category, description, unitAddress, unitName, wunschtermin, wunschtermin2, orgName, orgPhone, orgEmail } = params
+
+  const content = `
+    <h2 style="color:#18181b;font-size:22px;font-weight:700;margin:0 0 8px 0;">
+      Anfrage für Reparaturarbeiten
+    </h2>
+    <p style="color:#71717a;font-size:14px;margin:0 0 24px 0;">Sehr geehrte Damen und Herren,</p>
+
+    <p style="color:#52525b;font-size:14px;line-height:1.6;margin:0 0 20px 0;">
+      wir sind die Hausverwaltung <strong>${orgName}</strong> und benötigen für eine unserer verwalteten Liegenschaften
+      einen Fachbetrieb für folgende Reparatur:
+    </p>
+
+    <div style="background-color:#f4f4f5;border-radius:8px;padding:16px 20px;margin-bottom:20px;">
+      <p style="color:#71717a;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;margin:0 0 4px 0;">Art des Schadens</p>
+      <p style="color:#18181b;font-size:15px;font-weight:700;margin:0 0 12px 0;">${caseTitle}</p>
+
+      <p style="color:#71717a;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;margin:0 0 4px 0;">Kategorie</p>
+      <p style="color:#18181b;font-size:14px;margin:0 0 12px 0;">${category}</p>
+
+      <p style="color:#71717a;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;margin:0 0 4px 0;">Adresse</p>
+      <p style="color:#18181b;font-size:14px;margin:0 0 12px 0;">${unitAddress} — ${unitName}</p>
+
+      ${description ? `
+      <p style="color:#71717a;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;margin:0 0 4px 0;">Schadensbeschreibung</p>
+      <p style="color:#18181b;font-size:14px;line-height:1.6;margin:0;">${description}</p>
+      ` : ''}
+    </div>
+
+    ${(wunschtermin || wunschtermin2) ? `
+    <p style="color:#52525b;font-size:14px;line-height:1.6;margin:0 0 12px 0;">
+      <strong>Mögliche Termine für den Einsatz:</strong>
+    </p>
+    <ul style="color:#52525b;font-size:14px;line-height:1.8;margin:0 0 20px 0;padding-left:20px;">
+      ${wunschtermin ? `<li>${wunschtermin}</li>` : ''}
+      ${wunschtermin2 ? `<li>${wunschtermin2}</li>` : ''}
+    </ul>
+    ` : ''}
+
+    <p style="color:#52525b;font-size:14px;line-height:1.6;margin:0 0 20px 0;">
+      Bitte teilen Sie uns mit, ob Sie diesen Auftrag übernehmen können und zu welchem Termin ein Einsatz möglich wäre.
+    </p>
+
+    <p style="color:#52525b;font-size:14px;line-height:1.6;margin:0 0 8px 0;"><strong>Kontakt:</strong></p>
+    <p style="color:#52525b;font-size:14px;line-height:1.8;margin:0 0 24px 0;">
+      ${orgName}<br/>
+      ${orgPhone ? `Tel: ${orgPhone}<br/>` : ''}
+      ${orgEmail ? `E-Mail: ${orgEmail}` : ''}
+    </p>
+
+    <p style="color:#71717a;font-size:13px;margin:0;">
+      Wir freuen uns auf Ihre Rückmeldung.<br/>
+      Mit freundlichen Grüßen,<br/>
+      <strong>${orgName}</strong>
+    </p>
+  `
+
+  await resend.emails.send({
+    from: `${orgName} <noreply@smartcarl.com>`,
+    to,
+    subject: `Anfrage Reparaturauftrag: ${caseTitle} – ${unitAddress}`,
+    html: anfrageTemplate(content, orgName),
+  })
+}
+
 export async function sendAdminSuspiciousActivityAlert(params: {
   tenantName: string
   tenantEmail: string | null

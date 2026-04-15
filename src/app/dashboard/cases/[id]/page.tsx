@@ -170,13 +170,16 @@ interface CarlSections {
   zustaendigkeit: string | null
   rechtsgrundlage: string | null
   versicherung: string | null
+  werkstatt: string | null
+  suchempfehlung: string | null
+  mieterinfo: string | null
   raw: string
 }
 
 function parseCarlAnalysis(text: string): CarlSections {
   const extract = (patterns: string[]): string | null => {
     for (const pattern of patterns) {
-      const regex = new RegExp(`(?:\\*\\*)?${pattern}(?:\\*\\*)?:?\\s*([\\s\\S]*?)(?=\\n\\*\\*[A-ZÜÄÖ]|\\n\\d+\\.|$)`, 'i')
+      const regex = new RegExp(`(?:\\*\\*)?${pattern}(?:\\*\\*)?:?\\s*([\\s\\S]*?)(?=\\n\\*\\*[A-ZÜÄÖ]|\\n[A-ZÜÄÖ_]+:|\\n\\d+\\.|$)`, 'i')
       const m = text.match(regex)
       if (m?.[1]?.trim()) return m[1].replace(/\*\*/g, '').trim()
     }
@@ -188,9 +191,12 @@ function parseCarlAnalysis(text: string): CarlSections {
     empfehlung: extract(['EMPFEHLUNG', 'Empfehlung']),
     dringlichkeit: extract(['DRINGLICHKEIT', 'Dringlichkeit']),
     hinweis: extract(['HINWEIS', 'Hinweis']),
-    zustaendigkeit: extract(['Zustaendigkeit', 'Zuständigkeit', '1\\. \\*\\*Zustaendigkeit']),
-    rechtsgrundlage: extract(['Rechtsgrundlage', '2\\. \\*\\*Rechtsgrundlage']),
-    versicherung: extract(['Versicherungsrelevanz', 'Versicherung', '3\\. \\*\\*Versicherungsrelevanz']),
+    zustaendigkeit: extract(['ZUSTÄNDIGKEIT', 'Zustaendigkeit', 'Zuständigkeit', '1\\. \\*\\*Zustaendigkeit']),
+    rechtsgrundlage: extract(['RECHTSGRUNDLAGE', 'Rechtsgrundlage', '2\\. \\*\\*Rechtsgrundlage']),
+    versicherung: extract(['VERSICHERUNG', 'Versicherungsrelevanz', 'Versicherung', '3\\. \\*\\*Versicherungsrelevanz']),
+    werkstatt: extract(['WERKSTATT']),
+    suchempfehlung: extract(['SUCHEMPFEHLUNG']),
+    mieterinfo: extract(['MIETERINFO']),
     raw: text,
   }
 }
@@ -427,6 +433,16 @@ export default function CaseDetailPage({
   const [manualContractorEmail, setManualContractorEmail] = useState('')
   const [manualContractorPhone, setManualContractorPhone] = useState('')
   const [useManualContractor, setUseManualContractor] = useState(false)
+
+  // Anfrage-Workflow (keine Partnerwerkstätten vorhanden)
+  const [anfrageEmail, setAnfrageEmail] = useState('')
+  const [isSendingAnfrage, setIsSendingAnfrage] = useState(false)
+  const [anfrageSuccess, setAnfrageSuccess] = useState(false)
+  const [anfrageError, setAnfrageError] = useState<string | null>(null)
+  const [showSaveAsPartner, setShowSaveAsPartner] = useState(false)
+  const [partnerName, setPartnerName] = useState('')
+  const [isSavingPartner, setIsSavingPartner] = useState(false)
+  const [partnerSaved, setPartnerSaved] = useState(false)
 
   // Delete state
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
@@ -811,17 +827,19 @@ export default function CaseDetailPage({
   const statusConfig = getStatusConfig(caseData.status)
 
 
-  // ── Parse CARL structured output ──
+  // ── Parse CARL structured output (inline, for verdict bar) ──
   const parseCarlAnalysis = (text: string) => {
     const get = (key: string) => text.match(new RegExp('^' + key + ':\\s*(.+)', 'mi'))?.[1]?.trim() ?? null
-    const zustaendigkeit = get('ZUSTäNDIGKEIT') || get('ZUSTÄNDIGKEIT') || get('ZUSTAENDIGKEIT')
-    const erklaerungMatch = text.match(/^ERKLÄRUNG:\s*([\s\S]+?)(?:\n[A-ZÜÄÖ]{3,}:|$)/mi)
+    const zustaendigkeit = get('ZUSTÄNDIGKEIT') || get('ZUSTäNDIGKEIT') || get('ZUSTAENDIGKEIT')
+    const erklaerungMatch = text.match(/^(?:BEGRÜNDUNG|ERKLÄRUNG):\s*([\s\S]+?)(?:\n[A-ZÜÄÖ_]{3,}:|$)/mi)
+    const suchempfehlung = get('SUCHEMPFEHLUNG')
     return {
       zustaendigkeit,
       rechtsgrundlage: get('RECHTSGRUNDLAGE'),
       versicherung: get('VERSICHERUNG'),
       empfehlung: get('EMPFEHLUNG'),
       erklaerung: erklaerungMatch?.[1]?.trim() ?? null,
+      suchempfehlung: suchempfehlung && suchempfehlung !== 'NICHT_NOETIG' ? suchempfehlung : null,
     }
   }
   const carlData = kiResult ? parseCarlAnalysis(kiResult) : null
@@ -1221,6 +1239,99 @@ export default function CaseDetailPage({
                   {/* NEU */}
                   {caseData.status==='neu'&&(()=>{
                     const recommended=contractors.find(ct=>ct.id===selectedContractorId)
+                    const carlSections = kiResult ? parseCarlAnalysis(kiResult) : null
+                    const suchempfehlung = carlSections?.suchempfehlung && carlSections.suchempfehlung !== 'NICHT_NOETIG' ? carlSections.suchempfehlung : null
+
+                    // ── Keine Werkstätten hinterlegt ──
+                    if (contractors.length === 0) return (
+                      <div className="space-y-3">
+                        {/* CARL Suchempfehlung */}
+                        {suchempfehlung && (
+                          <div className="rounded-lg bg-blue-50 border border-blue-200 p-3 space-y-1">
+                            <p className="text-xs font-medium text-blue-800 uppercase tracking-wide">CARL empfiehlt zu suchen nach</p>
+                            <p className="text-sm text-blue-900">{suchempfehlung}</p>
+                          </div>
+                        )}
+                        {!suchempfehlung && (
+                          <div className="rounded-lg bg-amber-50 border border-amber-200 p-3">
+                            <p className="text-xs text-amber-800">Keine Partnerwerkstätten hinterlegt. Geben Sie die E-Mail einer Werkstatt ein um eine Anfrage zu senden.</p>
+                          </div>
+                        )}
+
+                        {/* Anfrage senden */}
+                        {!anfrageSuccess && (
+                          <div className="space-y-2">
+                            <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">E-Mail Werkstatt</p>
+                            <Input
+                              type="email"
+                              placeholder="werkstatt@beispiel.at"
+                              value={anfrageEmail}
+                              onChange={e=>setAnfrageEmail(e.target.value)}
+                              className="text-sm"
+                            />
+                            {anfrageError && <p className="text-xs text-destructive">{anfrageError}</p>}
+                            <Button className="w-full" disabled={isSendingAnfrage||!anfrageEmail.includes('@')}
+                              onClick={async()=>{
+                                setIsSendingAnfrage(true); setAnfrageError(null)
+                                try {
+                                  const res = await fetch(`/api/hv/cases/${id}/anfrage`, {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:anfrageEmail})})
+                                  if (!res.ok) throw new Error((await res.json()).error)
+                                  setAnfrageSuccess(true)
+                                  setShowSaveAsPartner(true)
+                                } catch(err) { setAnfrageError(err instanceof Error?err.message:'Fehler beim Senden') }
+                                finally { setIsSendingAnfrage(false) }
+                              }}>
+                              {isSendingAnfrage?<Loader2 className="mr-2 h-4 w-4 animate-spin"/>:<Send className="mr-2 h-4 w-4"/>}
+                              Anfrage senden
+                            </Button>
+                          </div>
+                        )}
+
+                        {/* Nach dem Senden: Als Partner speichern? */}
+                        {anfrageSuccess && !partnerSaved && (
+                          <div className="rounded-lg bg-green-50 border border-green-200 p-3 space-y-3">
+                            <p className="text-sm font-medium text-green-800">✓ Anfrage gesendet an {anfrageEmail}</p>
+                            {showSaveAsPartner && (
+                              <div className="space-y-2 border-t border-green-200 pt-3">
+                                <p className="text-xs text-green-800 font-medium">Als Partnerwerkstatt speichern?</p>
+                                <Input
+                                  placeholder="Firmenname"
+                                  value={partnerName}
+                                  onChange={e=>setPartnerName(e.target.value)}
+                                  className="text-sm"
+                                />
+                                <div className="flex gap-2">
+                                  <Button size="sm" className="flex-1" disabled={isSavingPartner||!partnerName.trim()}
+                                    onClick={async()=>{
+                                      setIsSavingPartner(true)
+                                      try {
+                                        await fetch('/api/hv/contractors', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:partnerName.trim(),company:partnerName.trim(),email:anfrageEmail,phone:null,specialties:[],notes:null})})
+                                        setPartnerSaved(true); setShowSaveAsPartner(false)
+                                      } finally { setIsSavingPartner(false) }
+                                    }}>
+                                    {isSavingPartner?<Loader2 className="mr-2 h-4 w-4 animate-spin"/>:null}Ja, speichern
+                                  </Button>
+                                  <Button size="sm" variant="ghost" onClick={()=>setShowSaveAsPartner(false)}>Nein</Button>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                        {partnerSaved && <p className="text-xs text-green-700 font-medium">✓ Als Partnerwerkstatt gespeichert</p>}
+
+                        {/* Ablehnen */}
+                        <div className="border-t pt-3 space-y-2">
+                          <p className="text-xs text-muted-foreground font-medium">Mieter zuständig?</p>
+                          <Textarea className="text-sm min-h-[70px] resize-none" placeholder="Begründung für den Mieter..." value={ablehnungText} onChange={e=>setAblehnungText(e.target.value)}/>
+                          <Button variant="outline" className="w-full text-destructive border-destructive/30 hover:bg-destructive/5" disabled={isSendingAblehnung||!ablehnungText.trim()}
+                            onClick={async()=>{setIsSendingAblehnung(true);setSchnellError(null);setSchnellSuccess(null);try{const res=await fetch(`/api/hv/cases/${id}/ablehnen`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({begruendung:ablehnungText})});if(!res.ok)throw new Error((await res.json()).error);setSchnellSuccess('✓ Absage gesendet — Mieter per E-Mail informiert');await fetchCase()}catch(err){setSchnellError(err instanceof Error?err.message:'Fehler')}finally{setIsSendingAblehnung(false)}}}>
+                            {isSendingAblehnung?<Loader2 className="mr-2 h-4 w-4 animate-spin"/>:null}Ablehnen & Mieter informieren
+                          </Button>
+                        </div>
+                      </div>
+                    )
+
+                    // ── Werkstätten vorhanden ──
                     return (
                       <div className="space-y-3">
                         {/* Werkstatt */}
