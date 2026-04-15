@@ -57,6 +57,7 @@ import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Skeleton } from "@/components/ui/skeleton"
+import { Checkbox } from "@/components/ui/checkbox"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -443,6 +444,16 @@ export default function CaseDetailPage({
   const [isSavingPartner, setIsSavingPartner] = useState(false)
   const [partnerSaved, setPartnerSaved] = useState(false)
 
+  // Manuelles Werkstatt-Formular
+  const [showManualForm, setShowManualForm] = useState(false)
+  const [manualName, setManualName] = useState('')
+  const [manualEmail, setManualEmail] = useState('')
+  const [manualPhone, setManualPhone] = useState('')
+  const [manualTaetigkeit, setManualTaetigkeit] = useState('')
+  const [manualBeschreibung, setManualBeschreibung] = useState('')
+  const [manualSaveToList, setManualSaveToList] = useState(true)
+  const [isSendingManual, setIsSendingManual] = useState(false)
+
   // Delete state
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const [isDeletingCase, setIsDeletingCase] = useState(false)
@@ -779,6 +790,38 @@ export default function CaseDetailPage({
     }
   }
 
+  async function handleSendManual() {
+    setIsSendingManual(true)
+    setSchnellError(null)
+    setSchnellSuccess(null)
+    try {
+      const res = await fetch(`/api/hv/cases/${id}/weiterleiten`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          manual_contractor: {
+            name: manualName.trim(),
+            email: manualEmail.trim(),
+            phone: manualPhone.trim(),
+            taetigkeit: manualTaetigkeit.trim(),
+            beschreibung: manualBeschreibung.trim() || undefined,
+          },
+          save_to_list: manualSaveToList,
+          scheduled_appointment: caseData?.preferred_appointment || null,
+        }),
+      })
+      if (!res.ok) throw new Error((await res.json()).error)
+      setSchnellSuccess('✓ Werkstatt beauftragt — Mieter & Werkstatt informiert')
+      setShowManualForm(false)
+      setManualName(''); setManualEmail(''); setManualPhone(''); setManualTaetigkeit(''); setManualBeschreibung('')
+      await fetchCase()
+    } catch (err) {
+      setSchnellError(err instanceof Error ? err.message : 'Fehler')
+    } finally {
+      setIsSendingManual(false)
+    }
+  }
+
   // ── Render ──
 
   if (isLoading) {
@@ -853,6 +896,38 @@ export default function CaseDetailPage({
     ? { bar: 'bg-amber-50 border-amber-200', pill: 'bg-amber-100 text-amber-800 border-amber-200', icon: '❓', label: 'UNKLAR — bitte prüfen' }
     : { bar: 'bg-green-50 border-green-200', pill: 'bg-green-100 text-green-800 border-green-200', icon: '✅', label: 'VERMIETER zahlt' }
 
+
+  const ManualWerkstattForm = (
+    <div className="space-y-2">
+      {!showManualForm ? (
+        <button type="button" onClick={() => setShowManualForm(true)} className="text-xs text-primary underline hover:opacity-70">
+          + Externe Werkstatt manuell eingeben
+        </button>
+      ) : (
+        <div className="rounded-lg border border-border bg-background p-3 space-y-2">
+          <p className="text-xs font-medium text-foreground">Werkstatt manuell eingeben</p>
+          <Input placeholder="Name *" value={manualName} onChange={e => setManualName(e.target.value)} className="text-sm h-8" />
+          <Input placeholder="E-Mail *" type="email" value={manualEmail} onChange={e => setManualEmail(e.target.value)} className="text-sm h-8" />
+          <Input placeholder="Telefon *" type="tel" value={manualPhone} onChange={e => setManualPhone(e.target.value)} className="text-sm h-8" />
+          <Input placeholder="Tätigkeit * (z.B. Sanitär, Elektrik)" value={manualTaetigkeit} onChange={e => setManualTaetigkeit(e.target.value)} className="text-sm h-8" />
+          <Input placeholder="Beschreibung (optional)" value={manualBeschreibung} onChange={e => setManualBeschreibung(e.target.value)} className="text-sm h-8" />
+          <div className="flex items-center gap-2 pt-0.5">
+            <Checkbox id="saveToList" checked={manualSaveToList} onCheckedChange={v => setManualSaveToList(!!v)} />
+            <Label htmlFor="saveToList" className="text-xs text-muted-foreground cursor-pointer">In Partnerliste speichern</Label>
+          </div>
+          <div className="flex gap-2 pt-1">
+            <Button variant="ghost" size="sm" className="text-xs h-7 px-2" onClick={() => setShowManualForm(false)}>Abbrechen</Button>
+            <Button size="sm" className="flex-1 h-7 text-xs bg-green-700 hover:bg-green-800 text-white"
+              disabled={isSendingManual || !manualName.trim() || !manualEmail.trim() || !manualPhone.trim() || !manualTaetigkeit.trim()}
+              onClick={handleSendManual}>
+              {isSendingManual ? <Loader2 className="mr-1.5 h-3 w-3 animate-spin" /> : <Send className="mr-1.5 h-3 w-3" />}
+              Beauftragen
+            </Button>
+          </div>
+        </div>
+      )}
+    </div>
+  )
 
   return (
     <div className="min-h-screen bg-background">
@@ -1244,80 +1319,17 @@ export default function CaseDetailPage({
                     // ── Keine Werkstätten hinterlegt ──
                     if (contractors.length === 0) return (
                       <div className="space-y-3">
-                        {/* CARL Suchempfehlung */}
                         {suchempfehlung && (
                           <div className="rounded-lg bg-blue-50 border border-blue-200 p-3 space-y-1">
                             <p className="text-xs font-medium text-blue-800 uppercase tracking-wide">CARL empfiehlt zu suchen nach</p>
                             <p className="text-sm text-blue-900">{suchempfehlung}</p>
                           </div>
                         )}
-                        {!suchempfehlung && (
-                          <div className="rounded-lg bg-amber-50 border border-amber-200 p-3">
-                            <p className="text-xs text-amber-800">Keine Partnerwerkstätten hinterlegt. Geben Sie die E-Mail einer Werkstatt ein um eine Anfrage zu senden.</p>
-                          </div>
-                        )}
-
-                        {/* Anfrage senden */}
-                        {!anfrageSuccess && (
-                          <div className="space-y-2">
-                            <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">E-Mail Werkstatt</p>
-                            <Input
-                              type="email"
-                              placeholder="werkstatt@beispiel.at"
-                              value={anfrageEmail}
-                              onChange={e=>setAnfrageEmail(e.target.value)}
-                              className="text-sm"
-                            />
-                            {anfrageError && <p className="text-xs text-destructive">{anfrageError}</p>}
-                            <Button className="w-full" disabled={isSendingAnfrage||!anfrageEmail.includes('@')}
-                              onClick={async()=>{
-                                setIsSendingAnfrage(true); setAnfrageError(null)
-                                try {
-                                  const res = await fetch(`/api/hv/cases/${id}/anfrage`, {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:anfrageEmail})})
-                                  if (!res.ok) throw new Error((await res.json()).error)
-                                  setAnfrageSuccess(true)
-                                  setShowSaveAsPartner(true)
-                                } catch(err) { setAnfrageError(err instanceof Error?err.message:'Fehler beim Senden') }
-                                finally { setIsSendingAnfrage(false) }
-                              }}>
-                              {isSendingAnfrage?<Loader2 className="mr-2 h-4 w-4 animate-spin"/>:<Send className="mr-2 h-4 w-4"/>}
-                              Anfrage senden
-                            </Button>
-                          </div>
-                        )}
-
-                        {/* Nach dem Senden: Als Partner speichern? */}
-                        {anfrageSuccess && !partnerSaved && (
-                          <div className="rounded-lg bg-green-50 border border-green-200 p-3 space-y-3">
-                            <p className="text-sm font-medium text-green-800">✓ Anfrage gesendet an {anfrageEmail}</p>
-                            {showSaveAsPartner && (
-                              <div className="space-y-2 border-t border-green-200 pt-3">
-                                <p className="text-xs text-green-800 font-medium">Als Partnerwerkstatt speichern?</p>
-                                <Input
-                                  placeholder="Firmenname"
-                                  value={partnerName}
-                                  onChange={e=>setPartnerName(e.target.value)}
-                                  className="text-sm"
-                                />
-                                <div className="flex gap-2">
-                                  <Button size="sm" className="flex-1" disabled={isSavingPartner||!partnerName.trim()}
-                                    onClick={async()=>{
-                                      setIsSavingPartner(true)
-                                      try {
-                                        await fetch('/api/hv/contractors', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:partnerName.trim(),company:partnerName.trim(),email:anfrageEmail,phone:null,specialties:[],notes:null})})
-                                        setPartnerSaved(true); setShowSaveAsPartner(false)
-                                      } finally { setIsSavingPartner(false) }
-                                    }}>
-                                    {isSavingPartner?<Loader2 className="mr-2 h-4 w-4 animate-spin"/>:null}Ja, speichern
-                                  </Button>
-                                  <Button size="sm" variant="ghost" onClick={()=>setShowSaveAsPartner(false)}>Nein</Button>
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                        )}
-                        {partnerSaved && <p className="text-xs text-green-700 font-medium">✓ Als Partnerwerkstatt gespeichert</p>}
-
+                        <div className="rounded-lg bg-amber-50 border border-amber-200 p-3">
+                          <p className="text-xs text-amber-800 font-medium">⚠ Keine Partnerwerkstätten hinterlegt</p>
+                          <p className="text-xs text-amber-700 mt-1">Bitte kontaktieren Sie eine Werkstatt vorab, klären Sie den Auftrag ab und teilen Sie ihr mit, dass die Beauftragung über SMARTCARL läuft. Dann hier eintragen.</p>
+                        </div>
+                        {ManualWerkstattForm}
                         {/* Ablehnen */}
                         <div className="border-t pt-3 space-y-2">
                           <p className="text-xs text-muted-foreground font-medium">Mieter zuständig?</p>
@@ -1358,6 +1370,11 @@ export default function CaseDetailPage({
                           onClick={async()=>{setIsSendingSchnell(true);setSchnellError(null);setSchnellSuccess(null);try{const res=await fetch(`/api/hv/cases/${id}/weiterleiten`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contractor_id:selectedContractorId,scheduled_appointment:caseData.preferred_appointment||null})});if(!res.ok)throw new Error((await res.json()).error);setSchnellSuccess('✓ Werkstatt beauftragt — Mieter & Werkstatt informiert');await fetchCase()}catch(err){setSchnellError(err instanceof Error?err.message:'Fehler')}finally{setIsSendingSchnell(false)}}}>
                           {isSendingSchnell?<Loader2 className="mr-2 h-4 w-4 animate-spin"/>:<Send className="mr-2 h-4 w-4"/>}Annehmen & Werkstatt beauftragen
                         </Button>
+
+                        {/* Externe Werkstatt (alternative) */}
+                        <div className="border-t pt-2">
+                          {ManualWerkstattForm}
+                        </div>
 
                         {/* Ablehnen */}
                         <div className="border-t pt-3 space-y-2">

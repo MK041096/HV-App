@@ -10,11 +10,11 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     if (!user) return NextResponse.json({ error: 'Nicht authentifiziert' }, { status: 401 })
 
     const body = await request.json()
-    const { contractor_id, manual_contractor, scheduled_appointment } = body
+    const { contractor_id, manual_contractor, scheduled_appointment, save_to_list } = body
 
-    // Either contractor_id (from list) or manual_contractor (name + email) must be provided
-    if (!contractor_id && (!manual_contractor?.name || !manual_contractor?.email)) {
-      return NextResponse.json({ error: 'Werkstatt oder manuelle Eingabe ist erforderlich' }, { status: 400 })
+    // Either contractor_id (from list) or manual_contractor (name + email + phone) must be provided
+    if (!contractor_id && (!manual_contractor?.name || !manual_contractor?.email || !manual_contractor?.phone)) {
+      return NextResponse.json({ error: 'Name, E-Mail und Telefon sind bei manueller Eingabe Pflichtfelder' }, { status: 400 })
     }
 
     const { data: profile } = await supabase
@@ -52,7 +52,15 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     // Build contractor object: from DB or from manual input
     const contractor = contractor_id
       ? contractorFromDb
-      : { id: null, name: manual_contractor.name, company: manual_contractor.name, email: manual_contractor.email, phone: manual_contractor.phone || null }
+      : {
+          id: null,
+          name: manual_contractor.name,
+          company: manual_contractor.name,
+          email: manual_contractor.email,
+          phone: manual_contractor.phone,
+          taetigkeit: manual_contractor.taetigkeit || null,
+          beschreibung: manual_contractor.beschreibung || null,
+        }
 
     if (!contractor) return NextResponse.json({ error: 'Werkstatt nicht gefunden' }, { status: 404 })
     if (!contractor.email) {
@@ -101,6 +109,22 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://smartcarl.com'
     const tokenUrl = `${appUrl}/termin/${tokenData?.token}`
+
+    // Save manual contractor to partners list if requested
+    if (!contractor_id && save_to_list && contractor) {
+      await adminClient.from('contractors').insert({
+        organization_id: profile.organization_id,
+        name: contractor.name,
+        company: contractor.name,
+        email: contractor.email,
+        phone: (contractor as any).phone,
+        description: (contractor as any).taetigkeit || null,
+        notes: (contractor as any).beschreibung || null,
+        is_active: true,
+      }).then(({ error: insErr }) => {
+        if (insErr) console.error('Contractor save-to-list Fehler:', insErr)
+      })
+    }
 
     // Fire-and-forget: emails
     ;(async () => {

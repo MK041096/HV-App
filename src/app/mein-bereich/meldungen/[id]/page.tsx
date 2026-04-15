@@ -475,6 +475,21 @@ export default function MeldungDetailPage() {
             </div>
           )}
 
+          {/* Ablehnungsgrund */}
+          {report.status === 'abgelehnt' && (() => {
+            const ablehnungEntry = report.status_history?.find(e => e.new_status === 'abgelehnt' && e.note)
+            if (!ablehnungEntry?.note) return null
+            return (
+              <div className="rounded-lg border border-red-200 bg-red-50 p-4 space-y-1.5">
+                <div className="flex items-center gap-2">
+                  <AlertTriangle className="h-4 w-4 text-red-700 shrink-0" />
+                  <p className="text-sm font-semibold text-red-800">Ihre Hausverwaltung hat die Meldung abgelehnt</p>
+                </div>
+                <p className="text-sm text-red-700">{ablehnungEntry.note}</p>
+              </div>
+            )
+          })()}
+
           {/* Description */}
           {report.description && (
             <div>

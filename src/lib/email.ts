@@ -621,7 +621,7 @@ export async function sendTerminBestaetigung(params: {
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://smartcarl.com'
 
   const hvHeading = isPhone
-    ? 'Werkstatt kann Wunschtermin nicht wahrnehmen'
+    ? 'Werkstatt vereinbart Termin telefonisch'
     : isRescheduled ? 'Werkstatt hat neuen Termin vorgeschlagen' : 'Werkstatt hat Termin bestätigt'
   const hvBadge = isPhone
     ? '&#128222; Mieter wird telefonisch kontaktiert'
@@ -656,13 +656,13 @@ export async function sendTerminBestaetigung(params: {
   // E-Mail an Mieter
   if (tenantEmail) {
     const tenantHeading = isPhone
-      ? 'Die Werkstatt versucht, Sie telefonisch zu erreichen'
+      ? 'Die Werkstatt meldet sich bei Ihnen'
       : isRescheduled ? 'Neuer Terminvorschlag der Werkstatt' : 'Ihr Reparaturtermin wurde bestätigt'
     const tenantBadge = isPhone
-      ? '&#128222; Rückruf erforderlich'
+      ? '&#128222; Telefonische Terminvereinbarung'
       : isRescheduled ? '&#128197; Die Werkstatt schlägt einen neuen Termin vor' : '&#10003; Termin bestätigt'
     const tenantText = isPhone
-      ? 'Die Werkstatt konnte Ihren Wunschtermin leider nicht wahrnehmen und versucht nun, Sie telefonisch zu kontaktieren. Falls Sie den Anruf verpasst haben, rufen Sie bitte so schnell wie möglich zurück.'
+      ? 'Die Werkstatt möchte einen Termin telefonisch mit Ihnen vereinbaren und wird sich in Kürze bei Ihnen melden.'
       : isRescheduled
         ? 'Die Werkstatt konnte Ihren Wunschtermin nicht einhalten und hat einen neuen Termin vorgeschlagen. Ihre Hausverwaltung wurde informiert.'
         : 'Die Werkstatt kommt zum oben angezeigten Termin zu Ihnen. Bitte stellen Sie sicher, dass die Wohnung zugänglich ist.'
