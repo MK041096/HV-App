@@ -1372,7 +1372,12 @@ export default function CaseDetailPage({
                         </Button>
 
                         {/* Externe Werkstatt (alternative) */}
-                        <div className="border-t pt-2">
+                        <div className="border-t pt-2 space-y-1.5">
+                          {!recommended&&(
+                            <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded px-2 py-1.5">
+                              CARL konnte keine passende Partnerwerkstatt für diese Kategorie finden.
+                            </p>
+                          )}
                           {ManualWerkstattForm}
                         </div>
 
