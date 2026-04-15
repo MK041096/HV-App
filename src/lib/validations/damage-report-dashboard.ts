@@ -3,7 +3,6 @@ import { z } from 'zod'
 // Status display mapping: DB statuses -> user-friendly German labels
 export const STATUS_DISPLAY_MAP = {
   neu: 'Eingegangen',
-  in_bearbeitung: 'In Bearbeitung',
   warte_auf_handwerker: 'Werkstatt wurde kontaktiert',
   termin_vereinbart: 'Termin vereinbart',
   termin_telefonisch: 'Werkstatt meldet sich bei Ihnen',
@@ -14,7 +13,7 @@ export const STATUS_DISPLAY_MAP = {
 // Filter groups for the dashboard (maps display status to DB statuses)
 export const STATUS_FILTER_MAP = {
   alle: null,
-  offen: ['neu', 'in_bearbeitung', 'warte_auf_handwerker', 'termin_vereinbart', 'termin_telefonisch'],
+  offen: ['neu', 'warte_auf_handwerker', 'termin_vereinbart', 'termin_telefonisch'],
   abgeschlossen: ['erledigt', 'abgelehnt'],
 } as const
 

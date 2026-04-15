@@ -4,7 +4,6 @@ import { DAMAGE_CATEGORIES, URGENCY_LEVELS } from './damage-report'
 // All valid DB statuses for damage reports
 export const CASE_STATUSES = [
   'neu',
-  'in_bearbeitung',
   'warte_auf_handwerker',
   'termin_vereinbart',
   'termin_telefonisch',
@@ -17,7 +16,6 @@ export type CaseStatus = (typeof CASE_STATUSES)[number]
 // HV-facing status labels (German)
 export const CASE_STATUS_LABELS: Record<CaseStatus, string> = {
   neu: 'Neu',
-  in_bearbeitung: 'In Bearbeitung',
   warte_auf_handwerker: 'Warte auf Handwerker',
   termin_vereinbart: 'Termin vereinbart',
   termin_telefonisch: 'Werkstatt vereinbart Termin persönlich',

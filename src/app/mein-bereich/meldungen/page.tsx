@@ -68,9 +68,6 @@ const STATUS_BADGE_CONFIG: Record<
   Eingegangen: {
     className: "bg-blue-100 text-blue-700 border-blue-200",
   },
-  "In Bearbeitung": {
-    className: "bg-amber-100 text-amber-700 border-amber-200",
-  },
   "Werkstatt wurde kontaktiert": {
     className: "bg-purple-100 text-purple-700 border-purple-200",
   },
@@ -87,6 +84,9 @@ const STATUS_BADGE_CONFIG: Record<
     className: "bg-red-100 text-red-700 border-red-200",
   },
   // Raw DB status fallbacks
+  neu: {
+    className: "bg-blue-100 text-blue-700 border-blue-200",
+  },
   warte_auf_handwerker: {
     className: "bg-purple-100 text-purple-700 border-purple-200",
   },

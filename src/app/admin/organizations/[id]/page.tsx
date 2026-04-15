@@ -93,7 +93,6 @@ const ROLE_LABELS: Record<string, string> = {
 
 const STATUS_CONFIG: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
   neu: { label: "Neu", variant: "default" },
-  in_bearbeitung: { label: "In Bearbeitung", variant: "secondary" },
   warte_auf_handwerker: { label: "Warte auf HW", variant: "outline" },
   termin_vereinbart: { label: "Termin vereinbart", variant: "outline" },
   erledigt: { label: "Erledigt", variant: "secondary" },

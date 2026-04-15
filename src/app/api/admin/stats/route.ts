@@ -40,9 +40,8 @@ export async function GET() {
     const allCases = casesResult.data || []
     const cases_by_status = {
       neu: allCases.filter(c => c.status === 'neu').length,
-      in_bearbeitung: allCases.filter(c => c.status === 'in_bearbeitung').length,
       warte_auf_handwerker: allCases.filter(c => c.status === 'warte_auf_handwerker').length,
-      termin_vereinbart: allCases.filter(c => c.status === 'termin_vereinbart').length,
+      termin_vereinbart: allCases.filter(c => c.status === 'termin_vereinbart' || c.status === 'termin_telefonisch').length,
       erledigt: allCases.filter(c => c.status === 'erledigt').length,
       abgelehnt: allCases.filter(c => c.status === 'abgelehnt').length,
     }

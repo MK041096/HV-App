@@ -326,7 +326,6 @@ function getUrgencyConfig(urgency: string) {
 function getStatusConfig(status: string) {
   const configs: Record<string, { className: string; label: string }> = {
     neu: { className: "bg-sky-100 text-sky-800 border-sky-200", label: "Neu" },
-    in_bearbeitung: { className: "bg-yellow-100 text-yellow-800 border-yellow-200", label: "In Bearbeitung" },
     warte_auf_handwerker: { className: "bg-purple-100 text-purple-800 border-purple-200", label: "Wartet auf Handwerker" },
     termin_vereinbart: { className: "bg-indigo-100 text-indigo-800 border-indigo-200", label: "Termin vereinbart" },
     termin_telefonisch: { className: "bg-teal-100 text-teal-800 border-teal-200", label: "Termin telefonisch" },
@@ -1227,7 +1226,7 @@ export default function CaseDetailPage({
                 <CardHeader className="pb-3">
                   <CardTitle className="text-base flex items-center gap-2">
                     {caseData.status==='neu'&&<span>🔵</span>}
-                    {['in_bearbeitung','warte_auf_handwerker'].includes(caseData.status)&&<span>🟡</span>}
+                    {caseData.status==='warte_auf_handwerker'&&<span>🟡</span>}
                     {caseData.status==='termin_vereinbart'&&<span>🟢</span>}
                     Nächster Schritt
                   </CardTitle>
@@ -1378,8 +1377,8 @@ export default function CaseDetailPage({
                     )
                   })()}
 
-                  {/* IN_BEARBEITUNG / WARTE_AUF_HANDWERKER */}
-                  {['in_bearbeitung','warte_auf_handwerker'].includes(caseData.status)&&(
+                  {/* WARTE_AUF_HANDWERKER */}
+                  {caseData.status==='warte_auf_handwerker'&&(
                     <div className="space-y-3">
                       {caseData.assigned_to_company&&<p className="text-sm text-muted-foreground">Werkstatt: <span className="font-medium text-foreground">{caseData.assigned_to_company}</span></p>}
                       <div className="space-y-1.5">

@@ -41,7 +41,6 @@ import {
 interface DashboardStats {
   total: number
   neu: number
-  in_bearbeitung: number
   warte_auf_handwerker: number
   termin_vereinbart: number
   erledigt: number
@@ -222,9 +221,9 @@ export default function DashboardPage() {
             .eq("is_deleted", false)
             .in("status", [
               "neu",
-              "in_bearbeitung",
               "warte_auf_handwerker",
               "termin_vereinbart",
+              "termin_telefonisch",
             ])
             .order("created_at", { ascending: false })
             .limit(5),
@@ -264,12 +263,11 @@ export default function DashboardPage() {
         setStats({
           total: cases.length,
           neu: cases.filter((c) => c.status === "neu").length,
-          in_bearbeitung: cases.filter((c) => c.status === "in_bearbeitung").length,
           warte_auf_handwerker: cases.filter(
             (c) => c.status === "warte_auf_handwerker"
           ).length,
           termin_vereinbart: cases.filter(
-            (c) => c.status === "termin_vereinbart"
+            (c) => c.status === "termin_vereinbart" || c.status === "termin_telefonisch"
           ).length,
           erledigt: cases.filter((c) => c.status === "erledigt").length,
           notfall: cases.filter((c) => c.urgency === "notfall").length,
@@ -327,7 +325,6 @@ export default function DashboardPage() {
 
   const openCount = stats
     ? stats.neu +
-      stats.in_bearbeitung +
       stats.warte_auf_handwerker +
       stats.termin_vereinbart
     : 0
@@ -818,7 +815,6 @@ function UrgencyDot({ urgency }: { urgency: string }) {
 function StatusBadge({ status }: { status: string }) {
   const config: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
     neu: { label: "Neu", variant: "default" },
-    in_bearbeitung: { label: "In Bearbeitung", variant: "secondary" },
     warte_auf_handwerker: { label: "Warte auf Handwerker", variant: "outline" },
     termin_vereinbart: { label: "Termin vereinbart", variant: "outline" },
     erledigt: { label: "Erledigt", variant: "secondary" },

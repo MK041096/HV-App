@@ -159,11 +159,6 @@ function getStatusConfig(status: string) {
         label: "Neu",
         className: "bg-sky-100 text-sky-800 border-sky-200 dark:bg-sky-900/30 dark:text-sky-400",
       }
-    case "in_bearbeitung":
-      return {
-        label: "In Bearbeitung",
-        className: "bg-yellow-100 text-yellow-800 border-yellow-200 dark:bg-yellow-900/30 dark:text-yellow-400",
-      }
     case "warte_auf_handwerker":
       return {
         label: "Warte auf Handwerker",

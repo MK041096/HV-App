@@ -4,7 +4,6 @@ const resend = new Resend(process.env.RESEND_API_KEY)
 const FROM_EMAIL = 'SMARTCARL <noreply@smartcarl.com>'
 
 const STATUS_LABELS: Record<string, string> = {
-  in_bearbeitung: 'In Bearbeitung',
   termin_vereinbart: 'Termin vereinbart',
   termin_telefonisch: 'Werkstatt vereinbart Termin persönlich',
   erledigt: 'Erledigt',
@@ -12,7 +11,6 @@ const STATUS_LABELS: Record<string, string> = {
 }
 
 const STATUS_COLORS: Record<string, string> = {
-  in_bearbeitung: '#f59e0b',
   termin_vereinbart: '#6366f1',
   erledigt: '#22c55e',
   abgelehnt: '#6b7280',

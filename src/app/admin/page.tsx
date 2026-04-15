@@ -45,7 +45,6 @@ interface PlatformStats {
 
 const STATUS_LABELS: Record<string, string> = {
   neu: "Neu",
-  in_bearbeitung: "In Bearbeitung",
   warte_auf_handwerker: "Warte auf Werkstatt",
   termin_vereinbart: "Termin vereinbart",
   erledigt: "Erledigt",
@@ -54,7 +53,6 @@ const STATUS_LABELS: Record<string, string> = {
 
 const STATUS_COLORS: Record<string, string> = {
   neu: "#38bdf8",
-  in_bearbeitung: "#fbbf24",
   warte_auf_handwerker: "#a78bfa",
   termin_vereinbart: "#6366f1",
   erledigt: "#22c55e",
@@ -190,7 +188,6 @@ export default function AdminOverviewPage() {
   }))
 
   const openCases = (stats.cases_by_status.neu || 0) +
-    (stats.cases_by_status.in_bearbeitung || 0) +
     (stats.cases_by_status.warte_auf_handwerker || 0) +
     (stats.cases_by_status.termin_vereinbart || 0)
 
