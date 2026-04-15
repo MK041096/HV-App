@@ -118,6 +118,7 @@ export async function POST(request: NextRequest) {
       phone: string
       email: string
       notes: string
+      description: string | null
     }
     const validContractors: ValidContractor[] = []
 
@@ -126,10 +127,10 @@ export async function POST(request: NextRequest) {
       const company = row[colCompany]?.toString().trim()
       if (!company) continue
 
-      const phone       = colPhone        >= 0 ? row[colPhone]?.toString().trim()       || null : null
-      const email       = colEmail        >= 0 ? row[colEmail]?.toString().trim().toLowerCase() || null : null
-      const taetigkeit  = colTaetigkeit   >= 0 ? row[colTaetigkeit]?.toString().trim()  || null : null
-      const beschreibung = colBeschreibung >= 0 ? row[colBeschreibung]?.toString().trim() || null : null
+      const phone        = colPhone        >= 0 ? row[colPhone]?.toString().trim()        || null : null
+      const email        = colEmail        >= 0 ? row[colEmail]?.toString().trim().toLowerCase() || null : null
+      const taetigkeit   = colTaetigkeit   >= 0 ? row[colTaetigkeit]?.toString().trim()   || null : null
+      const beschreibung = colBeschreibung >= 0 ? row[colBeschreibung]?.toString().trim()  || null : null
 
       if (!phone) { result.errors.push({ row: i + 1, message: `"${company}": Telefonnummer fehlt (Pflichtfeld)` }); continue }
       if (!email) { result.errors.push({ row: i + 1, message: `"${company}": E-Mail fehlt (Pflichtfeld)` }); continue }
@@ -139,8 +140,7 @@ export async function POST(request: NextRequest) {
       if (existingKeys.has(key)) { result.contractors_skipped++; continue }
 
       existingKeys.add(key)
-      const notes = beschreibung ? `${taetigkeit}\n${beschreibung}` : taetigkeit
-      validContractors.push({ rowIndex: i + 1, company, phone, email, notes })
+      validContractors.push({ rowIndex: i + 1, company, phone, email, notes: taetigkeit, description: beschreibung })
     }
 
     // ── Phase 2: Batch insert all valid contractors ──
@@ -152,8 +152,9 @@ export async function POST(request: NextRequest) {
           company: c.company,
           phone: c.phone,
           email: c.email,
-          specialties: deriveSpecialties(c.notes || ""),
+          specialties: deriveSpecialties(c.notes, c.description || ''),
           notes: c.notes,
+          description: c.description,
           is_active: true,
         }))
       )
