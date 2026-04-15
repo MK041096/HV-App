@@ -32,6 +32,21 @@ export async function GET(request: NextRequest) {
       )
     }
 
+    // Profil laden um organization_id als expliziten Filter zu setzen (Defense in Depth)
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('organization_id, role')
+      .eq('id', user.id)
+      .eq('is_deleted', false)
+      .single()
+
+    if (!profile?.organization_id) {
+      return NextResponse.json(
+        { error: 'Kein Profil gefunden' },
+        { status: 403 }
+      )
+    }
+
     const { searchParams } = new URL(request.url)
     const mode = searchParams.get('mode')
 
@@ -61,6 +76,7 @@ export async function GET(request: NextRequest) {
           rating:damage_report_ratings(id, rating),
           photos:damage_report_photos(id, file_name, mime_type, sort_order)
         `)
+        .eq('organization_id', profile.organization_id)
         .eq('is_deleted', false)
         .order('created_at', { ascending: false })
         .limit(limit + 1)
@@ -134,6 +150,7 @@ export async function GET(request: NextRequest) {
         unit:units(id, name, address, floor),
         photos:damage_report_photos(id, file_name, mime_type, sort_order)
       `)
+      .eq('organization_id', profile.organization_id)
       .eq('is_deleted', false)
       .order('created_at', { ascending: false })
       .range(offset, offset + limit - 1)
