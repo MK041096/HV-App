@@ -28,6 +28,7 @@ import {
   HelpCircle,
   User,
   Building2,
+  Phone,
 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
@@ -451,6 +452,29 @@ export default function MeldungDetailPage() {
               </Badge>
             )}
           </div>
+
+          {/* Telefon-Termin Hinweis */}
+          {report.status === 'termin_telefonisch' && (
+            <div className="rounded-lg border border-teal-200 bg-teal-50 p-4 space-y-2">
+              <div className="flex items-center gap-2">
+                <Phone className="h-4 w-4 text-teal-700 shrink-0" />
+                <p className="text-sm font-semibold text-teal-800">
+                  Die Werkstatt meldet sich bei Ihnen
+                </p>
+              </div>
+              <p className="text-sm text-teal-700">
+                {report.assigned_to_company || report.assigned_to_name
+                  ? <><strong>{report.assigned_to_company || report.assigned_to_name}</strong> wird Sie telefonisch kontaktieren, um einen Termin zu vereinbaren.</>
+                  : 'Eine Werkstatt wird Sie telefonisch kontaktieren, um einen Termin zu vereinbaren.'
+                }
+              </p>
+              <p className="text-xs text-teal-600">
+                Falls Sie bereits einen Anruf von einer unbekannten Nummer erhalten haben — das könnte bereits{' '}
+                <strong>{report.assigned_to_company || report.assigned_to_name || 'die Werkstatt'}</strong> gewesen sein.
+                Bitte rufen Sie zurück oder warten Sie auf einen weiteren Anruf.
+              </p>
+            </div>
+          )}
 
           {/* Description */}
           {report.description && (

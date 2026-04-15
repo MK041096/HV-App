@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase-server'
-import { sendTerminBestaetigungMieter } from '@/lib/email'
+import { sendTerminBestaetigung } from '@/lib/email'
 
 // GET: Load token info for the public page
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ token: string }> }) {
@@ -65,7 +65,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       .select('case_number, title, reporter_id, preferred_appointment, preferred_appointment_2')
       .eq('id', tokenData.damage_report_id)
       .single(),
-    adminClient.from('contractors').select('name, company').eq('id', tokenData.contractor_id).single(),
+    adminClient.from('contractors').select('name, company, phone').eq('id', tokenData.contractor_id).single(),
     adminClient.from('organizations').select('name').eq('id', tokenData.organization_id).single(),
   ])
 
@@ -114,28 +114,46 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     changed_by: null,
   })
 
-  // Send email only to Mieter on confirmed date (not on phone/personal contact)
-  if (!isPhone && report?.reporter_id && finalDate) {
+  // Notify HV-Admins + Mieter for ALL 3 actions
+  if (report?.reporter_id) {
     ;(async () => {
       try {
-        const { data: { users } } = await adminClient.auth.admin.listUsers({ perPage: 1000 })
-        const { data: tenantProfile } = await adminClient.from('profiles').select('first_name, last_name').eq('id', report.reporter_id).single()
+        const [
+          { data: { users } },
+          { data: tenantProfile },
+          { data: hvProfiles },
+        ] = await Promise.all([
+          adminClient.auth.admin.listUsers({ perPage: 1000 }),
+          adminClient.from('profiles').select('first_name, last_name').eq('id', report.reporter_id).single(),
+          adminClient.from('profiles')
+            .select('id')
+            .eq('organization_id', tokenData.organization_id)
+            .in('role', ['hv_admin', 'hv_mitarbeiter'])
+            .eq('is_deleted', false),
+        ])
 
         const tenantUser = users?.find((u: any) => u.id === report.reporter_id)
-        const tenantEmail = tenantUser?.email
+        const tenantEmail = tenantUser?.email || null
         const tenantName = [tenantProfile?.first_name, tenantProfile?.last_name].filter(Boolean).join(' ') || 'Mieter'
 
-        if (tenantEmail) {
-          await sendTerminBestaetigungMieter({
-            to: tenantEmail,
-            tenantName,
-            caseNumber: report.case_number || '',
-            caseTitle: report.title || '',
-            contractorCompany: contractor?.company || contractor?.name || '',
-            confirmedDate: finalDateLabel,
-            orgName: org?.name || 'Hausverwaltung',
-          })
-        }
+        const hvIds = new Set((hvProfiles || []).map((p: { id: string }) => p.id))
+        const hvEmails = (users || [])
+          .filter((u: any) => hvIds.has(u.id) && u.email)
+          .map((u: any) => u.email as string)
+
+        await sendTerminBestaetigung({
+          hvEmails,
+          tenantEmail,
+          tenantName,
+          caseNumber: report.case_number || '',
+          caseTitle: report.title || '',
+          contractorCompany: contractor?.company || contractor?.name || '',
+          contractorPhone: (contractor as any)?.phone || null,
+          confirmedDate: finalDateLabel,
+          isRescheduled: false,
+          isPhone,
+          orgName: org?.name || 'Hausverwaltung',
+        })
       } catch (err) {
         console.error('Termin E-Mail Fehler:', err)
       }
