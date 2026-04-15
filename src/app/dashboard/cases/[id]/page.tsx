@@ -1339,7 +1339,7 @@ export default function CaseDetailPage({
                           <Textarea className="text-sm min-h-[70px] resize-none" placeholder="Begründung für den Mieter..." value={ablehnungText} onChange={e=>setAblehnungText(e.target.value)}/>
                           <Button variant="outline" className="w-full text-destructive border-destructive/30 hover:bg-destructive/5" disabled={isSendingAblehnung||!ablehnungText.trim()}
                             onClick={async()=>{setIsSendingAblehnung(true);setSchnellError(null);setSchnellSuccess(null);try{const res=await fetch(`/api/hv/cases/${id}/ablehnen`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({begruendung:ablehnungText})});if(!res.ok)throw new Error((await res.json()).error);setSchnellSuccess('✓ Absage gesendet — Mieter per E-Mail informiert');await fetchCase()}catch(err){setSchnellError(err instanceof Error?err.message:'Fehler')}finally{setIsSendingAblehnung(false)}}}>
-                            {isSendingAblehnung?<Loader2 className="mr-2 h-4 w-4 animate-spin"/>:null}Ablehnen & Mieter informieren
+                            {isSendingAblehnung?<Loader2 className="mr-2 h-4 w-4 animate-spin"/>:null}Ablehnen — Mieter zuständig
                           </Button>
                         </div>
                       </div>
@@ -1368,11 +1368,14 @@ export default function CaseDetailPage({
                         )}
                         {caseData.preferred_appointment&&<p className="text-xs text-muted-foreground">Wunschtermin: <span className="font-medium text-foreground">{formatDateTime(caseData.preferred_appointment)}</span></p>}
 
-                        {/* Annehmen */}
-                        <Button className="w-full bg-green-700 hover:bg-green-800 text-white" disabled={isSendingSchnell||!selectedContractorId}
-                          onClick={async()=>{setIsSendingSchnell(true);setSchnellError(null);setSchnellSuccess(null);try{const res=await fetch(`/api/hv/cases/${id}/weiterleiten`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contractor_id:selectedContractorId,scheduled_appointment:caseData.preferred_appointment||null})});if(!res.ok)throw new Error((await res.json()).error);setSchnellSuccess('✓ Werkstatt beauftragt — Mieter & Werkstatt informiert');await fetchCase()}catch(err){setSchnellError(err instanceof Error?err.message:'Fehler')}finally{setIsSendingSchnell(false)}}}>
-                          {isSendingSchnell?<Loader2 className="mr-2 h-4 w-4 animate-spin"/>:<Send className="mr-2 h-4 w-4"/>}Annehmen & Werkstatt beauftragen
-                        </Button>
+                        {/* Analyse bestätigen */}
+                        <div className="space-y-1">
+                          <Button className="w-full bg-green-700 hover:bg-green-800 text-white" disabled={isSendingSchnell||!selectedContractorId}
+                            onClick={async()=>{setIsSendingSchnell(true);setSchnellError(null);setSchnellSuccess(null);try{const res=await fetch(`/api/hv/cases/${id}/weiterleiten`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contractor_id:selectedContractorId,scheduled_appointment:caseData.preferred_appointment||null})});if(!res.ok)throw new Error((await res.json()).error);setSchnellSuccess('✓ Analyse bestätigt — Prozess gestartet');await fetchCase()}catch(err){setSchnellError(err instanceof Error?err.message:'Fehler')}finally{setIsSendingSchnell(false)}}}>
+                            {isSendingSchnell?<Loader2 className="mr-2 h-4 w-4 animate-spin"/>:<Send className="mr-2 h-4 w-4"/>}Analyse bestätigen
+                          </Button>
+                          <p className="text-xs text-muted-foreground text-center">Werkstatt wird beauftragt · Mieter & HV werden informiert</p>
+                        </div>
 
                         {/* Externe Werkstatt — nur wenn CARL keine Empfehlung hat */}
                         {!recommended&&(
@@ -1393,7 +1396,7 @@ export default function CaseDetailPage({
                           />
                           <Button variant="outline" className="w-full text-destructive border-destructive/30 hover:bg-destructive/5" disabled={isSendingAblehnung||!ablehnungText.trim()}
                             onClick={async()=>{setIsSendingAblehnung(true);setSchnellError(null);setSchnellSuccess(null);try{const res=await fetch(`/api/hv/cases/${id}/ablehnen`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({begruendung:ablehnungText})});if(!res.ok)throw new Error((await res.json()).error);setSchnellSuccess('✓ Absage gesendet — Mieter per E-Mail informiert');await fetchCase()}catch(err){setSchnellError(err instanceof Error?err.message:'Fehler')}finally{setIsSendingAblehnung(false)}}}>
-                            {isSendingAblehnung?<Loader2 className="mr-2 h-4 w-4 animate-spin"/>:null}Ablehnen & Mieter informieren
+                            {isSendingAblehnung?<Loader2 className="mr-2 h-4 w-4 animate-spin"/>:null}Ablehnen — Mieter zuständig
                           </Button>
                         </div>
                       </div>
