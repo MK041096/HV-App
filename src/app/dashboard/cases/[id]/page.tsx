@@ -901,11 +901,15 @@ export default function CaseDetailPage({
     <div className="space-y-2">
       {!showManualForm ? (
         <button type="button" onClick={() => setShowManualForm(true)} className="text-xs text-primary underline hover:opacity-70">
-          + Externe Werkstatt manuell eingeben
+          + Externe Werkstatt eingeben
         </button>
       ) : (
         <div className="rounded-lg border border-border bg-background p-3 space-y-2">
-          <p className="text-xs font-medium text-foreground">Werkstatt manuell eingeben</p>
+          <div className="rounded bg-amber-50 border border-amber-200 px-2.5 py-2">
+            <p className="text-xs text-amber-800 leading-relaxed">
+              <strong>Hinweis:</strong> Bitte kontaktieren Sie die Werkstatt vorab und teilen Sie ihr mit, dass die Beauftragung über SMARTCARL läuft — außer sie kennt das System bereits.
+            </p>
+          </div>
           <Input placeholder="Name *" value={manualName} onChange={e => setManualName(e.target.value)} className="text-sm h-8" />
           <Input placeholder="E-Mail *" type="email" value={manualEmail} onChange={e => setManualEmail(e.target.value)} className="text-sm h-8" />
           <Input placeholder="Telefon *" type="tel" value={manualPhone} onChange={e => setManualPhone(e.target.value)} className="text-sm h-8" />
@@ -1325,9 +1329,8 @@ export default function CaseDetailPage({
                             <p className="text-sm text-blue-900">{suchempfehlung}</p>
                           </div>
                         )}
-                        <div className="rounded-lg bg-amber-50 border border-amber-200 p-3">
-                          <p className="text-xs text-amber-800 font-medium">⚠ Keine Partnerwerkstätten hinterlegt</p>
-                          <p className="text-xs text-amber-700 mt-1">Bitte kontaktieren Sie eine Werkstatt vorab, klären Sie den Auftrag ab und teilen Sie ihr mit, dass die Beauftragung über SMARTCARL läuft. Dann hier eintragen.</p>
+                        <div className="rounded-lg bg-amber-50 border border-amber-200 px-3 py-2">
+                          <p className="text-xs text-amber-800 font-medium">⚠ Keine Partnerwerkstätten hinterlegt — bitte Werkstatt manuell eingeben</p>
                         </div>
                         {ManualWerkstattForm}
                         {/* Ablehnen */}
@@ -1372,12 +1375,8 @@ export default function CaseDetailPage({
                         </Button>
 
                         {/* Externe Werkstatt (alternative) */}
-                        <div className="border-t pt-2 space-y-1.5">
-                          {!recommended&&(
-                            <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded px-2 py-1.5">
-                              CARL konnte keine passende Partnerwerkstatt für diese Kategorie finden.
-                            </p>
-                          )}
+                        <div className="border-t pt-2 space-y-1">
+                          <p className="text-xs text-muted-foreground">Keine passende Werkstatt in der Liste?</p>
                           {ManualWerkstattForm}
                         </div>
 
