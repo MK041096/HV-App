@@ -51,6 +51,21 @@ export async function POST(
       return NextResponse.json({ error: 'Fehler beim Aktivieren der Organisation' }, { status: 500 })
     }
 
+    // Confirm email for all users in this org (so they can log in immediately)
+    const { data: orgProfiles } = await admin
+      .from('profiles')
+      .select('id')
+      .eq('organization_id', id)
+      .eq('is_deleted', false)
+
+    if (orgProfiles && orgProfiles.length > 0) {
+      await Promise.all(
+        orgProfiles.map((p) =>
+          admin.auth.admin.updateUserById(p.id, { email_confirm: true })
+        )
+      )
+    }
+
     // Fetch HV admin profile for this org
     const { data: hvAdminProfile } = await admin
       .from('profiles')
