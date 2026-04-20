@@ -32,8 +32,10 @@ export default async function RootPage() {
         redirect("/admin")
       } else if (["hv_admin", "hv_mitarbeiter"].includes(profile.role)) {
         redirect("/dashboard")
-      } else {
+      } else if (profile.role === 'mieter') {
         redirect("/mein-bereich")
+      } else {
+        redirect("/no-organization")
       }
     }
   }

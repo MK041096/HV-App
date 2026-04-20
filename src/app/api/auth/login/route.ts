@@ -105,12 +105,13 @@ export async function POST(request: NextRequest) {
     // Determine redirect based on role
     const hasOrganization = profile?.organization_id != null
     const role = profile?.role
-    const redirectTo = !hasOrganization
-      ? '/no-organization'
-      : role === 'mieter'
-        ? '/mein-bereich'
-        : role === 'platform_admin'
-          ? '/admin'
+    const isPlatformAdmin = role === 'platform_admin'
+    const redirectTo = isPlatformAdmin
+      ? '/admin'
+      : !hasOrganization
+        ? '/no-organization'
+        : role === 'mieter'
+          ? '/mein-bereich'
           : '/dashboard'
 
     // Check if MFA (2FA) is required for this user
