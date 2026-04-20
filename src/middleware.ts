@@ -63,8 +63,10 @@ export async function middleware(request: NextRequest) {
 
   // Redirect unauthenticated users away from protected routes
   if (isProtectedRoute && !user) {
-    const loginUrl = new URL('/login', request.url)
-    loginUrl.searchParams.set('redirectTo', pathname)
+    // Admin routes → admin login, alles andere → normaler login
+    const isAdminRoute = pathname.startsWith('/admin')
+    const loginUrl = new URL(isAdminRoute ? '/admin/login' : '/login', request.url)
+    if (!isAdminRoute) loginUrl.searchParams.set('redirectTo', pathname)
     return NextResponse.redirect(loginUrl)
   }
 
