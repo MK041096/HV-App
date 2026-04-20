@@ -1031,75 +1031,10 @@ export default function CaseDetailPage({
         {/* ── ④ Two Column Layout ── */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-          {/* ── LEFT (2/3): Was ist passiert? ── */}
+          {/* ── LEFT (2/3): Analyse + Falldetails ── */}
           <div className="lg:col-span-2 space-y-5">
 
-            {/* Photos — direkt sichtbar */}
-            {caseData.photos.length > 0 && (
-              <Card>
-                <CardContent className="p-4">
-                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-3">Fotos ({caseData.photos.length})</p>
-                  <div className="flex gap-3 overflow-x-auto pb-2">
-                    {caseData.photos.map((photo) => (
-                      <button key={photo.id} onClick={() => setSelectedPhoto(photo)}
-                        className="shrink-0 w-32 h-32 rounded-xl overflow-hidden border bg-muted hover:opacity-90 transition-opacity focus:outline-none focus:ring-2 focus:ring-ring">
-                        {photo.url
-                          ? <img src={photo.url} alt={photo.file_name} className="h-full w-full object-cover" />
-                          : <div className="h-full w-full flex items-center justify-center"><ImageIcon className="h-8 w-8 text-muted-foreground" /></div>}
-                      </button>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Meldungsdetails */}
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-base">Schadensmeldung</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 text-sm">
-                  <div><p className="text-muted-foreground text-xs mb-0.5">Kategorie</p><p className="font-medium">{CATEGORY_LABELS[caseData.category as keyof typeof CATEGORY_LABELS] || caseData.category}</p></div>
-                  {caseData.subcategory && <div><p className="text-muted-foreground text-xs mb-0.5">Unterkategorie</p><p className="font-medium">{caseData.subcategory}</p></div>}
-                  {caseData.room && <div><p className="text-muted-foreground text-xs mb-0.5">Raum</p><p className="font-medium">{ROOM_LABELS[caseData.room as keyof typeof ROOM_LABELS] || caseData.room}</p></div>}
-                  <div><p className="text-muted-foreground text-xs mb-0.5">Erstellt</p><p className="font-medium">{formatDateTime(caseData.created_at)}</p></div>
-                </div>
-                {caseData.description && (
-                  <div className="border-t pt-3">
-                    <p className="text-muted-foreground text-xs mb-1">Beschreibung des Mieters</p>
-                    <p className="text-sm whitespace-pre-wrap text-foreground">{caseData.description}</p>
-                  </div>
-                )}
-                {caseData.access_notes && (
-                  <div className="bg-muted/50 rounded-lg p-3">
-                    <p className="text-xs font-medium text-muted-foreground mb-1">Zugangshinweise</p>
-                    <p className="text-sm">{caseData.access_notes}</p>
-                  </div>
-                )}
-                {(caseData.preferred_appointment || caseData.preferred_appointment_2) && (
-                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                    <p className="text-xs font-medium text-blue-700 mb-1">Wunschtermin{caseData.preferred_appointment_2 ? 'e' : ''} des Mieters</p>
-                    {caseData.preferred_appointment && <p className="text-sm text-blue-900">1. {formatDateTime(caseData.preferred_appointment)}</p>}
-                    {caseData.preferred_appointment_2 && <p className="text-sm text-blue-900 mt-0.5">2. {formatDateTime(caseData.preferred_appointment_2)}</p>}
-                  </div>
-                )}
-                <div className="border-t pt-3 grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="flex items-start gap-3">
-                    <User className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
-                    <div><p className="text-xs text-muted-foreground">Gemeldet von</p><p className="text-sm font-medium">{caseData.reporter?.first_name} {caseData.reporter?.last_name}</p></div>
-                  </div>
-                  {caseData.unit && (
-                    <div className="flex items-start gap-3">
-                      <MapPin className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
-                      <div><p className="text-xs text-muted-foreground">Wohneinheit</p><p className="text-sm font-medium">{caseData.unit.name}</p>{caseData.unit.address && <p className="text-xs text-muted-foreground">{caseData.unit.address}</p>}{caseData.unit.floor && <p className="text-xs text-muted-foreground">Stockwerk: {caseData.unit.floor}</p>}</div>
-                    </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* CARL Analyse — 4 Kacheln + Erklärungstext */}
+            {/* CARL Analyse — erste Priorität */}
             <Card className={kiResult ? 'border-purple-200' : ''}>
               <CardHeader className="pb-3">
                 <CardTitle className="text-base flex items-center gap-2">
@@ -1190,6 +1125,69 @@ export default function CaseDetailPage({
                     </Button>
                   </div>
                 )}
+              </CardContent>
+            </Card>
+
+            {/* Meldungsdetails + Fotos */}
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base">Schadensmeldung</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {/* Fotos — inline in der Karte */}
+                {caseData.photos.length > 0 && (
+                  <div>
+                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-3">Fotos ({caseData.photos.length})</p>
+                    <div className="flex gap-3 overflow-x-auto pb-2">
+                      {caseData.photos.map((photo) => (
+                        <button key={photo.id} onClick={() => setSelectedPhoto(photo)}
+                          className="shrink-0 w-32 h-32 rounded-xl overflow-hidden border bg-muted hover:opacity-90 transition-opacity focus:outline-none focus:ring-2 focus:ring-ring">
+                          {photo.url
+                            ? <img src={photo.url} alt={photo.file_name} className="h-full w-full object-cover" />
+                            : <div className="h-full w-full flex items-center justify-center"><ImageIcon className="h-8 w-8 text-muted-foreground" /></div>}
+                        </button>
+                      ))}
+                    </div>
+                    <Separator className="mt-4" />
+                  </div>
+                )}
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 text-sm">
+                  <div><p className="text-muted-foreground text-xs mb-0.5">Kategorie</p><p className="font-medium">{CATEGORY_LABELS[caseData.category as keyof typeof CATEGORY_LABELS] || caseData.category}</p></div>
+                  {caseData.subcategory && <div><p className="text-muted-foreground text-xs mb-0.5">Unterkategorie</p><p className="font-medium">{caseData.subcategory}</p></div>}
+                  {caseData.room && <div><p className="text-muted-foreground text-xs mb-0.5">Raum</p><p className="font-medium">{ROOM_LABELS[caseData.room as keyof typeof ROOM_LABELS] || caseData.room}</p></div>}
+                  <div><p className="text-muted-foreground text-xs mb-0.5">Erstellt</p><p className="font-medium">{formatDateTime(caseData.created_at)}</p></div>
+                </div>
+                {caseData.description && (
+                  <div className="border-t pt-3">
+                    <p className="text-muted-foreground text-xs mb-1">Beschreibung des Mieters</p>
+                    <p className="text-sm whitespace-pre-wrap text-foreground">{caseData.description}</p>
+                  </div>
+                )}
+                {caseData.access_notes && (
+                  <div className="bg-muted/50 rounded-lg p-3">
+                    <p className="text-xs font-medium text-muted-foreground mb-1">Zugangshinweise</p>
+                    <p className="text-sm">{caseData.access_notes}</p>
+                  </div>
+                )}
+                {(caseData.preferred_appointment || caseData.preferred_appointment_2) && (
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                    <p className="text-xs font-medium text-blue-700 mb-1">Wunschtermin{caseData.preferred_appointment_2 ? 'e' : ''} des Mieters</p>
+                    {caseData.preferred_appointment && <p className="text-sm text-blue-900">1. {formatDateTime(caseData.preferred_appointment)}</p>}
+                    {caseData.preferred_appointment_2 && <p className="text-sm text-blue-900 mt-0.5">2. {formatDateTime(caseData.preferred_appointment_2)}</p>}
+                  </div>
+                )}
+                <div className="border-t pt-3 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="flex items-start gap-3">
+                    <User className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
+                    <div><p className="text-xs text-muted-foreground">Gemeldet von</p><p className="text-sm font-medium">{caseData.reporter?.first_name} {caseData.reporter?.last_name}</p></div>
+                  </div>
+                  {caseData.unit && (
+                    <div className="flex items-start gap-3">
+                      <MapPin className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
+                      <div><p className="text-xs text-muted-foreground">Wohneinheit</p><p className="text-sm font-medium">{caseData.unit.name}</p>{caseData.unit.address && <p className="text-xs text-muted-foreground">{caseData.unit.address}</p>}{caseData.unit.floor && <p className="text-xs text-muted-foreground">Stockwerk: {caseData.unit.floor}</p>}</div>
+                    </div>
+                  )}
+                </div>
               </CardContent>
             </Card>
 
