@@ -11,6 +11,8 @@ interface FormState {
   last_name: string
   org_name: string
   email: string
+  password: string
+  password_confirm: string
   einheiten_anzahl: string
   plan: Plan
   country: Country
@@ -24,6 +26,8 @@ export default function OnboardingModal({ onClose }: { onClose: () => void }) {
     last_name: '',
     org_name: '',
     email: '',
+    password: '',
+    password_confirm: '',
     einheiten_anzahl: '',
     plan: 'monthly',
     country: 'AT',
@@ -32,6 +36,9 @@ export default function OnboardingModal({ onClose }: { onClose: () => void }) {
   })
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
+  const [success, setSuccess] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
+  const [showPasswordConfirm, setShowPasswordConfirm] = useState(false)
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) {
     const target = e.target
@@ -61,9 +68,12 @@ export default function OnboardingModal({ onClose }: { onClose: () => void }) {
     const units = parseInt(form.einheiten_anzahl, 10)
     if (!units || units < 1) { setError('Bitte geben Sie die Anzahl Ihrer Einheiten ein.'); return }
 
+    if (form.password.length < 8) { setError('Passwort muss mindestens 8 Zeichen lang sein.'); return }
+    if (form.password !== form.password_confirm) { setError('Passwörter stimmen nicht überein.'); return }
+
     setIsLoading(true)
     try {
-      const res = await fetch('/api/stripe/checkout-public', {
+      const res = await fetch('/api/auth/register-hv', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -71,19 +81,19 @@ export default function OnboardingModal({ onClose }: { onClose: () => void }) {
           first_name:       form.first_name,
           last_name:        form.last_name,
           email:            form.email,
-          einheiten_anzahl: units,
-          plan:             form.plan,
+          password:         form.password,
           country:          form.country,
+          units_estimate:   String(units),
           privacy_accepted: true,
           avv_accepted:     true,
         }),
       })
       const data = await res.json()
-      if (!res.ok || !data.url) {
+      if (!res.ok) {
         setError(data.error || 'Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut.')
         return
       }
-      window.location.href = data.url
+      setSuccess(true)
     } catch {
       setError('Ein Netzwerkfehler ist aufgetreten. Bitte versuchen Sie es erneut.')
     } finally {
@@ -116,6 +126,48 @@ export default function OnboardingModal({ onClose }: { onClose: () => void }) {
     paddingLeft: '4px',
     letterSpacing: '0.04em',
     textTransform: 'uppercase',
+  }
+
+  // ── Success screen ──
+  if (success) {
+    return (
+      <>
+        <motion.div
+          initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+          transition={{ duration: 0.2 }}
+          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(4px)', zIndex: 49 }}
+          onClick={onClose}
+        />
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 20 }}
+          transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+          style={{ position: 'fixed', inset: 0, zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px', pointerEvents: 'none' }}
+        >
+          <div style={{ width: '100%', maxWidth: '480px', background: '#FFFFFF', border: '1px solid #E0E0E0', borderRadius: '12px', padding: '40px 32px', textAlign: 'center', pointerEvents: 'auto', boxShadow: '0 20px 60px rgba(0,0,0,0.15)' }}>
+            <div style={{ width: '64px', height: '64px', borderRadius: '50%', background: '#f0fdf4', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px' }}>
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
+            </div>
+            <h2 style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: '22px', fontWeight: 700, color: '#000', margin: '0 0 12px' }}>
+              Anfrage eingegangen!
+            </h2>
+            <p style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: '14px', color: '#555', lineHeight: 1.6, margin: '0 0 8px' }}>
+              Wir haben Ihre Registrierung erhalten und prüfen Ihre Anfrage. Sie erhalten in Kürze eine E-Mail zur Bestätigung.
+            </p>
+            <p style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: '13px', color: '#888', margin: '0 0 28px' }}>
+              Nach der Freischaltung können Sie sich unter <strong>smartcarl.com/login</strong> anmelden.
+            </p>
+            <button
+              onClick={onClose}
+              style={{ padding: '12px 32px', background: '#C74229', border: 'none', borderRadius: '4px', color: '#fff', fontSize: '14px', fontFamily: 'var(--font-dm-sans, sans-serif)', fontWeight: 600, cursor: 'pointer', letterSpacing: '0.04em', textTransform: 'uppercase' }}
+            >
+              Schließen
+            </button>
+          </div>
+        </motion.div>
+      </>
+    )
   }
 
   return (
@@ -262,6 +314,44 @@ export default function OnboardingModal({ onClose }: { onClose: () => void }) {
                 />
               </div>
 
+              {/* Password fields */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                <div>
+                  <label style={labelStyle}>Passwort *</label>
+                  <div style={{ position: 'relative' }}>
+                    <input type={showPassword ? 'text' : 'password'} name="password" value={form.password} onChange={handleChange}
+                      placeholder="Min. 8 Zeichen" required style={{ ...inputStyle, paddingRight: '44px' }}
+                      onFocus={(e) => { e.currentTarget.style.borderColor = '#C74229' }}
+                      onBlur={(e) => { e.currentTarget.style.borderColor = '#E0E0E0' }}
+                    />
+                    <button type="button" onClick={() => setShowPassword(!showPassword)} tabIndex={-1}
+                      style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#888', padding: 0, display: 'flex', alignItems: 'center' }}>
+                      {showPassword
+                        ? <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                        : <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                      }
+                    </button>
+                  </div>
+                </div>
+                <div>
+                  <label style={labelStyle}>Passwort bestätigen *</label>
+                  <div style={{ position: 'relative' }}>
+                    <input type={showPasswordConfirm ? 'text' : 'password'} name="password_confirm" value={form.password_confirm} onChange={handleChange}
+                      placeholder="Wiederholen" required style={{ ...inputStyle, paddingRight: '44px' }}
+                      onFocus={(e) => { e.currentTarget.style.borderColor = '#C74229' }}
+                      onBlur={(e) => { e.currentTarget.style.borderColor = '#E0E0E0' }}
+                    />
+                    <button type="button" onClick={() => setShowPasswordConfirm(!showPasswordConfirm)} tabIndex={-1}
+                      style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#888', padding: 0, display: 'flex', alignItems: 'center' }}>
+                      {showPasswordConfirm
+                        ? <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                        : <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                      }
+                    </button>
+                  </div>
+                </div>
+              </div>
+
               {/* Units + Country row */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                 <div>
@@ -369,15 +459,15 @@ export default function OnboardingModal({ onClose }: { onClose: () => void }) {
                       style={{ animation: 'spin 0.8s linear infinite' }}>
                       <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" />
                     </svg>
-                    Wird vorbereitet...
+                    Wird registriert...
                   </>
                 ) : (
-                  'Weiter zur sicheren Zahlung →'
+                  'Jetzt kostenlos starten →'
                 )}
               </button>
 
               <p style={{ textAlign: 'center', fontSize: '12px', fontFamily: 'var(--font-dm-sans, sans-serif)', color: '#888', margin: 0 }}>
-                🔒 Sichere Zahlung via Stripe · 14 Tage gratis · Aktionscode: APRIL26
+                14 Tage kostenlos · Keine Kreditkarte erforderlich · Jederzeit kündbar
               </p>
             </div>
           </form>
