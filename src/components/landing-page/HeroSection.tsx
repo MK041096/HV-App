@@ -100,7 +100,6 @@ function DashboardMockup() {
 function Navbar() {
   const [scrolled, setScrolled] = useState(false)
   const [open, setOpen] = useState(false)
-  const [showModal, setShowModal] = useState(false)
 
   useEffect(() => {
     const fn = () => setScrolled(window.scrollY > 24)
@@ -143,21 +142,16 @@ function Navbar() {
 
         {/* Right */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-          <Link href="/login" className="hidden md:block" style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 13, fontWeight: 500, color: 'rgba(255,255,255,0.6)', textDecoration: 'none', letterSpacing: '0.04em', textTransform: 'uppercase', transition: 'color 0.2s' }}
-            onMouseEnter={e => (e.currentTarget.style.color = '#fff')}
-            onMouseLeave={e => (e.currentTarget.style.color = 'rgba(255,255,255,0.6)')}>
-            Anmelden
-          </Link>
-          <button onClick={() => setShowModal(true)} className="hidden md:flex" style={{
+          <Link href="/login" className="hidden md:flex" style={{
             height: 38, fontSize: 13, padding: '0 20px', fontFamily: 'var(--font-dm-sans, sans-serif)', fontWeight: 600,
             background: '#C74229', color: '#fff', border: 'none', borderRadius: 4, cursor: 'pointer',
             letterSpacing: '0.04em', textTransform: 'uppercase', transition: 'background 0.2s',
-            alignItems: 'center', justifyContent: 'center'
+            alignItems: 'center', justifyContent: 'center', textDecoration: 'none'
           }}
             onMouseEnter={e => (e.currentTarget.style.background = '#D85640')}
             onMouseLeave={e => (e.currentTarget.style.background = '#C74229')}>
-            Anfragen
-          </button>
+            Anmelden
+          </Link>
           <button onClick={() => setOpen(!open)} className="md:hidden" style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#FFFFFF', padding: 4 }}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
               {open ? <path d="M6 18L18 6M6 6l12 12" strokeLinecap="round"/> : <path d="M4 6h16M4 12h16M4 18h16" strokeLinecap="round"/>}
@@ -175,17 +169,16 @@ function Navbar() {
             </a>
           ))}
           <div style={{ marginTop: 16, display: 'flex', flexDirection: 'column', gap: 10 }}>
-            <Link href="/login" onClick={() => setOpen(false)} style={{ textAlign: 'center', padding: 10, fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 14, color: '#888', textDecoration: 'none' }}>Anmelden</Link>
-            <button onClick={() => { setOpen(false); setShowModal(true) }} style={{
+            <Link href="/login" onClick={() => setOpen(false)} style={{
               width: '100%', height: 48, background: '#C74229', color: '#fff', border: 'none', borderRadius: 4,
               fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 15, fontWeight: 600, cursor: 'pointer',
-              letterSpacing: '0.04em', textTransform: 'uppercase'
-            }}>Anfragen</button>
+              letterSpacing: '0.04em', textTransform: 'uppercase', textDecoration: 'none',
+              display: 'flex', alignItems: 'center', justifyContent: 'center'
+            }}>Anmelden</Link>
           </div>
         </div>
       )}
 
-      {showModal && <OnboardingModal onClose={() => setShowModal(false)} />}
     </header>
   )
 }

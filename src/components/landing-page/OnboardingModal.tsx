@@ -221,7 +221,7 @@ export default function OnboardingModal({ onClose }: { onClose: () => void }) {
             ×
           </button>
 
-          <form onSubmit={handleSubmit}>
+          <form onSubmit={handleSubmit} autoComplete="off">
             {/* Header */}
             <div style={{ marginBottom: '20px' }}>
               <div style={{
@@ -308,7 +308,7 @@ export default function OnboardingModal({ onClose }: { onClose: () => void }) {
               <div>
                 <label style={labelStyle}>E-Mail-Adresse *</label>
                 <input type="email" name="email" value={form.email} onChange={handleChange}
-                  placeholder="max@muster-hv.at" required style={inputStyle}
+                  placeholder="max@muster-hv.at" required autoComplete="off" style={inputStyle}
                   onFocus={(e) => { e.currentTarget.style.borderColor = '#C74229' }}
                   onBlur={(e) => { e.currentTarget.style.borderColor = '#E0E0E0' }}
                 />
@@ -320,7 +320,7 @@ export default function OnboardingModal({ onClose }: { onClose: () => void }) {
                   <label style={labelStyle}>Passwort *</label>
                   <div style={{ position: 'relative' }}>
                     <input type={showPassword ? 'text' : 'password'} name="password" value={form.password} onChange={handleChange}
-                      placeholder="Min. 8 Zeichen" required style={{ ...inputStyle, paddingRight: '44px' }}
+                      placeholder="Min. 8 Zeichen" required autoComplete="new-password" style={{ ...inputStyle, paddingRight: '44px' }}
                       onFocus={(e) => { e.currentTarget.style.borderColor = '#C74229' }}
                       onBlur={(e) => { e.currentTarget.style.borderColor = '#E0E0E0' }}
                     />
@@ -337,7 +337,7 @@ export default function OnboardingModal({ onClose }: { onClose: () => void }) {
                   <label style={labelStyle}>Passwort bestätigen *</label>
                   <div style={{ position: 'relative' }}>
                     <input type={showPasswordConfirm ? 'text' : 'password'} name="password_confirm" value={form.password_confirm} onChange={handleChange}
-                      placeholder="Wiederholen" required style={{ ...inputStyle, paddingRight: '44px' }}
+                      placeholder="Wiederholen" required autoComplete="new-password" style={{ ...inputStyle, paddingRight: '44px' }}
                       onFocus={(e) => { e.currentTarget.style.borderColor = '#C74229' }}
                       onBlur={(e) => { e.currentTarget.style.borderColor = '#E0E0E0' }}
                     />
