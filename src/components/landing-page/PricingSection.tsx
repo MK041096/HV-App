@@ -73,7 +73,7 @@ export default function PricingSection() {
             }}
               onMouseEnter={e => (e.currentTarget.style.background = '#D85640')}
               onMouseLeave={e => (e.currentTarget.style.background = '#C74229')}>
-              Anfragen
+              Kostenlos starten
             </button>
           </div>
 
@@ -117,7 +117,7 @@ export default function PricingSection() {
             }}
               onMouseEnter={e => (e.currentTarget.style.background = '#D85640')}
               onMouseLeave={e => (e.currentTarget.style.background = '#C74229')}>
-              Anfragen
+              Kostenlos starten
             </button>
           </div>
 

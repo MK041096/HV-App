@@ -150,13 +150,13 @@ export default function OnboardingModal({ onClose }: { onClose: () => void }) {
               </svg>
             </div>
             <h2 style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: '22px', fontWeight: 700, color: '#000', margin: '0 0 12px' }}>
-              Anfrage eingegangen!
+              Konto erstellt!
             </h2>
             <p style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: '14px', color: '#555', lineHeight: 1.6, margin: '0 0 8px' }}>
-              Wir haben Ihre Registrierung erhalten und prüfen Ihre Anfrage. Sie erhalten in Kürze eine E-Mail zur Bestätigung.
+              Ihre Registrierung war erfolgreich. Sie können sich ab sofort mit Ihrer E-Mail-Adresse und Ihrem Passwort anmelden.
             </p>
             <p style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: '13px', color: '#888', margin: '0 0 28px' }}>
-              Nach der Freischaltung können Sie sich unter <strong>smartcarl.com/login</strong> anmelden.
+              Login unter <strong>smartcarl.com/login</strong>
             </p>
             <button
               onClick={onClose}

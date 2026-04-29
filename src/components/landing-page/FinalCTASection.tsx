@@ -32,7 +32,7 @@ export default function FinalCTASection() {
             onMouseEnter={e => (e.currentTarget.style.background = '#D85640')}
             onMouseLeave={e => (e.currentTarget.style.background = '#C74229')}
           >
-            Anfragen
+            Kostenlos starten
           </button>
           <a
             href="tel:+436644682910"

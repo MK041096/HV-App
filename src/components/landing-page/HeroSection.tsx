@@ -223,7 +223,7 @@ export default function HeroSection() {
               }}
                 onMouseEnter={e => (e.currentTarget.style.background = '#D85640')}
                 onMouseLeave={e => (e.currentTarget.style.background = '#C74229')}>
-                Anfragen
+                Kostenlos starten
               </button>
               <a href="#ablauf" style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 15, color: 'rgba(255,255,255,0.75)', textDecoration: 'none', transition: 'color 0.2s' }}
                 onMouseEnter={e => (e.currentTarget.style.color = '#fff')}
