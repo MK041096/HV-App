@@ -421,7 +421,15 @@ export default function VersicherungenPage() {
         const analyseData = await analyseRes.json()
 
         if (analyseData.is_insurance === false) {
-          updated[i] = { ...updated[i], status: 'wrong_type', liegenschaft: null, unit_id: null, unitName: null, suggestedName: null }
+          updated[i] = {
+            ...updated[i],
+            status: 'wrong_type',
+            liegenschaft: null,
+            unit_id: null,
+            unitName: null,
+            suggestedName: null,
+            errorMsg: analyseData.error_reason || 'Kein Versicherungsdokument erkannt.',
+          }
         } else if (analyseData.unit_id) {
           // Einheits-Police — konkrete Unit gefunden
           updated[i] = {
@@ -431,6 +439,7 @@ export default function VersicherungenPage() {
             unitName: analyseData.unit_name || null,
             liegenschaft: null,
             suggestedName: analyseData.suggested_name || null,
+            errorMsg: undefined,
           }
         } else if (analyseData.liegenschaft) {
           // Liegenschafts-Police
@@ -441,12 +450,27 @@ export default function VersicherungenPage() {
             unit_id: null,
             unitName: null,
             suggestedName: analyseData.suggested_name || null,
+            errorMsg: undefined,
           }
         } else {
-          updated[i] = { ...updated[i], status: 'not_found', liegenschaft: null, unit_id: null, unitName: null, suggestedName: analyseData.suggested_name || null }
+          updated[i] = {
+            ...updated[i],
+            status: 'not_found',
+            liegenschaft: null,
+            unit_id: null,
+            unitName: null,
+            suggestedName: analyseData.suggested_name || null,
+            errorMsg: analyseData.error_reason || 'Keine Liegenschaft im PDF erkannt.',
+          }
         }
       } catch {
-        updated[i] = { ...updated[i], status: 'not_found', liegenschaft: null, suggestedName: null }
+        updated[i] = {
+          ...updated[i],
+          status: 'not_found',
+          liegenschaft: null,
+          suggestedName: null,
+          errorMsg: 'Netzwerkfehler bei der Analyse — bitte erneut versuchen.',
+        }
       }
 
       setBulkItems([...updated])
@@ -702,25 +726,42 @@ export default function VersicherungenPage() {
                               </span>
                             )}
                             {item.status === 'done' && item.errorMsg && (
-                              <span className="flex items-center gap-1 text-amber-600 text-xs" title={item.errorMsg}>
-                                <AlertCircle className="h-3 w-3" /> Erkannt (Hinweis)
-                              </span>
+                              <div className="space-y-1">
+                                <span className="flex items-center gap-1 text-amber-600 text-xs">
+                                  <AlertCircle className="h-3 w-3" /> Erkannt (Hinweis)
+                                </span>
+                                <p className="text-[11px] text-amber-700 leading-tight">{item.errorMsg}</p>
+                              </div>
                             )}
                             {item.status === 'not_found' && (
-                              <span className="flex items-center gap-1 text-orange-600 text-xs">
-                                <AlertCircle className="h-3 w-3" /> Nicht erkannt
-                              </span>
+                              <div className="space-y-1">
+                                <span className="flex items-center gap-1 text-orange-600 text-xs">
+                                  <AlertCircle className="h-3 w-3" /> Nicht erkannt
+                                </span>
+                                {item.errorMsg && (
+                                  <p className="text-[11px] text-orange-700 leading-tight">{item.errorMsg}</p>
+                                )}
+                              </div>
                             )}
                             {item.status === 'error' && (
-                              <span className="flex items-center gap-1 text-red-600 text-xs" title={item.errorMsg}>
-                                <XCircle className="h-3 w-3" /> Fehler
-                              </span>
+                              <div className="space-y-1">
+                                <span className="flex items-center gap-1 text-red-600 text-xs">
+                                  <XCircle className="h-3 w-3" /> Fehler
+                                </span>
+                                {item.errorMsg && (
+                                  <p className="text-[11px] text-red-700 leading-tight">{item.errorMsg}</p>
+                                )}
+                              </div>
                             )}
                             {item.status === 'wrong_type' && (
-                              <span className="flex items-center gap-1 text-red-700 text-xs" title={item.errorMsg || 'Kein Versicherungsdokument'}>
-                                <XCircle className="h-3 w-3" />
-                                {item.errorMsg ? 'Falscher Bereich' : 'Kein Versicherungsdokument'}
-                              </span>
+                              <div className="space-y-1">
+                                <span className="flex items-center gap-1 text-red-700 text-xs">
+                                  <XCircle className="h-3 w-3" /> Kein Versicherungsdokument
+                                </span>
+                                {item.errorMsg && (
+                                  <p className="text-[11px] text-red-700 leading-tight">{item.errorMsg}</p>
+                                )}
+                              </div>
                             )}
                           </td>
                         </tr>

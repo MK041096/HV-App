@@ -14,31 +14,72 @@ function normalize(str: string): string {
     .replace(/[^a-z0-9]/g, '')
 }
 
-// Known Austrian/German insurers (order: most specific first)
+// Bekannte Versicherer in DACH-Region (most specific first wegen Substring-Matching)
 const INSURERS = [
+  // ─── Österreich ───
   'Wiener Städtische', 'Grazer Wechselseitige', 'Niederösterreichische Versicherung',
-  'Burgenländische', 'Tiroler', 'Vorarlberger', 'Salzburger',
-  'Allianz', 'Generali', 'Uniqa', 'UNIQA', 'Zürich', 'Zurich',
-  'AXA', 'HDI', 'Helvetia', 'Basler', 'Donau Versicherung', 'Donau',
-  'Merkur', 'Österreichische Hagelversicherung',
+  'Burgenländische', 'Tiroler Versicherung', 'Vorarlberger Landesversicherung',
+  'Salzburger Landesversicherung', 'Kärntner Landesversicherung',
+  'UNIQA Österreich', 'UNIQA', 'Uniqa',
+  'Donau Versicherung', 'Donau Brokerline', 'Donau',
+  'Merkur Versicherung', 'Merkur',
+  'Wüstenrot Versicherung', 'Wüstenrot',
+  'Sparkassen Versicherung', 'BAWAG Versicherung', 'ÖBV Österreichische Beamtenversicherung', 'ÖBV',
+  'Österreichische Hagelversicherung', 'HDI Österreich',
+  // ─── Deutschland ───
+  'Allianz Versicherung', 'Allianz',
+  'Generali Deutschland', 'Generali',
+  'AXA Versicherung', 'AXA',
+  'HUK-Coburg', 'HUK24', 'HUK',
+  'Württembergische Versicherung', 'Württembergische',
+  'R+V Versicherung', 'R+V',
+  'VHV Versicherung', 'VHV',
+  'Debeka',
+  'Signal Iduna', 'DEVK', 'Gothaer', 'Nürnberger',
+  'Zurich Deutschland', 'Zurich Gruppe', 'Zürich', 'Zurich',
+  'HDI Versicherung', 'HDI',
+  'ERGO Versicherung', 'ERGO',
+  'LVM Versicherung', 'LVM',
+  'Barmenia', 'Continentale', 'Provinzial', 'Inter Versicherung',
+  'Helvetia Versicherung', 'Helvetia',
+  'Basler Versicherung', 'Basler',
+  'ARAG Rechtsschutz', 'ARAG',
+  // ─── Schweiz ───
+  'Schweizerische Mobiliar', 'Mobiliar',
+  'Vaudoise Versicherungen', 'Vaudoise',
+  'SwissLife', 'Swiss Life',
+  'Baloise', 'CSS Versicherung',
+  // ─── Konzern-Marken ───
   'VIG', 'Vienna Insurance Group',
 ]
 
-// Insurance type keywords — most specific first (longer/rarer names win over broader ones)
+// Versicherungs-Typen — von speziell zu allgemein (längster Treffer gewinnt)
 const INSURANCE_TYPES: { pattern: RegExp; label: string }[] = [
+  // Sehr spezifisch zuerst
   { pattern: /betriebsunterbrechungsversicherung|betriebs.?unterbrechung/i, label: 'Betriebsunterbrechungsversicherung' },
   { pattern: /elementarschadenversicherung|elementar.?schaden.?versicherung/i, label: 'Elementarschadenversicherung' },
+  { pattern: /vertrauensschadenversicherung|vertrauens.?schaden.?versicherung/i, label: 'Vertrauensschadenversicherung' },
+  { pattern: /mietausfallversicherung|miet.?ausfall.?versicherung/i, label: 'Mietausfallversicherung' },
+  { pattern: /mietnomadenversicherung|miet.?nomaden.?versicherung/i, label: 'Mietnomadenversicherung' },
+  { pattern: /heizöltank.?versicherung|öltank.?versicherung|heizoel.?tank.?versicherung/i, label: 'Heizöltankversicherung' },
+  { pattern: /bauwesensversicherung|bau.?wesens.?versicherung|bauleistungsversicherung|bau.?leistungs.?versicherung/i, label: 'Bauwesensversicherung' },
+  { pattern: /allgefahrenversicherung|all.?gefahren.?versicherung|all[- ]?risk[- ]?versicherung|all[- ]?risks[- ]?versicherung/i, label: 'Allgefahrenversicherung' },
   { pattern: /rechtsschutzversicherung|rechtsschutz.?versicherung/i, label: 'Rechtsschutzversicherung' },
   { pattern: /leitungswasser[- ]*(?:zusatz[- ]*)?versicherung|leitungswasserversicherung|leitungswasser[- ]*polizze/i, label: 'Leitungswasserversicherung' },
+  { pattern: /cyber.?versicherung|cyber.?risiko.?versicherung|cyber.?security.?versicherung/i, label: 'Cyberversicherung' },
+  { pattern: /d&o[- ]?versicherung|directors[- ]?and[- ]?officers|organhaftpflicht/i, label: 'D&O-Versicherung' },
+  { pattern: /umwelthaftpflicht|umwelt.?haftpflicht.?versicherung|umwelt.?versicherung/i, label: 'Umwelthaftpflichtversicherung' },
+  { pattern: /hausherrenhaftpflicht|haus.?herren.?haftpflicht|hausbesitzer.?haftpflicht|hauseigentümer.?haftpflicht/i, label: 'Haftpflichtversicherung' },
   { pattern: /haftpflichtversicherung|haftpflicht.?versicherung/i, label: 'Haftpflichtversicherung' },
   { pattern: /glasbruchversicherung|glas.{0,8}bruch.{0,8}versicherung/i, label: 'Glasbruchversicherung' },
   { pattern: /geräteversicherung|geraete.{0,4}versicherung|gerät.{0,4}versicherung/i, label: 'Geräteversicherung' },
   { pattern: /haushaltsversicherung|haushalt.?versicherung/i, label: 'Haushaltsversicherung' },
   { pattern: /maschinenversicherung|maschinen.?versicherung/i, label: 'Maschinenversicherung' },
-  { pattern: /einbruchversicherung|einbruch.?versicherung/i, label: 'Einbruchversicherung' },
+  { pattern: /einbruchversicherung|einbruch.?versicherung|einbruchdiebstahl.?versicherung/i, label: 'Einbruchversicherung' },
   { pattern: /sturmversicherung|sturm.?versicherung/i, label: 'Sturmversicherung' },
-  { pattern: /feuerversicherung|feuer.?versicherung/i, label: 'Feuerversicherung' },
+  { pattern: /feuerversicherung|feuer.?versicherung|brandversicherung/i, label: 'Feuerversicherung' },
   { pattern: /glasversicherung|glas.{0,8}versicherung/i, label: 'Glasversicherung' },
+  { pattern: /wohngebäudeversicherung|wohn.?gebäude.?versicherung|wohngebaeude.?versicherung/i, label: 'Wohngebäudeversicherung' },
   { pattern: /gebäudeversicherung|gebaeude.?versicherung/i, label: 'Gebäudeversicherung' },
 ]
 
@@ -203,7 +244,10 @@ export async function POST(request: NextRequest) {
       .download(file_path)
 
     if (downloadError || !fileData) {
-      return NextResponse.json({ liegenschaft: null, suggested_name: null, confidence: 'nicht_erkannt' })
+      return NextResponse.json({
+        liegenschaft: null, suggested_name: null, confidence: 'nicht_erkannt',
+        error_reason: 'PDF konnte nicht aus dem Speicher geladen werden.',
+      })
     }
 
     // Extract text from PDF
@@ -214,7 +258,17 @@ export async function POST(request: NextRequest) {
       const parsed = await pdfParse(buffer)
       pdfText = parsed.text || ''
     } catch {
-      return NextResponse.json({ liegenschaft: null, suggested_name: null, confidence: 'nicht_erkannt' })
+      return NextResponse.json({
+        liegenschaft: null, suggested_name: null, confidence: 'nicht_erkannt',
+        error_reason: 'PDF-Text nicht lesbar — möglicherweise ein gescanntes Dokument ohne OCR. Bitte als Text-PDF erneut hochladen.',
+      })
+    }
+
+    if (pdfText.trim().length < 30) {
+      return NextResponse.json({
+        liegenschaft: null, suggested_name: null, confidence: 'nicht_erkannt',
+        error_reason: 'Im PDF wurde fast kein Text gefunden — möglicherweise ein reines Bild-PDF (Scan). Bitte mit OCR oder als Text-PDF erneut hochladen.',
+      })
     }
 
     // ── Gemeinsame Hilfsfunktion: Liegenschaft in Text suchen ──
@@ -343,13 +397,17 @@ export async function POST(request: NextRequest) {
         is_insurance: false,
         is_mietvertrag: true,
         confidence: bestMatch ? 'hoch' : 'nicht_erkannt',
+        error_reason: 'Dies ist ein Mietvertrag, kein Versicherungsdokument. Mietverträge werden in der Dokumenten-Verwaltung verwaltet.',
       })
     }
 
     // ── Versicherungsdokument-Pfad ──
     const docType = detectDocumentType(pdfText)
     if (docType === 'wrong_type') {
-      return NextResponse.json({ liegenschaft: null, suggested_name: null, is_insurance: false, confidence: 'kein_versicherungsdokument' })
+      return NextResponse.json({
+        liegenschaft: null, suggested_name: null, is_insurance: false, confidence: 'kein_versicherungsdokument',
+        error_reason: 'Kein Versicherungsdokument erkannt — typische Begriffe wie „Polizze", „Versicherungsnehmer" oder „Versicherungssumme" fehlen im PDF.',
+      })
     }
 
     // Extract policy name from PDF text
@@ -412,6 +470,18 @@ export async function POST(request: NextRequest) {
     const unitMatch = bestMatch ? findUnit(bestMatch, unit_top, unitSearchText) : null
     const finalIsUnitPolice = unitMatch !== null
 
+    // Sprechende Fehlermeldung wenn nichts erkannt wurde
+    let error_reason: string | null = null
+    if (!bestMatch && !unitMatch) {
+      if (liegenschaften.length === 0) {
+        error_reason = 'Es sind noch keine Einheiten/Liegenschaften angelegt. Bitte zuerst Einheiten importieren — danach kann die Police automatisch zugeordnet werden.'
+      } else if (unit_top) {
+        error_reason = `Top ${unit_top} im PDF gefunden, aber keine passende Liegenschaft in Ihren Einheiten — bitte manuell zuordnen.`
+      } else {
+        error_reason = 'Versicherungsdokument erkannt, aber keine Ihrer Liegenschaftsadressen wurde im PDF gefunden — bitte manuell zuordnen.'
+      }
+    }
+
     return NextResponse.json({
       liegenschaft: unitMatch ? null : bestMatch,
       unit_id: unitMatch?.unit_id ?? null,
@@ -421,9 +491,13 @@ export async function POST(request: NextRequest) {
       is_insurance: true,
       is_unit_police: finalIsUnitPolice,
       confidence: !bestMatch && !unitMatch ? 'nicht_erkannt' : usedFullTextFallback ? 'niedrig' : 'hoch',
+      error_reason,
     })
   } catch (err) {
     console.error('PDF analyse error:', err)
-    return NextResponse.json({ liegenschaft: null, suggested_name: null, confidence: 'nicht_erkannt' })
+    return NextResponse.json({
+      liegenschaft: null, suggested_name: null, confidence: 'nicht_erkannt',
+      error_reason: 'Beim Analysieren des PDFs ist ein unerwarteter Fehler aufgetreten — bitte erneut versuchen oder manuell zuordnen.',
+    })
   }
 }
