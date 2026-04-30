@@ -86,19 +86,21 @@ export async function POST(request: NextRequest) {
       slug = `${baseSlug}-${attempt}`
     }
 
-    // Create organization with status 'pending'
+    // Create organization with status 'active' (direct activation, no admin approval)
+    // E-Mail-Verifizierung läuft weiter via Supabase Auth (Spam-Schutz)
     const { data: org, error: orgError } = await admin
       .from("organizations")
       .insert({
         name: org_name,
         slug,
         country,
-        status: 'pending',
+        status: 'active',
         units_estimate: units_estimate || null,
         phone: phone || null,
         is_deleted: false,
         avv_accepted_at: new Date().toISOString(),
         avv_accepted_ip: clientIp,
+        trial_ends_at: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(),
       })
       .select("id, name, slug")
       .single()
@@ -194,8 +196,8 @@ export async function POST(request: NextRequest) {
         const { error: sendError } = await resend.emails.send({
           from: "SMARTCARL <no-reply@smartcarl.com>",
           to: email,
-          subject: "E-Mail-Adresse bestaetigen - SMARTCARL",
-          html: `<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:24px"><div style="background:#1a1a2e;padding:16px 24px;border-radius:8px 8px 0 0"><h1 style="color:#ffffff;margin:0;font-size:20px">SMARTCARL</h1></div><div style="background:#ffffff;border:1px solid #e5e7eb;border-top:none;padding:32px;border-radius:0 0 8px 8px"><h2 style="color:#111827;margin:0 0 16px">Willkommen, ${first_name}!</h2><p style="color:#374151;margin:0 0 24px">Ihr Konto fuer <strong>${org_name}</strong> wurde erfolgreich angelegt.<br>Bitte bestaetigen Sie jetzt Ihre E-Mail-Adresse um loszulegen.</p><a href="${confirmUrl}" style="display:inline-block;background:#2563eb;color:#ffffff;padding:12px 28px;border-radius:6px;text-decoration:none;font-weight:600;font-size:16px">E-Mail-Adresse bestaetigen</a><p style="color:#6b7280;margin:24px 0 0;font-size:14px">Falls der Button nicht funktioniert, kopieren Sie diesen Link:<br><a href="${confirmUrl}" style="color:#2563eb;word-break:break-all">${confirmUrl}</a></p><hr style="border:none;border-top:1px solid #e5e7eb;margin:24px 0"><p style="color:#9ca3af;font-size:12px;margin:0">SMARTCARL - Digitales Schadensmeldungs-Management<br>Bei Fragen: <a href="mailto:Kracherdigital@gmail.com" style="color:#6b7280">Kracherdigital@gmail.com</a></p></div></div>`,
+          subject: "E-Mail-Adresse bestätigen – SMARTCARL",
+          html: `<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:24px"><div style="background:#1a1a2e;padding:16px 24px;border-radius:8px 8px 0 0"><h1 style="color:#ffffff;margin:0;font-size:20px">SMARTCARL</h1></div><div style="background:#ffffff;border:1px solid #e5e7eb;border-top:none;padding:32px;border-radius:0 0 8px 8px"><h2 style="color:#111827;margin:0 0 16px">Willkommen, ${first_name}!</h2><p style="color:#374151;margin:0 0 24px">Ihr Konto für <strong>${org_name}</strong> wurde erfolgreich angelegt.<br>Bitte bestätigen Sie jetzt Ihre E-Mail-Adresse, um loszulegen.</p><a href="${confirmUrl}" style="display:inline-block;background:#2563eb;color:#ffffff;padding:12px 28px;border-radius:6px;text-decoration:none;font-weight:600;font-size:16px">E-Mail-Adresse bestätigen</a><p style="color:#6b7280;margin:24px 0 0;font-size:14px">Falls der Button nicht funktioniert, kopieren Sie diesen Link:<br><a href="${confirmUrl}" style="color:#2563eb;word-break:break-all">${confirmUrl}</a></p><hr style="border:none;border-top:1px solid #e5e7eb;margin:24px 0"><p style="color:#9ca3af;font-size:12px;margin:0">SMARTCARL – Digitales Schadensmeldungs-Management<br>Bei Fragen: <a href="mailto:Kracherdigital@gmail.com" style="color:#6b7280">Kracherdigital@gmail.com</a></p></div></div>`,
         })
         if (sendError) {
           console.error("Resend send error:", sendError)
@@ -207,16 +209,16 @@ export async function POST(request: NextRequest) {
       console.error("Confirmation email exception:", emailErr)
     }
 
-    // Send notification email to owner
+    // Send info email to owner (Direkt-Aktivierung — keine Aktion nötig, nur FYI)
     try {
       const resend = new Resend(process.env.RESEND_API_KEY)
       const { error: notifyError } = await resend.emails.send({
         from: "SMARTCARL <no-reply@smartcarl.com>",
         to: "Kracherdigital@gmail.com",
-        subject: `Neue HV-Anfrage: ${org_name}`,
+        subject: `Neue HV-Registrierung: ${org_name}`,
         html: `<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:24px">
   <div style="background:#9A6B3C;padding:16px 24px;border-radius:8px 8px 0 0">
-    <h1 style="color:#ffffff;margin:0;font-size:18px">Neue HV-Registrierungsanfrage</h1>
+    <h1 style="color:#ffffff;margin:0;font-size:18px">Neue HV-Registrierung</h1>
   </div>
   <div style="background:#ffffff;border:1px solid #e5e7eb;border-top:none;padding:32px;border-radius:0 0 8px 8px">
     <h2 style="color:#111827;margin:0 0 20px;font-size:20px">Eine neue Hausverwaltung hat sich registriert</h2>
@@ -227,9 +229,9 @@ export async function POST(request: NextRequest) {
       <tr><td style="padding:8px 0;color:#6b7280;font-size:14px">Telefon</td><td style="padding:8px 0;color:#111827;font-size:14px">${phone || '—'}</td></tr>
       <tr><td style="padding:8px 0;color:#6b7280;font-size:14px">Einheiten ca.</td><td style="padding:8px 0;color:#111827;font-size:14px">${units_estimate || '—'}</td></tr>
     </table>
-    <div style="margin-top:24px;padding:16px;background:#fef3c7;border:1px solid #fbbf24;border-radius:6px">
-      <p style="margin:0;color:#92400e;font-size:14px;font-weight:600">Aktion erforderlich</p>
-      <p style="margin:8px 0 0;color:#92400e;font-size:14px">Bitte prüfen Sie die Anfrage und schalten Sie den Zugang im Admin-Dashboard frei.</p>
+    <div style="margin-top:24px;padding:16px;background:#dcfce7;border:1px solid #86efac;border-radius:6px">
+      <p style="margin:0;color:#166534;font-size:14px;font-weight:600">Status: Aktiv (14-Tage-Trial gestartet)</p>
+      <p style="margin:8px 0 0;color:#166534;font-size:14px">Die HV kann sich nach E-Mail-Bestätigung sofort einloggen. Keine Aktion nötig.</p>
     </div>
     <a href="https://smartcarl.com/admin/organizations" style="display:inline-block;margin-top:20px;background:#9A6B3C;color:#ffffff;padding:12px 24px;border-radius:6px;text-decoration:none;font-weight:600;font-size:14px">Admin-Dashboard öffnen</a>
   </div>
@@ -243,7 +245,7 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json(
-      { message: "Registrierung erfolgreich. Bitte bestaetigen Sie Ihre E-Mail-Adresse." },
+      { message: "Registrierung erfolgreich. Bitte bestätigen Sie Ihre E-Mail-Adresse." },
       { status: 201 }
     )
   } catch (err) {

@@ -153,10 +153,10 @@ export default function OnboardingModal({ onClose }: { onClose: () => void }) {
               Konto erstellt!
             </h2>
             <p style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: '14px', color: '#555', lineHeight: 1.6, margin: '0 0 8px' }}>
-              Ihre Registrierung war erfolgreich. Sie können sich ab sofort mit Ihrer E-Mail-Adresse und Ihrem Passwort anmelden.
+              Wir haben Ihnen eine E-Mail zur Bestätigung Ihrer E-Mail-Adresse gesendet. Bitte klicken Sie auf den Link in der E-Mail, um sich anschließend einzuloggen.
             </p>
             <p style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: '13px', color: '#888', margin: '0 0 28px' }}>
-              Login unter <strong>smartcarl.com/login</strong>
+              Keine E-Mail erhalten? Prüfen Sie bitte Ihren Spam-Ordner.
             </p>
             <button
               onClick={onClose}
