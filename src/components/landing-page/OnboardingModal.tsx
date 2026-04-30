@@ -56,7 +56,12 @@ export default function OnboardingModal({ onClose }: { onClose: () => void }) {
   // Price display
   const unitCount = parseInt(form.einheiten_anzahl || '0', 10)
   const monthlyPricePerUnit = form.plan === 'yearly' ? 0.85 : 1.00
-  const monthlyTotal = unitCount > 0 ? (unitCount * monthlyPricePerUnit).toFixed(2) : null
+  const isYearly = form.plan === 'yearly'
+  const totalLabel = isYearly ? 'Ihr Jahresbeitrag' : 'Ihr monatlicher Beitrag'
+  const totalAmount = unitCount > 0
+    ? (unitCount * monthlyPricePerUnit * (isYearly ? 12 : 1)).toFixed(2)
+    : null
+  const totalSuffix = isYearly ? ' / Jahr' : ' / Monat'
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -381,16 +386,16 @@ export default function OnboardingModal({ onClose }: { onClose: () => void }) {
               </div>
 
               {/* Price preview */}
-              {monthlyTotal && (
+              {totalAmount && (
                 <div style={{
                   padding: '10px 14px', background: '#f0fdf4', border: '1px solid #bbf7d0',
                   borderRadius: '6px', display: 'flex', justifyContent: 'space-between', alignItems: 'center',
                 }}>
                   <span style={{ fontSize: '13px', color: '#166534', fontFamily: 'var(--font-dm-sans, sans-serif)' }}>
-                    Ihr monatlicher Beitrag
+                    {totalLabel}
                   </span>
                   <span style={{ fontSize: '15px', fontWeight: 700, color: '#166534', fontFamily: 'var(--font-dm-sans, sans-serif)' }}>
-                    {monthlyTotal} €{form.plan === 'yearly' ? ' / Monat' : ''}
+                    {totalAmount} €{totalSuffix}
                   </span>
                 </div>
               )}
