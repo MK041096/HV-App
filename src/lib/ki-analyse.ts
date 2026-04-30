@@ -1,5 +1,6 @@
 import Anthropic from '@anthropic-ai/sdk'
 import { SupabaseClient } from '@supabase/supabase-js'
+import { extractLiegenschaftFromAddress } from './liegenschaft'
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
@@ -20,13 +21,6 @@ function parseUrgencyFromAnalysis(text: string): 'notfall' | 'dringend' | 'norma
   if (val === 'notfall') return 'notfall'
   if (val === 'dringend') return 'dringend'
   return 'normal'
-}
-
-// Extracts the base liegenschaft address from a full unit address
-// e.g. "Hauptstraße 1/3, 1010 Wien" → "Hauptstraße 1"
-function extractLiegenschaft(address: string): string {
-  if (address.includes('/')) return address.split('/')[0].trim()
-  return address.trim()
 }
 
 const CARL_SYSTEM_PROMPT = `Du bist CARL — der KI-Experte von SMARTCARL für Mietrecht und Schadensmeldungsbearbeitung im deutschsprachigen Raum (Österreich, Deutschland, Schweiz).
@@ -282,7 +276,7 @@ export async function runKiAnalyse(params: {
   // ── 4. Versicherungspolicen laden ─────────────────────────────────────────
   // 4a. Liegenschafts-Policen (für das gesamte Gebäude)
   // 4b. Einheits-Policen (speziell für diese Wohnung)
-  const liegenschaft = unitAddress ? extractLiegenschaft(unitAddress) : null
+  const liegenschaft = unitAddress ? extractLiegenschaftFromAddress(unitAddress) : null
   let insuranceText = 'Keine Versicherungspolicen hinterlegt.'
 
   const insurancePolicies: { name: string; scope: string }[] = []
