@@ -137,8 +137,20 @@ export async function POST(request: NextRequest) {
         (units || [])
           .filter(u => u.address)
           .map(u => {
-            const addr = u.address as string
-            return addr.includes('/') ? addr.split('/')[0].trim() : addr.trim()
+            let addr = u.address as string
+            // Slash-Format: "Mariahilfer Straße 88/1, 1060 Wien" → vor dem Slash + danach
+            if (addr.includes('/')) {
+              const slashSplit = addr.split('/')
+              const afterSlash = slashSplit.slice(1).join('/')
+              const postalAndCity = afterSlash.match(/(\d{4,5}\s+\S.*)$/)
+              addr = slashSplit[0].trim() + (postalAndCity ? ', ' + postalAndCity[1].trim() : '')
+            }
+            // Top-Format: "Mariahilfer Straße 88 Top 1, 1060 Wien" → "Mariahilfer Straße 88, 1060 Wien"
+            addr = addr.replace(/\s+Top\s+\d+/i, '')
+            // Stiege/Tür-Format: "Hauptstraße 5 Stiege 2 Tür 4, 1010 Wien" → "Hauptstraße 5, 1010 Wien"
+            addr = addr.replace(/\s+(Stiege|Tür)\s+\d+/gi, '')
+            // Doppelte Leerzeichen + Trim
+            return addr.replace(/\s+/g, ' ').replace(/\s*,\s*/g, ', ').trim()
           })
       )
     )
