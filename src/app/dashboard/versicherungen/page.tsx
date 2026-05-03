@@ -144,6 +144,7 @@ export default function VersicherungenPage() {
   const [einheiten, setEinheiten] = useState<Einheit[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
+  const [filter, setFilter] = useState<'all' | 'protected' | 'unprotected'>('all')
   const [expanded, setExpanded] = useState<Set<string>>(new Set())
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null)
   const [deleteOpen, setDeleteOpen] = useState(false)
@@ -409,10 +410,19 @@ export default function VersicherungenPage() {
     )
   }
 
-  const filteredEinheiten = einheiten.filter(e =>
-    e.name.toLowerCase().includes(search.toLowerCase()) ||
-    (e.address || '').toLowerCase().includes(search.toLowerCase())
-  )
+  // Statistiken über alle Einheiten
+  const protectedCount = einheiten.filter(e => e.docs.length > 0).length
+  const unprotectedCount = einheiten.length - protectedCount
+
+  // Such- und Filter-Logik kombinieren
+  const filteredEinheiten = einheiten.filter(e => {
+    const matchesSearch = e.name.toLowerCase().includes(search.toLowerCase()) ||
+      (e.address || '').toLowerCase().includes(search.toLowerCase())
+    if (!matchesSearch) return false
+    if (filter === 'protected') return e.docs.length > 0
+    if (filter === 'unprotected') return e.docs.length === 0
+    return true
+  })
 
   const bulkProgress = bulkItems.length > 0
     ? Math.round((bulkItems.filter(i => ['done', 'error', 'not_found'].includes(i.status)).length / bulkItems.length) * 100)
@@ -729,15 +739,78 @@ export default function VersicherungenPage() {
           </Card>
         )}
 
-        {/* ── Suchfeld ───────────────────────────────────────────────── */}
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Einheit oder Adresse suchen…"
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            className="pl-9"
-          />
+        {/* ── Warnbanner: ungeschützte Einheiten ─────────────────────── */}
+        {unprotectedCount > 0 && (
+          <Card className="border-orange-300 bg-orange-50">
+            <CardContent className="pt-4 pb-4 flex items-center gap-3">
+              <ShieldAlert className="h-5 w-5 text-orange-600 shrink-0" />
+              <div className="flex-1 text-sm">
+                <span className="font-semibold text-orange-800">
+                  {unprotectedCount} von {einheiten.length} Einheiten ohne Versicherungspolice
+                </span>
+                <span className="text-orange-700 ml-2">
+                  — im Schadensfall keine Deckung. Bitte Policen hochladen oder zuordnen.
+                </span>
+              </div>
+              {filter !== 'unprotected' && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setFilter('unprotected')}
+                  className="shrink-0 border-orange-400 text-orange-800 hover:bg-orange-100"
+                >
+                  Anzeigen
+                </Button>
+              )}
+            </CardContent>
+          </Card>
+        )}
+
+        {/* ── Filter-Pills + Suchfeld ────────────────────────────────── */}
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="flex gap-1 rounded-md border bg-muted/30 p-1">
+            <button
+              onClick={() => setFilter('all')}
+              className={`text-sm px-3 py-1.5 rounded transition-colors ${
+                filter === 'all'
+                  ? 'bg-background shadow-sm font-medium'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              Alle <span className="text-xs text-muted-foreground ml-1">({einheiten.length})</span>
+            </button>
+            <button
+              onClick={() => setFilter('protected')}
+              className={`text-sm px-3 py-1.5 rounded transition-colors flex items-center gap-1.5 ${
+                filter === 'protected'
+                  ? 'bg-background shadow-sm font-medium text-green-700'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              <ShieldCheck className="h-3.5 w-3.5" />
+              Geschützt <span className="text-xs text-muted-foreground ml-0.5">({protectedCount})</span>
+            </button>
+            <button
+              onClick={() => setFilter('unprotected')}
+              className={`text-sm px-3 py-1.5 rounded transition-colors flex items-center gap-1.5 ${
+                filter === 'unprotected'
+                  ? 'bg-background shadow-sm font-medium text-orange-700'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              <ShieldAlert className="h-3.5 w-3.5" />
+              Ohne Police <span className="text-xs text-muted-foreground ml-0.5">({unprotectedCount})</span>
+            </button>
+          </div>
+          <div className="relative flex-1 min-w-[200px]">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Einheit oder Adresse suchen…"
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              className="pl-9"
+            />
+          </div>
         </div>
 
         {/* ── Einheiten-Liste ────────────────────────────────────────── */}
@@ -749,6 +822,31 @@ export default function VersicherungenPage() {
               <p className="text-sm text-muted-foreground mt-1 max-w-sm">
                 Legen Sie zuerst Einheiten an — pro Einheit sehen Sie dann alle greifenden Policen.
               </p>
+            </CardContent>
+          </Card>
+        ) : filteredEinheiten.length === 0 ? (
+          <Card>
+            <CardContent className="flex flex-col items-center justify-center py-12 text-center">
+              {filter === 'unprotected' && unprotectedCount === 0 ? (
+                <>
+                  <ShieldCheck className="h-12 w-12 text-green-500 mb-3" />
+                  <p className="text-green-700 font-medium">Alle Einheiten sind versichert!</p>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Keine ungeschützte Einheit gefunden.
+                  </p>
+                </>
+              ) : (
+                <>
+                  <Search className="h-12 w-12 text-muted-foreground/40 mb-3" />
+                  <p className="text-muted-foreground font-medium">Keine Einheit gefunden</p>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    {search ? `Suche „${search}" liefert keine Treffer im aktuellen Filter.` : 'Kein Eintrag im aktuellen Filter.'}
+                  </p>
+                  <Button variant="outline" size="sm" className="mt-3" onClick={() => { setSearch(''); setFilter('all') }}>
+                    Filter zurücksetzen
+                  </Button>
+                </>
+              )}
             </CardContent>
           </Card>
         ) : (
