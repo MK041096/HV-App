@@ -1,16 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createServerSupabaseClient } from '@/lib/supabase-server'
-
-// Extracts the Liegenschaft (building address) from a unit address.
-// e.g. "Schönbrunnerstraße 42/Top 1" → "Schönbrunnerstraße 42"
-// e.g. "Mariahilfer Straße 88/Top 5" → "Mariahilfer Straße 88"
-function extractLiegenschaft(address: string): string {
-  const slashIdx = address.indexOf('/')
-  if (slashIdx !== -1) {
-    return address.substring(0, slashIdx).trim()
-  }
-  return address.trim()
-}
+import { extractLiegenschaftFromAddress } from '@/lib/liegenschaft'
 
 // GET /api/hv/liegenschaften
 // Returns unique Liegenschaften derived from units, with doc counts
@@ -45,7 +35,7 @@ export async function GET() {
 
     for (const unit of units || []) {
       if (!unit.address) continue
-      const lg = extractLiegenschaft(unit.address)
+      const lg = extractLiegenschaftFromAddress(unit.address)
       if (!liegenschaftMap.has(lg)) {
         liegenschaftMap.set(lg, { address: lg, unitCount: 0, unitIds: [] })
       }

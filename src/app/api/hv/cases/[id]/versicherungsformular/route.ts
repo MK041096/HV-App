@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabaseClient } from '@/lib/supabase-server'
+import { extractLiegenschaftFromAddress } from '@/lib/liegenschaft'
 
 // GET /api/hv/cases/[id]/versicherungsformular
 // Returns a printable HTML insurance claim form for this damage report
@@ -61,7 +62,7 @@ export async function GET(
 
     // Derive Liegenschaft address from unit address
     const liegenschaft = unit?.address
-      ? (unit.address.includes('/') ? unit.address.split('/')[0].trim() : unit.address.trim())
+      ? extractLiegenschaftFromAddress(unit.address)
       : '—'
 
     // Load matching insurance policy name

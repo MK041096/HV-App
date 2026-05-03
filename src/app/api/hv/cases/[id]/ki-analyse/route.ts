@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import Anthropic from '@anthropic-ai/sdk'
 import { createServerSupabaseClient } from '@/lib/supabase-server'
+import { extractLiegenschaftFromAddress } from '@/lib/liegenschaft'
 
 const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
@@ -149,9 +150,9 @@ export async function POST(
     let insuranceContent: string | null = null
     let insuranceFound = false
 
-    // Derive Liegenschaft from unit address (e.g. "Schönbrunnerstraße 42/Top 1" → "Schönbrunnerstraße 42")
+    // Derive Liegenschaft from unit address — Top X / Stiege X / Slash-Format wird gestrippt
     const liegenschaft = unit?.address
-      ? (unit.address.includes('/') ? unit.address.split('/')[0].trim() : unit.address.trim())
+      ? extractLiegenschaftFromAddress(unit.address)
       : null
 
     let insuranceQuery = supabase
