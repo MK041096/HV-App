@@ -1,8 +1,27 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabaseClient } from '@/lib/supabase-server'
 import { extractLiegenschaftFromAddress } from '@/lib/liegenschaft'
+// Direkter Lib-Import + Warmup-Retry: umgeht einen pdf-parse v1.1.1 Bug,
+// bei dem die ersten 1-2 Aufrufe in einem frischen Node-Prozess (Vercel-Cold-Start)
+// mit "Illegal character: 41" oder "bad XRef entry" fehlschlagen. Lokal reproduziert
+// und bestätigt: nach 1-2 Fehlern stabilisiert sich pdf.js intern.
+// Workaround: bei einem Fehler genau einmal sofort retry — bei warmen Functions kein
+// Overhead, bei Cold Starts heilt sich das System selbst.
 // eslint-disable-next-line @typescript-eslint/no-require-imports
-const pdfParse = require('pdf-parse')
+const rawPdfParse = require('pdf-parse/lib/pdf-parse.js')
+
+async function pdfParse(buffer: Buffer): Promise<{ text: string; numpages: number }> {
+  try {
+    return await rawPdfParse(buffer)
+  } catch (firstErr) {
+    // Cold-Start-Heilung: einmal retry. Wenn der echte PDF kaputt ist, scheitert auch der retry.
+    try {
+      return await rawPdfParse(buffer)
+    } catch {
+      throw firstErr
+    }
+  }
+}
 
 // Normalizes an address string for fuzzy matching
 function normalize(str: string): string {
