@@ -139,33 +139,46 @@ export async function classifyContractor(params: {
     return fallback()
   }
 
-  try {
-    const userPrompt = `FIRMA: ${company}
+  const userPrompt = `FIRMA: ${company}
 TÄTIGKEIT: ${taetigkeit}
 BESCHREIBUNG: ${beschreibung || '(keine Beschreibung)'}
 
 Klassifiziere diese Werkstatt. Antworte exakt im vorgegebenen JSON-Format.`
 
+  // Helper: ein Klassifizierungs-Versuch mit/ohne Web-Suche
+  const attempt = async (withWebSearch: boolean): Promise<string> => {
     const response = await anthropic.messages.create({
       model: 'claude-haiku-4-5',
-      max_tokens: 3500,  // Höhere Tokens für ausführlichere carl_hint + mehr search_keywords
+      max_tokens: 3500,
       system: SYSTEM_PROMPT,
-      tools: [{
-        type: 'web_search_20250305',
-        name: 'web_search',
-        max_uses: 3,  // 3 Suchen pro Werkstatt für tiefere Recherche
-        user_location: { type: 'approximate', country: 'AT', timezone: 'Europe/Vienna' },
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } as any],
+      ...(withWebSearch ? {
+        tools: [{
+          type: 'web_search_20250305',
+          name: 'web_search',
+          max_uses: 3,
+          user_location: { type: 'approximate', country: 'AT', timezone: 'Europe/Vienna' },
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } as any],
+      } : {}),
       messages: [{ role: 'user', content: userPrompt }],
     })
-
-    // Server-Tool: Anthropic führt web_search intern aus, das finale Antwort-Text-Block
-    // ist die JSON-Antwort. Wir nehmen alle Text-Blöcke und nehmen den letzten als JSON.
     const textBlocks = response.content
       .filter(b => b.type === 'text')
       .map(b => (b as Anthropic.TextBlock).text)
-    const text = (textBlocks[textBlocks.length - 1] || '').trim()
+    return (textBlocks[textBlocks.length - 1] || '').trim()
+  }
+
+  try {
+    let text: string
+    try {
+      // Erstversuch mit Web-Suche
+      text = await attempt(true)
+    } catch (firstErr) {
+      // Bei API-/Rate-Limit-Fehler: einmal ohne Web-Suche retryen
+      // (Claude kennt große Firmen eh aus Training, kleine Firmen kriegen kürzeres Profil)
+      console.warn('classifyContractor with web_search failed, retrying without:', firstErr instanceof Error ? firstErr.message : firstErr)
+      text = await attempt(false)
+    }
 
     // JSON aus dem Antwort-Text extrahieren — robust gegen Markdown-Codeblocks
     // und gegen extra Text vor/nach dem JSON (kann bei Web-Search-Antworten passieren)
@@ -183,10 +196,20 @@ Klassifiziere diese Werkstatt. Antworte exakt im vorgegebenen JSON-Format.`
     const subtags = (parsed.subtags || [])
       .filter(s => typeof s === 'string' && VALID_SUBTAGS.includes(s))
 
+    // <cite index="...">-Tags von Web-Search aus dem Hint entfernen
+    const cleanHint = typeof parsed.carl_hint === 'string'
+      ? parsed.carl_hint
+          .replace(/<cite\s+index="[^"]*">/gi, '')
+          .replace(/<\/cite>/gi, '')
+          .replace(/\s+/g, ' ')
+          .trim()
+          .slice(0, 2000)
+      : ''
+
     return {
       specialties: specialties.length > 0 ? specialties : ['sonstiges'],
       subtags: Array.from(new Set(subtags)),
-      carl_hint: typeof parsed.carl_hint === 'string' ? parsed.carl_hint.slice(0, 2000) : '',
+      carl_hint: cleanHint,
       search_keywords: Array.isArray(parsed.search_keywords)
         ? parsed.search_keywords.filter(k => typeof k === 'string').slice(0, 20)
         : [],

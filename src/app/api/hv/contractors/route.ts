@@ -31,7 +31,7 @@ export async function GET() {
 
     const { data: contractors, error: dbError } = await supabase
       .from('contractors')
-      .select('id, name, company, email, phone, specialties, notes, description, is_active, created_at, updated_at')
+      .select('id, name, company, email, phone, specialties, notes, description, carl_hint, search_keywords, is_active, created_at, updated_at')
       .eq('organization_id', profile.organization_id)
       .eq('is_active', true)
       .order('name', { ascending: true })
@@ -99,7 +99,7 @@ export async function POST(request: NextRequest) {
         description: trimmedDesc,
         is_active: true,
       })
-      .select('id, name, company, email, phone, specialties, notes, description, is_active, created_at, updated_at')
+      .select('id, name, company, email, phone, specialties, notes, description, carl_hint, search_keywords, is_active, created_at, updated_at')
       .single()
 
     if (dbError) {

@@ -147,10 +147,11 @@ export async function POST(request: NextRequest) {
       validContractors.push({ rowIndex: i + 1, company, phone, email, notes: taetigkeit, description: beschreibung })
     }
 
-    // ── Phase 2: KI-Klassifizierung (parallel, max 10 gleichzeitig) ──
-    // Höhere Concurrency damit der Import bei vielen Werkstätten + Web-Suche schnell bleibt.
-    // Anthropic Rate-Limit pro API-Key liegt deutlich darüber.
-    const CONCURRENCY = 10
+    // ── Phase 2: KI-Klassifizierung (parallel, max 3 gleichzeitig) ──
+    // Concurrency 3 vermeidet das Anthropic web_search Rate-Limit.
+    // Bei höherer Parallelität fielen ~60% der Calls in den Fallback (Rate-Limit-Fehler).
+    // Mit Concurrency 3 + Retry-ohne-Web-Suche kommt jede Werkstatt durch.
+    const CONCURRENCY = 3
     const classifications: { company: string; result: Awaited<ReturnType<typeof classifyContractor>> }[] = []
     for (let i = 0; i < validContractors.length; i += CONCURRENCY) {
       const batch = validContractors.slice(i, i + CONCURRENCY)

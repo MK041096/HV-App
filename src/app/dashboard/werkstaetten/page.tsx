@@ -48,6 +48,8 @@ interface Contractor {
   specialties: string[]
   notes: string | null
   description: string | null
+  carl_hint: string | null
+  search_keywords: string[] | null
   is_active: boolean
   created_at: string
   updated_at: string
@@ -469,6 +471,36 @@ export default function WerkstaettenPage() {
                 Je detaillierter die Beschreibung, desto präziser findet CARL die passende Werkstatt bei einer Schadensmeldung.
               </p>
             </div>
+
+            {/* KI-Profil — read-only, nur sichtbar bei Bearbeiten und wenn vorhanden */}
+            {editingContractor && (editingContractor.carl_hint || (editingContractor.search_keywords && editingContractor.search_keywords.length > 0)) && (
+              <div className="space-y-2 rounded-md border border-blue-200 bg-blue-50 p-3">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-semibold text-blue-900">🤖 KI-Profil von CARL</span>
+                  <span className="text-[10px] uppercase tracking-wider text-blue-600 bg-blue-100 px-1.5 py-0.5 rounded">automatisch erstellt</span>
+                </div>
+                {editingContractor.carl_hint && (
+                  <p className="text-sm text-blue-900 leading-relaxed whitespace-pre-wrap">
+                    {editingContractor.carl_hint}
+                  </p>
+                )}
+                {editingContractor.search_keywords && editingContractor.search_keywords.length > 0 && (
+                  <div className="pt-1">
+                    <p className="text-[11px] font-medium text-blue-700 mb-1">Schadens-Stichwörter (für CARL-Matching):</p>
+                    <div className="flex flex-wrap gap-1">
+                      {editingContractor.search_keywords.map((kw, i) => (
+                        <span key={i} className="text-[11px] bg-white border border-blue-200 text-blue-800 px-1.5 py-0.5 rounded">
+                          {kw}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                <p className="text-[10px] text-blue-700/70 pt-1">
+                  Wird beim Werkstatt-Anlegen einmalig von CARL erstellt — nutzt Web-Recherche bei sparsamen Beschreibungen.
+                </p>
+              </div>
+            )}
           </div>
 
           <DialogFooter>
