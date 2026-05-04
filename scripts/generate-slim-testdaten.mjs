@@ -34,50 +34,69 @@ const einheitenCsvText = '﻿' + einheitenCsv
 fs.writeFileSync(path.join(OUTPUT, '01_Einheit.csv'), einheitenCsvText, 'utf8')
 
 // ════════════════════════════════════════════════════════════
-// 2) WERKSTÄTTEN — gemischte Datenqualität für CARL-Test
-//    Alle E-Mails: Tradingworld@gmx.at, Telefonnummern erfunden
+// 2) WERKSTÄTTEN — 25 ECHTE Wien/AT-Betriebe, breit über alle Gewerke verteilt
+//    Recherchiert über Web-Suche am 04.05.2026, alle Firmen mit eigener Web-Präsenz.
+//    E-Mails: Tradingworld@gmx.at, Telefonnummern erfunden (kein Spam an echte Firmen).
 //
-// Mischung:
-//  A) Echte große Firmen mit minimaler Beschreibung → CARL muss im Web suchen
-//  B) Detaillierte Einträge → CARL klassifiziert direkt aus dem Text
-//  C) Vage/schlechte Beschreibungen → CARL sollte Web-Recherche triggern
-//  D) Ohne Beschreibung → Härtetest, CARL muss raten oder suchen
+// Mischung der Datenqualität für CARL-Test:
+//  - 15 Einträge OHNE Beschreibung → CARL muss im Web recherchieren
+//  - 10 Einträge MIT klarer Beschreibung → CARL klassifiziert direkt
 // ════════════════════════════════════════════════════════════
 const werkstaetten = [
-  // ─── Gruppe A: Echte große Firmen, wenig Beschreibung (CARL Web-Suche) ───
+  // ─── Aufzug (2) ──────────────────────────────────────────────────
   ['OTIS GmbH', '+43 664 111 0001', 'Aufzüge', ''],
   ['Schindler Aufzüge AG', '+43 664 111 0002', 'Aufzugservice & Wartung', ''],
-  ['KONE Aufzüge GmbH', '+43 664 111 0003', 'Liftanlagen', ''],
-  ['Anticimex Austria GmbH', '+43 664 111 0004', 'Schädlingsbekämpfung', ''],
-  ['Mr. Wash Reinigung GmbH', '+43 664 111 0005', 'Gebäudereinigung', ''],
 
-  // ─── Gruppe B: Klare detaillierte Beschreibungen (CARL klassifiziert direkt) ───
-  ['Huber Sanitär GmbH', '+43 664 111 0006', 'Sanitär & Wasserschaden', 'Rohrbruch, Wasserinstallation, Badezimmerrenovierung, Leitungswasserschäden, Verstopfungen, Notdienst 24h'],
-  ['Heizung Klimatechnik Wagner GmbH', '+43 664 111 0007', 'Heizung & Klimaanlage', 'Heizungsservice, Brennerwartung, Wärmepumpen, Gasheizung, Pelletsheizung, Klimaanlagen, Lüftung'],
-  ['Elektro Brandner eU', '+43 664 111 0008', 'Elektroinstallation', 'Reparaturen, Zählerkasten, Beleuchtung, Sicherungskasten, Steckdosen, Stromausfall, E-Check, Photovoltaik'],
-  ['Tischlerei Fuchs KG', '+43 664 111 0009', 'Tischlerei & Türen', 'Einbauküchen, Zimmertüren, Parkettboden, Möbelreparatur, Holzarbeiten, Maßanfertigungen'],
-  ['Dachdecker Hofer GmbH', '+43 664 111 0010', 'Dachdeckerei', 'Dachreparatur, Dachsanierung, Flachdach, Regenrinnen, Dachabdichtung, Sturmschadenbehebung'],
-  ['Brandschutz Wimmer eU', '+43 664 111 0011', 'Brandschutz & Sicherheit', 'Rauchmelderwartung, Feuerlöscher-Service, Brandschutztüren, Fluchtwegschilderung, Sicherheitsbeleuchtung'],
-  ['Asbestsanierung TST GmbH', '+43 664 111 0012', 'Asbest- & Schadstoffsanierung', 'Asbestsanierung, KMF-Mineralfasern, Schadstoffanalyse, Bauschadstoffe, Entsorgung nach AWG'],
+  // ─── Schädlingsbekämpfung (1) ────────────────────────────────────
+  ['Anticimex Austria GmbH', '+43 664 111 0003', 'Schädlingsbekämpfung', ''],
 
-  // ─── Gruppe C: Vage/schlechte Beschreibungen (CARL sollte suchen) ───
-  ['Hr. Müller Reparaturen', '+43 664 111 0013', 'Handwerker', 'Allrounder'],
-  ['Firma Schmidt & Söhne', '+43 664 111 0014', 'Reparaturen', 'Wir machen alles'],
-  ['ABC Service Wien', '+43 664 111 0015', 'Hausmeisterservice', 'Diverse Dienstleistungen'],
-  ['Wiener Handwerk', '+43 664 111 0016', 'Diverse', 'Verschiedene Arbeiten'],
-  ['ServicePro 24', '+43 664 111 0017', 'Notdienst', 'Schnell und zuverlässig'],
+  // ─── Sanitär / Heizung / Gas (3) ─────────────────────────────────
+  ['Pappel Installationen', '+43 664 111 0004', 'Installateur Sanitär & Heizung', '24h Notdienst, Gas-Wasser-Heizung, Boiler-Tausch, Wartung'],
+  ['Adler Installationen GmbH', '+43 664 111 0005', 'Sanitär, Gas, Heizung', ''],
+  ['Kocer Installateur Wien', '+43 664 111 0006', 'Heizung & Klimatechnik', ''],
 
-  // ─── Gruppe D: Ohne Beschreibung (Härtetest) ───
-  ['Glaserei Schmollmüller', '+43 664 111 0018', 'Glaserei', ''],
-  ['Wallnöfer Installation GmbH', '+43 664 111 0019', 'Wasserinstallation', ''],
-  ['Stocker Malerei', '+43 664 111 0020', 'Maler', ''],
-  ['Pichler Schlosserei', '+43 664 111 0021', 'Schlosserei', ''],
-  ['Rauchfangkehrermeister Bauer', '+43 664 111 0022', 'Rauchfangkehrer', ''],
+  // ─── Elektrik (2) ────────────────────────────────────────────────
+  ['ADA-Elektro', '+43 664 111 0007', 'Elektriker Notdienst', 'Innere Stadt, Antwortzeit 20-40 Min, Stromausfälle, Sicherungen, FI-Schalter'],
+  ['BS Elektrobau e.U.', '+43 664 111 0008', 'Elektroinstallation', ''],
 
-  // ─── Gruppe E: Spezialgewerke mit klarer Beschreibung (Cross-Test) ───
-  ['Schimmel-Spezialisten Berger GmbH', '+43 664 111 0023', 'Schimmelsanierung', 'Schimmelanalyse, Schwarzschimmel-Entfernung, Sporenbeseitigung, Ursachenforschung, Gutachten'],
-  ['Gartenpflege Leitner KG', '+43 664 111 0024', 'Gartenpflege & Winterdienst', 'Rasenmähen, Heckenschnitt, Baumschnitt, Bepflanzung, Winterdienst, Streupflicht'],
-  ['Wasserschaden-Sanierer Pichler KG', '+43 664 111 0025', 'Wasserschadensanierung', 'Leckortung, Bautrocknung, Estrichtrocknung, Schadenbehebung nach Rohrbruch, Schimmelvorbeugung'],
+  // ─── Glaserei (2) ────────────────────────────────────────────────
+  ['Erdö Glaserei', '+43 664 111 0009', 'Glaserei', ''],
+  ['Heinzl Glasbau', '+43 664 111 0010', 'Glaserei', 'Reparaturen, Türen, Möbel, Spiegel, Fensterglas'],
+
+  // ─── Tischlerei (2) ──────────────────────────────────────────────
+  ['Tischlerei Edinger', '+43 664 111 0011', 'Tischlerei', ''],
+  ['Tischlerei Schmiedmaier', '+43 664 111 0012', 'Bau- und Möbeltischlerei', ''],
+
+  // ─── Schlosserei (2) ─────────────────────────────────────────────
+  ['Star Schlosserei GmbH', '+43 664 111 0013', 'Schlosserei & Aufsperrdienst', ''],
+  ['Schlosserei Janecek', '+43 664 111 0014', 'Schlosserei', 'Wiens älteste Schlosserei seit 1886, Aufsperrdienst, Schlossaustausch'],
+
+  // ─── Maler / Verputz (2) ─────────────────────────────────────────
+  ['Valenta & Valenta GmbH', '+43 664 111 0015', 'Stuckatur, Verputz, Malerei', ''],
+  ['Malerei Hofbauer & Dennl', '+43 664 111 0016', 'Maler & Anstreicher', 'Innenanstrich, Verputz, Spachtel, Tapezieren'],
+
+  // ─── Dach / Spengler (2) ─────────────────────────────────────────
+  ['Eppler - Der Spengler', '+43 664 111 0017', 'Spenglerei & Dachdeckerei', ''],
+  ['Hohl Gerhard Dachdeckerei & Spenglerei GmbH', '+43 664 111 0018', 'Dachdeckerei & Spenglerei', ''],
+
+  // ─── Wasserschaden / Schimmel (2) ────────────────────────────────
+  ['DRYSTAR', '+43 664 111 0019', 'Leckortung, Schimmelsanierung & Entfeuchtung', ''],
+  ['SANAG Sanierung', '+43 664 111 0020', 'Schimmelsanierung', '24h erreichbar, Schimmelschäden in Wien und NÖ, Ursachenanalyse, dauerhafte Beseitigung'],
+
+  // ─── Brandschutz (1) ─────────────────────────────────────────────
+  ['Gabriel Brandschutz', '+43 664 111 0021', 'Brandschutz & Feuerlöscher-Service', ''],
+
+  // ─── Reinigung (1) ───────────────────────────────────────────────
+  ['BGN Reinigungsfirma', '+43 664 111 0022', 'Gebäudereinigung & Hausbetreuung', ''],
+
+  // ─── Asbest- / Schadstoffsanierung (1) ───────────────────────────
+  ['PORR Umwelttechnik', '+43 664 111 0023', 'Asbest- & Schadstoffsanierung', 'PORR Konzern-Tochter, industrielle Rückbau- und Demolierungsarbeiten, Dekontamination'],
+
+  // ─── Garten / Baumpflege / Winterdienst (1) ──────────────────────
+  ['SBG Spurny GmbH', '+43 664 111 0024', 'Garten- und Baumpflege', ''],
+
+  // ─── Boden / Fliesen (1) ─────────────────────────────────────────
+  ['ASKAR Fliesen & Böden', '+43 664 111 0025', 'Fliesen- und Bodenverlegung', ''],
 ]
 
 const werkstaettenCsv = [
