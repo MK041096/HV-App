@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabaseClient, createAdminClient } from '@/lib/supabase-server'
+import { classifyContractor } from '@/lib/contractor-classifier'
 
 const HV_ROLES = ['hv_admin', 'hv_mitarbeiter', 'platform_admin']
 
@@ -63,6 +64,26 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Name ist ein Pflichtfeld' }, { status: 400 })
     }
 
+    // KI-Klassifizierung wenn keine specialties manuell mitgegeben werden
+    const trimmedNotes = notes?.trim() || ''
+    const trimmedDesc = description?.trim() || null
+    const trimmedCompany = company?.trim() || name.trim()
+
+    let finalSpecialties = Array.isArray(specialties) && specialties.length > 0 ? specialties : null
+    let carlHint: string | null = null
+    let searchKeywords: string[] = []
+
+    if (!finalSpecialties && trimmedNotes) {
+      const cls = await classifyContractor({
+        company: trimmedCompany,
+        taetigkeit: trimmedNotes,
+        beschreibung: trimmedDesc,
+      })
+      finalSpecialties = Array.from(new Set([...cls.specialties, ...cls.subtags]))
+      carlHint = cls.carl_hint
+      searchKeywords = cls.search_keywords
+    }
+
     const { data: contractor, error: dbError } = await adminSupabase
       .from('contractors')
       .insert({
@@ -71,9 +92,11 @@ export async function POST(request: NextRequest) {
         company: company?.trim() || null,
         email: email?.trim() || null,
         phone: phone?.trim() || null,
-        specialties: Array.isArray(specialties) ? specialties : [],
-        notes: notes?.trim() || null,
-        description: description?.trim() || null,
+        specialties: finalSpecialties || [],
+        carl_hint: carlHint,
+        search_keywords: searchKeywords,
+        notes: trimmedNotes || null,
+        description: trimmedDesc,
         is_active: true,
       })
       .select('id, name, company, email, phone, specialties, notes, description, is_active, created_at, updated_at')

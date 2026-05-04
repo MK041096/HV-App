@@ -1,4 +1,4 @@
-import { deriveSpecialties } from '@/lib/contractors'
+import { classifyContractor } from '@/lib/contractor-classifier'
 import { NextRequest, NextResponse } from 'next/server'
 import * as XLSX from 'xlsx'
 import { createServerSupabaseClient, createAdminClient } from '@/lib/supabase-server'
@@ -143,20 +143,48 @@ export async function POST(request: NextRequest) {
       validContractors.push({ rowIndex: i + 1, company, phone, email, notes: taetigkeit, description: beschreibung })
     }
 
-    // ── Phase 2: Batch insert all valid contractors ──
+    // ── Phase 2: KI-Klassifizierung (parallel, max 5 gleichzeitig) ──
+    const CONCURRENCY = 5
+    const classifications: { company: string; result: Awaited<ReturnType<typeof classifyContractor>> }[] = []
+    for (let i = 0; i < validContractors.length; i += CONCURRENCY) {
+      const batch = validContractors.slice(i, i + CONCURRENCY)
+      const batchResults = await Promise.all(
+        batch.map(async c => ({
+          company: c.company,
+          result: await classifyContractor({
+            company: c.company,
+            taetigkeit: c.notes,
+            beschreibung: c.description,
+          }),
+        }))
+      )
+      classifications.push(...batchResults)
+    }
+
+    const classByCompany = new Map(classifications.map(x => [x.company, x.result]))
+
+    // ── Phase 3: Batch insert all valid contractors mit KI-Daten ──
     if (validContractors.length > 0) {
       const { error: batchErr } = await adminSupabase.from('contractors').insert(
-        validContractors.map(c => ({
-          organization_id: orgId,
-          name: c.company,
-          company: c.company,
-          phone: c.phone,
-          email: c.email,
-          specialties: deriveSpecialties(c.notes, c.description || ''),
-          notes: c.notes,
-          description: c.description,
-          is_active: true,
-        }))
+        validContractors.map(c => {
+          const cls = classByCompany.get(c.company)
+          const allSpecialties = cls
+            ? Array.from(new Set([...cls.specialties, ...cls.subtags]))
+            : ['sonstiges']
+          return {
+            organization_id: orgId,
+            name: c.company,
+            company: c.company,
+            phone: c.phone,
+            email: c.email,
+            specialties: allSpecialties,
+            carl_hint: cls?.carl_hint || null,
+            search_keywords: cls?.search_keywords || [],
+            notes: c.notes,
+            description: c.description,
+            is_active: true,
+          }
+        })
       )
 
       if (batchErr) {
@@ -165,7 +193,7 @@ export async function POST(request: NextRequest) {
 
       result.contractors_created = validContractors.length
 
-      // ── Phase 3: Send welcome emails (non-blocking) ──
+      // ── Phase 4: Send welcome emails (non-blocking) ──
       for (const c of validContractors) {
         sendWerkstattWillkommensmail({ to: c.email, contractorName: c.company, orgName, orgPhone })
           .catch(() => { /* silent */ })

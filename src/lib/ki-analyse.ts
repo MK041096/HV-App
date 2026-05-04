@@ -260,7 +260,7 @@ export async function runKiAnalyse(params: {
   // ── 3. Partnerwerkstätten laden ───────────────────────────────────────────
   const { data: contractors } = await supabase
     .from('contractors')
-    .select('company, name, specialties, description, notes')
+    .select('company, name, specialties, description, notes, carl_hint, search_keywords')
     .eq('organization_id', organizationId)
     .eq('is_active', true)
 
@@ -269,7 +269,16 @@ export async function runKiAnalyse(params: {
     contractorsText = contractors.map(c => {
       const gewerke = Array.isArray(c.specialties) ? c.specialties.join(', ') : ''
       const desc = c.description || c.notes || ''
-      return `- ${c.company}${gewerke ? ` | Gewerke: ${gewerke}` : ''}${desc ? ` | Beschreibung: ${desc}` : ''}`
+      const hint = c.carl_hint || ''
+      const keywords = Array.isArray(c.search_keywords) && c.search_keywords.length > 0
+        ? c.search_keywords.join(', ')
+        : ''
+      const parts = [`- ${c.company}`]
+      if (gewerke) parts.push(`Gewerke: ${gewerke}`)
+      if (hint) parts.push(`KI-Profil: ${hint}`)
+      if (keywords) parts.push(`Schadens-Stichwörter: ${keywords}`)
+      if (desc) parts.push(`Beschreibung: ${desc}`)
+      return parts.join(' | ')
     }).join('\n')
   }
 
