@@ -4,6 +4,10 @@ import * as XLSX from 'xlsx'
 import { createServerSupabaseClient, createAdminClient } from '@/lib/supabase-server'
 import { sendWerkstattWillkommensmail } from '@/lib/email'
 
+// Vercel-Timeout hochsetzen — KI-Klassifizierung mit Web-Suche kann pro Werkstatt
+// 5-15 Sek dauern. Bei 100 Werkstätten erreichen wir bis zu 5 Min Gesamtlaufzeit.
+export const maxDuration = 300
+
 const MAX_FILE_SIZE = 5 * 1024 * 1024
 
 // Column aliases
@@ -143,8 +147,10 @@ export async function POST(request: NextRequest) {
       validContractors.push({ rowIndex: i + 1, company, phone, email, notes: taetigkeit, description: beschreibung })
     }
 
-    // ── Phase 2: KI-Klassifizierung (parallel, max 5 gleichzeitig) ──
-    const CONCURRENCY = 5
+    // ── Phase 2: KI-Klassifizierung (parallel, max 10 gleichzeitig) ──
+    // Höhere Concurrency damit der Import bei vielen Werkstätten + Web-Suche schnell bleibt.
+    // Anthropic Rate-Limit pro API-Key liegt deutlich darüber.
+    const CONCURRENCY = 10
     const classifications: { company: string; result: Awaited<ReturnType<typeof classifyContractor>> }[] = []
     for (let i = 0; i < validContractors.length; i += CONCURRENCY) {
       const batch = validContractors.slice(i, i + CONCURRENCY)
