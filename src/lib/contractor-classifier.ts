@@ -32,19 +32,22 @@ const VALID_SUBTAGS = [
 
 const SYSTEM_PROMPT = `Du klassifizierst österreichische Handwerker- und Werkstatt-Betriebe für eine Hausverwaltungs-Software.
 
-Aufgabe: Aus Firmenname, Tätigkeit und Beschreibung leitest du strukturierte Daten ab, die später bei einer Schadensmeldung helfen die richtige Werkstatt auszuwählen.
+Deine Aufgabe: Aus Firmenname, Tätigkeit und Beschreibung erstellst du ein DETAILLIERTES strukturiertes Werkstatt-Profil. Dieses Profil wird später bei jeder Schadensmeldung an CARL übergeben — je präziser dein Profil, desto besser kann CARL die richtige Werkstatt für einen konkreten Schaden auswählen.
 
 ═══════════════════════════════════════════
 WEB-SUCHE (web_search Tool)
 ═══════════════════════════════════════════
-Du hast Zugang zu einer Internet-Suche. NUTZE sie wenn:
-- Tätigkeit/Beschreibung sehr knapp oder unspezifisch ist (z. B. "Allrounder", "Hausmeister")
-- Du anhand des Firmennamens mehr Details finden kannst (Webseite, Branchenbuch, Google Maps)
-- Spezialisierungen unklar sind und Web-Recherche zu besserem Profil führt
+Du hast Zugang zu einer Internet-Suche. NUTZE sie aktiv wenn:
+- Tätigkeit/Beschreibung knapp ist (z. B. nur "Glaserei", "Maler")
+- Du den Firmennamen suchen kannst um Webseite, Branchenbucheintrag, Google-Bewertungen zu finden
+- Spezialisierungen, Notdienst-Verfügbarkeit oder Service-Gebiet aus der CSV nicht hervorgehen
 
-NUTZE sie NICHT wenn die Beschreibung schon präzise ist (Zeit + Geld sparen).
+Maximal 3 Suchen pro Werkstatt. Sinnvolle Suchen:
+- "{Firmenname} Wien" — findet Hauptseite + Adresse
+- "{Firmenname} Notdienst" — findet 24h-Hotlines, Bereitschaft
+- "{Firmenname} Spezialisierung" oder "{Tätigkeit} {Bezirk}"
 
-Maximal 2 Suchen pro Werkstatt. Beispiel-Suchen: "Aufzug Service Pichler Wien", "Huber Sanitär GmbH Notdienst".
+WICHTIG: Wenn die Beschreibung BEREITS sehr detailliert ist (3+ Sätze mit Spezialisierungen, Notdienst, Region) — dann NICHT suchen, sondern aus der Beschreibung extrahieren.
 
 ═══════════════════════════════════════════
 KLASSIFIZIERUNG
@@ -64,18 +67,42 @@ ERLAUBTE HAUPTKATEGORIEN (specialties) — wähle alle die zutreffen:
 ERLAUBTE SUBTAGS (Spezialgewerke) — falls zutreffend:
 aufzug, brandschutz, schaedlingsbekaempfung, schadstoffsanierung, rauchfangkehrer, reinigung, garten, baumdienst, schlosserei, tischlerei, glas, dach, fliesen, trockenbau, lueftung
 
-REGELN:
+═══════════════════════════════════════════
+DETAILLIERTES PROFIL (carl_hint) — 4-6 Sätze, MUSS folgendes enthalten:
+═══════════════════════════════════════════
+
+1. **Hauptspezialisierung**: Was macht dieser Betrieb am besten? (1 Satz)
+2. **Konkrete Schadens-Typen**: Bei welchen Schäden ist diese Werkstatt erste Wahl? (1-2 Sätze, sehr spezifisch — z. B. "Rohrbrüche unter Putz, Frostschäden an Heizungsleitungen, Bautrocknung nach Wasserschäden")
+3. **Notdienst-Verfügbarkeit**: 24/7? Werktags? Bei welchen Notfällen? Hotline-Nummer falls bekannt.
+4. **Service-Gebiet**: Welche Bezirke/Bundesländer werden bedient?
+5. **Besonderheiten/Differenziatoren** (falls vorhanden): Zertifizierungen, Größe, Geschichte, Spezialequipment.
+
+Tonfall: sachlich, fachlich präzise, KEIN Marketing-Sprech. Was die Werkstatt nachweislich kann, nicht was sie behauptet.
+
+WENN du im Web nichts findest: schreibe ehrlich "Keine erweiterte Web-Recherche möglich, Klassifizierung anhand der Tätigkeitsbeschreibung." und nutze nur was in der CSV stand.
+
+═══════════════════════════════════════════
+SEARCH KEYWORDS — 10-15 Begriffe
+═══════════════════════════════════════════
+Deutsche Synonyme + Schadens-Begriffe die typischerweise in einer Mietermeldung vorkommen würden, bei der DIESE Werkstatt passt.
+
+Beispiele:
+- Sanitär-Werkstatt → ["Rohrbruch", "Wasseraustritt", "Leitungswasserschaden", "Verstopfung", "Toilette läuft", "Boiler kaputt", "Therme defekt", "Frostschaden Wasser", "Sickerwasser", "Wasserdruck weg", "Heizungsausfall warm", "Dusche tropft"]
+- Aufzug → ["Aufzug steckt", "Aufzug bleibt stehen", "Lift defekt", "Person eingeschlossen", "Aufzug fährt nicht", "Türen schließen nicht", "Notrufsystem", "TÜV-Termin", "Fahrstuhl-Wartung"]
+
+═══════════════════════════════════════════
+REGELN
+═══════════════════════════════════════════
 - specialties kann mehrere Werte enthalten (z. B. ["wasserschaden","sanitaer"])
-- subtags sind ZUSÄTZLICH zu specialties (z. B. Aufzug-Service: specialties=["sonstiges"], subtags=["aufzug"])
-- Bei Allroundern oder unklarer Angabe: specialties=["sonstiges"]
-- carl_hint: 1-2 prägnante Sätze auf Deutsch. Inkl. Web-Recherche-Erkenntnissen (Notdienst? Service-Gebiet? Spezialequipment?)
-- search_keywords: 5-12 deutsche Synonyme/verwandte Schadensbegriffe (z. B. Rohrbruch→Wasseraustritt, Leck, Frostschaden, Sickerwasser)
+- subtags sind ZUSÄTZLICH zu specialties
+- Bei Allroundern ohne Web-Funden: specialties=["sonstiges"], carl_hint erklärt warum unspezifisch
+- KEIN Marketing-Sprech, KEINE Floskeln, KEINE erfundenen Fakten
 
 ═══════════════════════════════════════════
 ANTWORTFORMAT
 ═══════════════════════════════════════════
 Am Ende GENAU EIN JSON-Objekt, kein Markdown-Codeblock, kein Text davor oder danach:
-{"specialties":["..."],"subtags":["..."],"carl_hint":"...","search_keywords":["..."]}`
+{"specialties":["..."],"subtags":["..."],"carl_hint":"4-6 Sätze...","search_keywords":["..."]}`
 
 export interface ContractorClassification {
   specialties: string[]
@@ -121,12 +148,12 @@ Klassifiziere diese Werkstatt. Antworte exakt im vorgegebenen JSON-Format.`
 
     const response = await anthropic.messages.create({
       model: 'claude-haiku-4-5',
-      max_tokens: 2000,  // höher wegen evtl. Web-Suchergebnisse im Kontext
+      max_tokens: 3500,  // Höhere Tokens für ausführlichere carl_hint + mehr search_keywords
       system: SYSTEM_PROMPT,
       tools: [{
         type: 'web_search_20250305',
         name: 'web_search',
-        max_uses: 2,
+        max_uses: 3,  // 3 Suchen pro Werkstatt für tiefere Recherche
         user_location: { type: 'approximate', country: 'AT', timezone: 'Europe/Vienna' },
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any],
@@ -159,9 +186,9 @@ Klassifiziere diese Werkstatt. Antworte exakt im vorgegebenen JSON-Format.`
     return {
       specialties: specialties.length > 0 ? specialties : ['sonstiges'],
       subtags: Array.from(new Set(subtags)),
-      carl_hint: typeof parsed.carl_hint === 'string' ? parsed.carl_hint.slice(0, 500) : '',
+      carl_hint: typeof parsed.carl_hint === 'string' ? parsed.carl_hint.slice(0, 2000) : '',
       search_keywords: Array.isArray(parsed.search_keywords)
-        ? parsed.search_keywords.filter(k => typeof k === 'string').slice(0, 15)
+        ? parsed.search_keywords.filter(k => typeof k === 'string').slice(0, 20)
         : [],
     }
   } catch (err) {
