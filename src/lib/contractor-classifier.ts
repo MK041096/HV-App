@@ -32,7 +32,23 @@ const VALID_SUBTAGS = [
 
 const SYSTEM_PROMPT = `Du klassifizierst österreichische Handwerker- und Werkstatt-Betriebe für eine Hausverwaltungs-Software.
 
-Aufgabe: Aus dem Firmennamen, der Tätigkeit und der Beschreibung leitest du strukturierte Daten ab, die später bei einer Schadensmeldung helfen die richtige Werkstatt auszuwählen.
+Aufgabe: Aus Firmenname, Tätigkeit und Beschreibung leitest du strukturierte Daten ab, die später bei einer Schadensmeldung helfen die richtige Werkstatt auszuwählen.
+
+═══════════════════════════════════════════
+WEB-SUCHE (web_search Tool)
+═══════════════════════════════════════════
+Du hast Zugang zu einer Internet-Suche. NUTZE sie wenn:
+- Tätigkeit/Beschreibung sehr knapp oder unspezifisch ist (z. B. "Allrounder", "Hausmeister")
+- Du anhand des Firmennamens mehr Details finden kannst (Webseite, Branchenbuch, Google Maps)
+- Spezialisierungen unklar sind und Web-Recherche zu besserem Profil führt
+
+NUTZE sie NICHT wenn die Beschreibung schon präzise ist (Zeit + Geld sparen).
+
+Maximal 2 Suchen pro Werkstatt. Beispiel-Suchen: "Aufzug Service Pichler Wien", "Huber Sanitär GmbH Notdienst".
+
+═══════════════════════════════════════════
+KLASSIFIZIERUNG
+═══════════════════════════════════════════
 
 ERLAUBTE HAUPTKATEGORIEN (specialties) — wähle alle die zutreffen:
 - wasserschaden — Wasserrohrbrüche, Leckortung, Bautrocknung, Wasserschadensanierung
@@ -49,13 +65,16 @@ ERLAUBTE SUBTAGS (Spezialgewerke) — falls zutreffend:
 aufzug, brandschutz, schaedlingsbekaempfung, schadstoffsanierung, rauchfangkehrer, reinigung, garten, baumdienst, schlosserei, tischlerei, glas, dach, fliesen, trockenbau, lueftung
 
 REGELN:
-- specialties kann mehrere Werte enthalten (z. B. ["wasserschaden","sanitaer"] für Sanitär-Wasserschaden-Betrieb)
+- specialties kann mehrere Werte enthalten (z. B. ["wasserschaden","sanitaer"])
 - subtags sind ZUSÄTZLICH zu specialties (z. B. Aufzug-Service: specialties=["sonstiges"], subtags=["aufzug"])
 - Bei Allroundern oder unklarer Angabe: specialties=["sonstiges"]
-- carl_hint: 1-2 prägnante Sätze auf Deutsch — was diese Werkstatt am besten kann, für welche Schäden, evtl. Notdienst-Erwähnung
-- search_keywords: 5-12 deutsche Synonyme/verwandte Schadensbegriffe die zu dieser Werkstatt passen würden (z. B. Rohrbruch→Wasseraustritt, Leck, Frostschaden, Sickerwasser)
+- carl_hint: 1-2 prägnante Sätze auf Deutsch. Inkl. Web-Recherche-Erkenntnissen (Notdienst? Service-Gebiet? Spezialequipment?)
+- search_keywords: 5-12 deutsche Synonyme/verwandte Schadensbegriffe (z. B. Rohrbruch→Wasseraustritt, Leck, Frostschaden, Sickerwasser)
 
-ANTWORTFORMAT — exakt JSON, keine Markdown-Codeblocks, kein Text drumherum:
+═══════════════════════════════════════════
+ANTWORTFORMAT
+═══════════════════════════════════════════
+Am Ende GENAU EIN JSON-Objekt, kein Markdown-Codeblock, kein Text davor oder danach:
 {"specialties":["..."],"subtags":["..."],"carl_hint":"...","search_keywords":["..."]}`
 
 export interface ContractorClassification {
@@ -102,19 +121,33 @@ Klassifiziere diese Werkstatt. Antworte exakt im vorgegebenen JSON-Format.`
 
     const response = await anthropic.messages.create({
       model: 'claude-haiku-4-5',
-      max_tokens: 600,
+      max_tokens: 2000,  // höher wegen evtl. Web-Suchergebnisse im Kontext
       system: SYSTEM_PROMPT,
+      tools: [{
+        type: 'web_search_20250305',
+        name: 'web_search',
+        max_uses: 2,
+        user_location: { type: 'approximate', country: 'AT', timezone: 'Europe/Vienna' },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } as any],
       messages: [{ role: 'user', content: userPrompt }],
     })
 
-    const text = response.content
+    // Server-Tool: Anthropic führt web_search intern aus, das finale Antwort-Text-Block
+    // ist die JSON-Antwort. Wir nehmen alle Text-Blöcke und nehmen den letzten als JSON.
+    const textBlocks = response.content
       .filter(b => b.type === 'text')
       .map(b => (b as Anthropic.TextBlock).text)
-      .join('\n')
-      .trim()
+    const text = (textBlocks[textBlocks.length - 1] || '').trim()
 
-    // Markdown-Codeblocks entfernen falls Claude doch mal welche schickt
-    const cleaned = text.replace(/^```(?:json)?\s*/, '').replace(/\s*```$/, '').trim()
+    // JSON aus dem Antwort-Text extrahieren — robust gegen Markdown-Codeblocks
+    // und gegen extra Text vor/nach dem JSON (kann bei Web-Search-Antworten passieren)
+    let cleaned = text.replace(/```(?:json)?\s*/g, '').replace(/```/g, '').trim()
+    const firstBrace = cleaned.indexOf('{')
+    const lastBrace = cleaned.lastIndexOf('}')
+    if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+      cleaned = cleaned.slice(firstBrace, lastBrace + 1)
+    }
     const parsed = JSON.parse(cleaned) as Partial<ContractorClassification>
 
     // Whitelist enforcement — keine kreativen Tags zulassen
