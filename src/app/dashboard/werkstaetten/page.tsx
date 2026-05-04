@@ -417,8 +417,8 @@ export default function WerkstaettenPage() {
 
       {/* Add / Edit Dialog */}
       <Dialog open={dialogOpen} onOpenChange={(open) => { if (!open) closeDialog() }}>
-        <DialogContent className="sm:max-w-[500px]">
-          <DialogHeader>
+        <DialogContent className="sm:max-w-[500px] max-h-[90vh] flex flex-col p-0 gap-0">
+          <DialogHeader className="px-6 pt-6 pb-2 flex-shrink-0">
             <DialogTitle>
               {editingContractor ? "Werkstatt bearbeiten" : "Neue Werkstatt anlegen"}
             </DialogTitle>
@@ -429,7 +429,7 @@ export default function WerkstaettenPage() {
             </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-4 py-2">
+          <div className="space-y-4 px-6 py-2 overflow-y-auto flex-1 min-h-0">
             {formError && (
               <Alert variant="destructive">
                 <AlertDescription>{formError}</AlertDescription>
@@ -503,7 +503,7 @@ export default function WerkstaettenPage() {
             )}
           </div>
 
-          <DialogFooter>
+          <DialogFooter className="px-6 py-4 border-t flex-shrink-0">
             <Button variant="outline" onClick={closeDialog} disabled={isSaving}>Abbrechen</Button>
             <Button onClick={handleSave} disabled={isSaving}>
               {isSaving ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Speichert...</> : editingContractor ? "Speichern" : "Anlegen"}
