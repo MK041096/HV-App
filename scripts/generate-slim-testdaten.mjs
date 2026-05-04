@@ -34,55 +34,50 @@ const einheitenCsvText = '﻿' + einheitenCsv
 fs.writeFileSync(path.join(OUTPUT, '01_Einheit.csv'), einheitenCsvText, 'utf8')
 
 // ════════════════════════════════════════════════════════════
-// 2) WERKSTÄTTEN — ~25 Gewerke, alle Tradingworld@gmx.at
+// 2) WERKSTÄTTEN — gemischte Datenqualität für CARL-Test
+//    Alle E-Mails: Tradingworld@gmx.at, Telefonnummern erfunden
+//
+// Mischung:
+//  A) Echte große Firmen mit minimaler Beschreibung → CARL muss im Web suchen
+//  B) Detaillierte Einträge → CARL klassifiziert direkt aus dem Text
+//  C) Vage/schlechte Beschreibungen → CARL sollte Web-Recherche triggern
+//  D) Ohne Beschreibung → Härtetest, CARL muss raten oder suchen
 // ════════════════════════════════════════════════════════════
 const werkstaetten = [
-  // Wasser / Sanitär / Heizung
-  ['Huber Sanitär GmbH', '+43 664 111 0001', 'Sanitär & Wasserschaden', 'Rohrbruch, Wasserinstallation, Badezimmerrenovierung, Leitungswasserschäden, Verstopfungen, Notdienst 24h'],
-  ['Heizung Klimatechnik Wagner GmbH', '+43 664 111 0002', 'Heizung & Klimaanlage', 'Heizungsservice, Brennerwartung, Wärmepumpen, Gasheizung, Pelletsheizung, Klimaanlagen, Lüftung'],
-  ['Wasserschaden-Sanierer Pichler KG', '+43 664 111 0003', 'Wasserschadensanierung', 'Leckortung, Bautrocknung, Estrichtrocknung, Schadenbehebung nach Rohrbruch, Schimmelvorbeugung'],
+  // ─── Gruppe A: Echte große Firmen, wenig Beschreibung (CARL Web-Suche) ───
+  ['OTIS GmbH', '+43 664 111 0001', 'Aufzüge', ''],
+  ['Schindler Aufzüge AG', '+43 664 111 0002', 'Aufzugservice & Wartung', ''],
+  ['KONE Aufzüge GmbH', '+43 664 111 0003', 'Liftanlagen', ''],
+  ['Anticimex Austria GmbH', '+43 664 111 0004', 'Schädlingsbekämpfung', ''],
+  ['Mr. Wash Reinigung GmbH', '+43 664 111 0005', 'Gebäudereinigung', ''],
 
-  // Elektrik
-  ['Elektro Brandner eU', '+43 664 111 0004', 'Elektroinstallation', 'Reparaturen, Zählerkasten, Beleuchtung, Sicherungskasten, Steckdosen, Stromausfall, E-Check, Photovoltaik'],
-  ['Elektro Notdienst Wien 24/7', '+43 664 111 0005', 'Elektro-Notdienst', 'Stromausfall, Kurzschluss, defekte Sicherungen rund um die Uhr, FI-Schalter, Brandgefahr durch Elektrik'],
-
-  // Bau / Trockenbau / Wand
-  ['Trockenbau Fischer KG', '+43 664 111 0006', 'Trockenbau & Schimmel', 'Schimmelsanierung, Trockenbauarbeiten, Zwischenwände, Deckenverkleidung, Wärmedämmung, Feuchtigkeitsschäden'],
-  ['Maler Steiner eU', '+43 664 111 0007', 'Malerarbeiten & Verputz', 'Innenanstrich, Außenanstrich, Verputzarbeiten, Tapezieren, Fassadensanierung, Wasserflecken übermalen'],
-  ['Schimmel-Spezialisten Berger GmbH', '+43 664 111 0008', 'Schimmelsanierung', 'Schimmelanalyse, Schwarzschimmel-Entfernung, Sporenbeseitigung, Ursachenforschung, Gutachten'],
-
-  // Fenster / Türen / Sicherheit
+  // ─── Gruppe B: Klare detaillierte Beschreibungen (CARL klassifiziert direkt) ───
+  ['Huber Sanitär GmbH', '+43 664 111 0006', 'Sanitär & Wasserschaden', 'Rohrbruch, Wasserinstallation, Badezimmerrenovierung, Leitungswasserschäden, Verstopfungen, Notdienst 24h'],
+  ['Heizung Klimatechnik Wagner GmbH', '+43 664 111 0007', 'Heizung & Klimaanlage', 'Heizungsservice, Brennerwartung, Wärmepumpen, Gasheizung, Pelletsheizung, Klimaanlagen, Lüftung'],
+  ['Elektro Brandner eU', '+43 664 111 0008', 'Elektroinstallation', 'Reparaturen, Zählerkasten, Beleuchtung, Sicherungskasten, Steckdosen, Stromausfall, E-Check, Photovoltaik'],
   ['Tischlerei Fuchs KG', '+43 664 111 0009', 'Tischlerei & Türen', 'Einbauküchen, Zimmertüren, Parkettboden, Möbelreparatur, Holzarbeiten, Maßanfertigungen'],
-  ['Schlosserei Mayr GmbH', '+43 664 111 0010', 'Schlosserei & Sicherheit', 'Aufsperrdienst, Schlossaustausch, Türreparatur, Einbruchschutz, Tresore, Sicherheitstüren, Notdienst 24h'],
-  ['Glaserei Schmid eU', '+43 664 111 0011', 'Glaserei & Fenster', 'Fensterglas, Spiegel, Doppelverglasung, Schaufenster, Glastüren, Glasbruch-Notdienst'],
-  ['Fenster & Türen Eder GmbH', '+43 664 111 0012', 'Fenster- & Türenmontage', 'Fenstermontage, Türmontage, Rollläden, Jalousien, Wärmeschutzfenster, Dichtungen, Insektenschutz'],
+  ['Dachdecker Hofer GmbH', '+43 664 111 0010', 'Dachdeckerei', 'Dachreparatur, Dachsanierung, Flachdach, Regenrinnen, Dachabdichtung, Sturmschadenbehebung'],
+  ['Brandschutz Wimmer eU', '+43 664 111 0011', 'Brandschutz & Sicherheit', 'Rauchmelderwartung, Feuerlöscher-Service, Brandschutztüren, Fluchtwegschilderung, Sicherheitsbeleuchtung'],
+  ['Asbestsanierung TST GmbH', '+43 664 111 0012', 'Asbest- & Schadstoffsanierung', 'Asbestsanierung, KMF-Mineralfasern, Schadstoffanalyse, Bauschadstoffe, Entsorgung nach AWG'],
 
-  // Boden
-  ['Fliesenleger Moser eU', '+43 664 111 0013', 'Fliesenleger & Estrich', 'Badezimmerfliesen, Bodenfliesen, Estrich, Natursteinarbeiten, Fugensanierung, Silikonfugen'],
-  ['Estrich & Boden Haas eU', '+43 664 111 0014', 'Estrich & Bodenbelag', 'Estricharbeiten, Laminat, Parkett, Vinylboden, Teppich, Fußbodenheizung, Parkettschleifen'],
+  // ─── Gruppe C: Vage/schlechte Beschreibungen (CARL sollte suchen) ───
+  ['Hr. Müller Reparaturen', '+43 664 111 0013', 'Handwerker', 'Allrounder'],
+  ['Firma Schmidt & Söhne', '+43 664 111 0014', 'Reparaturen', 'Wir machen alles'],
+  ['ABC Service Wien', '+43 664 111 0015', 'Hausmeisterservice', 'Diverse Dienstleistungen'],
+  ['Wiener Handwerk', '+43 664 111 0016', 'Diverse', 'Verschiedene Arbeiten'],
+  ['ServicePro 24', '+43 664 111 0017', 'Notdienst', 'Schnell und zuverlässig'],
 
-  // Dach / Außen
-  ['Dachdecker Hofer GmbH', '+43 664 111 0015', 'Dachdeckerei', 'Dachreparatur, Dachsanierung, Flachdach, Regenrinnen, Dachabdichtung, Sturmschadenbehebung'],
-  ['Spengler Reiter GmbH', '+43 664 111 0016', 'Spenglerei & Abdichtung', 'Blecharbeiten, Dachabdichtung, Fassadenblechverkleidung, Balkonabdichtung, Regenrinnen-Reinigung'],
-  ['Rauchfangkehrer Lechner', '+43 664 111 0017', 'Rauchfangkehrer', 'Kaminkehrung, Feuerstättenschau, Abnahme nach Wiener Kehrordnung, CO-Messung, Pflichttermine'],
+  // ─── Gruppe D: Ohne Beschreibung (Härtetest) ───
+  ['Glaserei Schmollmüller', '+43 664 111 0018', 'Glaserei', ''],
+  ['Wallnöfer Installation GmbH', '+43 664 111 0019', 'Wasserinstallation', ''],
+  ['Stocker Malerei', '+43 664 111 0020', 'Maler', ''],
+  ['Pichler Schlosserei', '+43 664 111 0021', 'Schlosserei', ''],
+  ['Rauchfangkehrermeister Bauer', '+43 664 111 0022', 'Rauchfangkehrer', ''],
 
-  // Aufzug / Klima / Lüftung
-  ['Aufzug Service Pichler', '+43 664 111 0018', 'Aufzugservice & Wartung', 'Aufzugwartung, Reparatur, TÜV-Abnahme, Modernisierung, Notfallservice 24h, Personenbefreiung'],
-  ['Lüftungstechnik Wallner KG', '+43 664 111 0019', 'Lüftung & Klimatechnik', 'Wohnraumlüftung, Filterservice, Klimaanlagenwartung, Hygienereinigung Lüftungsanlagen'],
-
-  // Schädlinge / Reinigung
-  ['Schädlingsbekämpfung Gruber', '+43 664 111 0020', 'Schädlingsbekämpfung', 'Ungeziefer, Mäuse/Ratten, Bettwanzen, Taubenabwehr, Desinfektion, Begasung, Wespen/Hornissen'],
-  ['Reinigungsservice Bauer GmbH', '+43 664 111 0021', 'Gebäudereinigung', 'Hausreinigung, Treppenhausreinigung, Fensterreinigung, Tiefenreinigung, Sonderreinigung nach Schaden'],
-
-  // Garten / Außen
-  ['Gartenpflege Leitner KG', '+43 664 111 0022', 'Gartenpflege & Winterdienst', 'Rasenmähen, Heckenschnitt, Baumschnitt, Bepflanzung, Winterdienst, Streupflicht'],
-  ['Baumdienst Stocker GmbH', '+43 664 111 0023', 'Baumarbeiten', 'Baumfällung, Wurzelentfernung, Sturmschadenbeseitigung, Kronenpflege, Baumgutachten'],
-
-  // Brand / Sicherheit
-  ['Brandschutz Wimmer eU', '+43 664 111 0024', 'Brandschutz & Sicherheit', 'Rauchmelderwartung, Feuerlöscher-Service, Brandschutztüren, Fluchtwegschilderung, Sicherheitsbeleuchtung'],
-
-  // Spezialgewerke
-  ['Asbestsanierung TST GmbH', '+43 664 111 0025', 'Asbest- & Schadstoffsanierung', 'Asbestsanierung, KMF-Mineralfasern, Schadstoffanalyse, Bauschadstoffe, Entsorgung nach AWG'],
+  // ─── Gruppe E: Spezialgewerke mit klarer Beschreibung (Cross-Test) ───
+  ['Schimmel-Spezialisten Berger GmbH', '+43 664 111 0023', 'Schimmelsanierung', 'Schimmelanalyse, Schwarzschimmel-Entfernung, Sporenbeseitigung, Ursachenforschung, Gutachten'],
+  ['Gartenpflege Leitner KG', '+43 664 111 0024', 'Gartenpflege & Winterdienst', 'Rasenmähen, Heckenschnitt, Baumschnitt, Bepflanzung, Winterdienst, Streupflicht'],
+  ['Wasserschaden-Sanierer Pichler KG', '+43 664 111 0025', 'Wasserschadensanierung', 'Leckortung, Bautrocknung, Estrichtrocknung, Schadenbehebung nach Rohrbruch, Schimmelvorbeugung'],
 ]
 
 const werkstaettenCsv = [
