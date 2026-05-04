@@ -109,6 +109,7 @@ export default function DokumentePage() {
   const [bulkSaving, setBulkSaving] = useState(false)
   const bulkInputRef = useRef<HTMLInputElement>(null)
   const [search, setSearch] = useState<string>('')
+  const [filter, setFilter] = useState<'all' | 'with' | 'without'>('all')
   const [expandedCards, setExpandedCards] = useState<Set<string>>(new Set())
   const [selectedDocIds, setSelectedDocIds] = useState<Set<string>>(new Set())
   const [isBulkDeletingDocs, setIsBulkDeletingDocs] = useState(false)
@@ -674,9 +675,85 @@ export default function DokumentePage() {
         </Card>
       )}
 
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        <Input placeholder="Einheit suchen…" value={search} onChange={e => setSearch(e.target.value)} className="pl-9" />
+      {/* ── Warnbanner: Einheiten ohne Mietvertrag ─────────────────── */}
+      {(() => {
+        const withCount = einheiten.filter(e => e.docs.length > 0).length
+        const withoutCount = einheiten.length - withCount
+        return withoutCount > 0 ? (
+          <Card className="border-orange-300 bg-orange-50">
+            <CardContent className="pt-4 pb-4 flex items-center gap-3">
+              <AlertCircle className="h-5 w-5 text-orange-600 shrink-0" />
+              <div className="flex-1 text-sm">
+                <span className="font-semibold text-orange-800">
+                  {withoutCount} von {einheiten.length} Einheiten ohne Mietvertrag
+                </span>
+                <span className="text-orange-700 ml-2">
+                  — bitte Mietverträge hochladen oder zuordnen.
+                </span>
+              </div>
+              {filter !== 'without' && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setFilter('without')}
+                  className="shrink-0 border-orange-400 text-orange-800 hover:bg-orange-100"
+                >
+                  Anzeigen
+                </Button>
+              )}
+            </CardContent>
+          </Card>
+        ) : null
+      })()}
+
+      {/* ── Filter-Pills + Suche ───────────────────────────────────── */}
+      <div className="flex flex-wrap items-center gap-2">
+        <div className="flex gap-1 rounded-md border bg-muted/30 p-1">
+          {(() => {
+            const withCount = einheiten.filter(e => e.docs.length > 0).length
+            const withoutCount = einheiten.length - withCount
+            return (
+              <>
+                <button
+                  onClick={() => setFilter('all')}
+                  className={`text-sm px-3 py-1.5 rounded transition-colors ${
+                    filter === 'all'
+                      ? 'bg-background shadow-sm font-medium'
+                      : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  Alle <span className="text-xs text-muted-foreground ml-1">({einheiten.length})</span>
+                </button>
+                <button
+                  onClick={() => setFilter('with')}
+                  className={`text-sm px-3 py-1.5 rounded transition-colors flex items-center gap-1.5 ${
+                    filter === 'with'
+                      ? 'bg-background shadow-sm font-medium text-green-700'
+                      : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  <CheckCircle2 className="h-3.5 w-3.5" />
+                  Mit Vertrag <span className="text-xs text-muted-foreground ml-0.5">({withCount})</span>
+                </button>
+                <button
+                  onClick={() => setFilter('without')}
+                  className={`text-sm px-3 py-1.5 rounded transition-colors flex items-center gap-1.5 ${
+                    filter === 'without'
+                      ? 'bg-background shadow-sm font-medium text-orange-700'
+                      : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  <AlertCircle className="h-3.5 w-3.5" />
+                  Ohne Vertrag <span className="text-xs text-muted-foreground ml-0.5">({withoutCount})</span>
+                </button>
+              </>
+            )
+          })()}
+        </div>
+        <div className="relative flex-1 min-w-[200px]">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input placeholder="Einheit suchen…" value={search} onChange={e => setSearch(e.target.value)} className="pl-9" />
+        </div>
       </div>
 
       {selectedDocIds.size > 0 && (
@@ -689,24 +766,61 @@ export default function DokumentePage() {
         </div>
       )}
 
-      {einheiten.length === 0 ? (
-        <Card>
-          <CardContent className="flex flex-col items-center justify-center py-16 text-center">
-            <Home className="h-12 w-12 text-muted-foreground/40 mb-4" />
-            <p className="text-muted-foreground font-medium">Keine Einheiten gefunden</p>
-            <p className="text-sm text-muted-foreground mt-1 max-w-sm">
-              Legen Sie zuerst Einheiten unter <strong>Einheiten</strong> an.
-            </p>
-          </CardContent>
-        </Card>
-      ) : (
-        <div className="space-y-3">
-          {einheiten
-            .filter(e =>
-              e.name.toLowerCase().includes(search.toLowerCase()) ||
-              (e.address || '').toLowerCase().includes(search.toLowerCase())
-            )
-            .map(einheit => {
+      {(() => {
+        const filteredEinheiten = einheiten.filter(e => {
+          const matchesSearch = e.name.toLowerCase().includes(search.toLowerCase()) ||
+            (e.address || '').toLowerCase().includes(search.toLowerCase())
+          if (!matchesSearch) return false
+          if (filter === 'with') return e.docs.length > 0
+          if (filter === 'without') return e.docs.length === 0
+          return true
+        })
+        const withoutCount = einheiten.filter(e => e.docs.length === 0).length
+
+        if (einheiten.length === 0) {
+          return (
+            <Card>
+              <CardContent className="flex flex-col items-center justify-center py-16 text-center">
+                <Home className="h-12 w-12 text-muted-foreground/40 mb-4" />
+                <p className="text-muted-foreground font-medium">Keine Einheiten gefunden</p>
+                <p className="text-sm text-muted-foreground mt-1 max-w-sm">
+                  Legen Sie zuerst Einheiten unter <strong>Einheiten</strong> an.
+                </p>
+              </CardContent>
+            </Card>
+          )
+        }
+
+        if (filteredEinheiten.length === 0) {
+          return (
+            <Card>
+              <CardContent className="flex flex-col items-center justify-center py-12 text-center">
+                {filter === 'without' && withoutCount === 0 ? (
+                  <>
+                    <CheckCircle2 className="h-12 w-12 text-green-500 mb-3" />
+                    <p className="text-green-700 font-medium">Alle Einheiten haben einen Mietvertrag!</p>
+                    <p className="text-sm text-muted-foreground mt-1">Keine Einheit ohne Vertrag gefunden.</p>
+                  </>
+                ) : (
+                  <>
+                    <Search className="h-12 w-12 text-muted-foreground/40 mb-3" />
+                    <p className="text-muted-foreground font-medium">Keine Einheit gefunden</p>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      {search ? `Suche „${search}" liefert keine Treffer im aktuellen Filter.` : 'Kein Eintrag im aktuellen Filter.'}
+                    </p>
+                    <Button variant="outline" size="sm" className="mt-3" onClick={() => { setSearch(''); setFilter('all') }}>
+                      Filter zurücksetzen
+                    </Button>
+                  </>
+                )}
+              </CardContent>
+            </Card>
+          )
+        }
+
+        return (
+          <div className="space-y-3">
+            {filteredEinheiten.map(einheit => {
               const isExpanded = expandedCards.has(einheit.id)
               const hasVertrag = einheit.docs.length > 0
               return (
@@ -805,8 +919,9 @@ export default function DokumentePage() {
                 </Card>
               )
             })}
-        </div>
-      )}
+          </div>
+        )
+      })()}
 
       <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
         <DialogContent>
