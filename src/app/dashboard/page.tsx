@@ -269,7 +269,7 @@ export default function DashboardPage() {
           termin_vereinbart: cases.filter(
             (c) => c.status === "termin_vereinbart" || c.status === "termin_telefonisch"
           ).length,
-          erledigt: cases.filter((c) => c.status === "erledigt").length,
+          erledigt: cases.filter((c) => c.status === "erledigt" || c.status === "abgelehnt").length,
           notfall: cases.filter((c) => c.urgency === "notfall").length,
           dringend: cases.filter((c) => c.urgency === "dringend").length,
         })

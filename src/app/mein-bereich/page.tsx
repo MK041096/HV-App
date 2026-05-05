@@ -93,11 +93,13 @@ export default function MeinBereichPage() {
           setRecentReports(reports)
 
           const total = reports.length
+          // 'Erledigt' inkludiert sowohl tatsächlich erledigte als auch abgelehnte Fälle
+          const closedStatuses = ["erledigt", "abgelehnt"]
           const open = reports.filter(
-            (r) => !["resolved", "closed"].includes(r.status)
+            (r) => !closedStatuses.includes(r.status)
           ).length
           const resolved = reports.filter((r) =>
-            ["resolved", "closed"].includes(r.status)
+            closedStatuses.includes(r.status)
           ).length
 
           setStats({ total, open, resolved })

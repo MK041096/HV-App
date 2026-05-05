@@ -308,38 +308,14 @@ export async function PATCH(
         details: { old_status, new_status, comment },
       })
 
-      // Send email notification for termin_vereinbart
-      if (new_status === 'termin_vereinbart' && existingReport.reporter_id) {
-        waitUntil((async () => {
-          try {
-            const adminClient = createAdminClient()
-            const [reporterResult, orgResult, reporterProfileResult] = await Promise.all([
-              adminClient.auth.admin.getUserById(existingReport.reporter_id!),
-              supabase.from('organizations').select('name').eq('id', profile.organization_id).single(),
-              supabase.from('profiles').select('first_name, last_name').eq('id', existingReport.reporter_id!).single(),
-            ])
-            const email = reporterResult.data?.user?.email
-            const name = reporterProfileResult.data
-              ? `${reporterProfileResult.data.first_name || ''} ${reporterProfileResult.data.last_name || ''}`.trim() || 'Mieter'
-              : 'Mieter'
-            const org = orgResult.data?.name || 'Hausverwaltung'
-            if (email) {
-              await sendTerminVereinbartEmail({
-                to: email,
-                tenantName: name,
-                caseNumber: existingReport.case_number,
-                caseTitle: existingReport.title,
-                scheduledAppointment: existingReport.scheduled_appointment || null,
-                orgName: org,
-              })
-            }
-          } catch (err) {
-            console.error('Termin email notification error:', err)
-          }
-        })())
-      }
-
-      // in_bearbeitung: kein E-Mail an Mieter — interner HV-Schritt, kein Mehrwert für den Mieter
+      // KEINE Mieter-Mail bei manuellem Status-Update durch HV.
+      // Begründung (User-Vorgabe): die HV soll nur Status-Updates erhalten, der
+      // direkte Mieter-Kontakt läuft über die Werkstatt. Wenn die HV manuell auf
+      // 'termin_vereinbart' setzt, hat die Werkstatt den Mieter bereits telefonisch
+      // kontaktiert — eine zusätzliche App-Mail würde verwirren.
+      //
+      // Mieter-Mails laufen weiterhin automatisch über den Token-Flow
+      // (/api/termin/[token]) wenn die Werkstatt selbst den Mail-Button klickt.
 
       // Legacy: generic status change emails (currently none configured)
       if (NOTIFICATION_STATUSES.includes(new_status) && existingReport.reporter_id) {

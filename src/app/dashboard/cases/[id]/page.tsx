@@ -1569,11 +1569,11 @@ export default function CaseDetailPage({
                           <span className="group-open:rotate-180 transition-transform">▼</span>
                         </summary>
                         <div className="px-3 pb-3 space-y-2 pt-1">
-                          <p className="text-[11px] text-muted-foreground leading-relaxed">Falls die Werkstatt nicht über die Mail-Buttons antwortet, sondern dich direkt anruft, kannst du den Termin hier manuell eintragen — der Mieter wird automatisch benachrichtigt.</p>
+                          <p className="text-[11px] text-muted-foreground leading-relaxed">Falls die Werkstatt sich telefonisch direkt mit dem Mieter abgestimmt hat, kannst du den Termin hier intern eintragen — nur Status-Update, keine zusätzliche Mail an den Mieter (der weiß ja schon Bescheid von der Werkstatt).</p>
                           <Input type="datetime-local" value={naechsterSchrittDate} onChange={e=>setNaechsterSchrittDate(e.target.value)} className="text-sm"/>
                           <Button size="sm" className="w-full" variant="outline" disabled={isSendingSchnell||!naechsterSchrittDate}
-                            onClick={async()=>{setIsSendingSchnell(true);setSchnellError(null);setSchnellSuccess(null);try{const res=await fetch(`/api/hv/cases/${id}`,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({status:'termin_vereinbart',comment:`Termin telefonisch vereinbart: ${new Date(naechsterSchrittDate).toLocaleString('de-AT')}`,scheduled_appointment:new Date(naechsterSchrittDate).toISOString()})});if(!res.ok)throw new Error((await res.json()).error);setSchnellSuccess('✓ Termin gespeichert — Mieter informiert');await fetchCase()}catch(err){setSchnellError(err instanceof Error?err.message:'Fehler')}finally{setIsSendingSchnell(false)}}}>
-                            {isSendingSchnell?<Loader2 className="mr-2 h-4 w-4 animate-spin"/>:<Calendar className="mr-2 h-4 w-4"/>}Termin manuell eintragen
+                            onClick={async()=>{setIsSendingSchnell(true);setSchnellError(null);setSchnellSuccess(null);try{const res=await fetch(`/api/hv/cases/${id}`,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({status:'termin_vereinbart',comment:`Termin telefonisch vereinbart: ${new Date(naechsterSchrittDate).toLocaleString('de-AT')}`,scheduled_appointment:new Date(naechsterSchrittDate).toISOString()})});if(!res.ok)throw new Error((await res.json()).error);setSchnellSuccess('✓ Termin gespeichert');await fetchCase()}catch(err){setSchnellError(err instanceof Error?err.message:'Fehler')}finally{setIsSendingSchnell(false)}}}>
+                            {isSendingSchnell?<Loader2 className="mr-2 h-4 w-4 animate-spin"/>:<Calendar className="mr-2 h-4 w-4"/>}Termin intern speichern
                           </Button>
                         </div>
                       </details>
