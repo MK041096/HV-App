@@ -405,11 +405,17 @@ export default function CaseDetailPage({
 
   // KI-Analyse state
   const [kiResult, setKiResult] = useState<string | null>(null)
-  const [kiLeaseFound, setKiLeaseFound] = useState<boolean | null>(null)
   const [kiInsuranceFound, setKiInsuranceFound] = useState<boolean | undefined>(undefined)
   const [kiPhotoCount, setKiPhotoCount] = useState<number>(0)
   const [isRunningKi, setIsRunningKi] = useState(false)
   const [kiError, setKiError] = useState<string | null>(null)
+
+  // Mietvertrag-Status aus dem CARL-Output parsen (CARL gibt MIETVERTRAG_STATUS:
+  // AUSGEWERTET / NICHT_VORHANDEN / FEHLER zurück). Statt auf ein separates API-Feld
+  // zu vertrauen, lesen wir es direkt aus dem analysisText.
+  const kiLeaseFound = kiResult
+    ? /MIETVERTRAG_STATUS:\s*AUSGEWERTET/i.test(kiResult)
+    : null
 
   // Aktions-Panel state
   const [contractors, setContractors] = useState<{id: string; name: string; company: string; email: string; phone: string | null; specialties: string[]}[]>([])
@@ -553,7 +559,6 @@ export default function CaseDetailPage({
       const data = await res.json()
       if (!res.ok) throw new Error(data.error)
       setKiResult(data.result)
-      setKiLeaseFound(data.lease_found ?? false)
       setKiInsuranceFound(data.insurance_found ?? false)
       setKiPhotoCount(data.photo_count ?? 0)
       // Auto-select CARL's recommended contractor if not already set
@@ -992,32 +997,7 @@ export default function CaseDetailPage({
           </Button>
         </div>
 
-        {/* ── ② CARL Verdict Bar ── */}
-        {carlData && (
-          <div className={`rounded-xl border px-4 py-3 flex items-center gap-3 flex-wrap ${verdictStyle.bar}`}>
-            <span className="font-semibold text-sm flex items-center gap-1.5">
-              {verdictStyle.icon} {verdictStyle.label}
-            </span>
-            <span className="text-muted-foreground text-sm hidden sm:block">|</span>
-            {carlData.rechtsgrundlage && (
-              <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium ${verdictStyle.pill}`}>
-                ⚖️ {carlData.rechtsgrundlage}
-              </span>
-            )}
-            {carlData.versicherung && (
-              <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium ${verdictStyle.pill}`}>
-                🛡️ {carlData.versicherung}
-              </span>
-            )}
-            {carlData.empfehlung && (
-              <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium ${verdictStyle.pill}`}>
-                🔧 {carlData.empfehlung}
-              </span>
-            )}
-          </div>
-        )}
-
-        {/* ── ③ Mietvertrag Warning ── */}
+        {/* ── ② Mietvertrag Warning ── */}
         {kiResult && !kiLeaseFound && (
           <div className="rounded-lg bg-amber-50 border border-amber-200 px-4 py-3 flex items-start gap-3">
             <AlertTriangle className="h-4 w-4 text-amber-600 shrink-0 mt-0.5" />
