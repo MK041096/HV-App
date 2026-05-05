@@ -79,38 +79,39 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       if (insErr) console.error('Status-History-Insert-Fehler:', insErr)
     }
 
-    // Fire-and-forget: send rejection email to tenant
-    ;(async () => {
-      try {
-        const adminClient = createAdminClient()
-        const [{ data: tenantProfile }, { data: org }, { data: { users } }] = await Promise.all([
-          adminClient.from('profiles').select('id, first_name, last_name').eq('id', report.reporter_id).single(),
-          adminClient.from('organizations').select('name, phone').eq('id', profile.organization_id).single(),
-          adminClient.auth.admin.listUsers({ perPage: 1000 }),
-        ])
+    // Mieter-Mail SYNCHRON (sicherer als fire-and-forget)
+    let mailSent = false
+    let mailError: string | null = null
+    try {
+      const [{ data: tenantProfile }, { data: org }, { data: { users } }] = await Promise.all([
+        adminClient.from('profiles').select('id, first_name, last_name').eq('id', report.reporter_id).single(),
+        adminClient.from('organizations').select('name, phone').eq('id', profile.organization_id).single(),
+        adminClient.auth.admin.listUsers({ perPage: 1000 }),
+      ])
 
-        const tenantUser = users?.find(u => u.id === report.reporter_id)
-        const tenantEmail = tenantUser?.email
-        const tenantName = [tenantProfile?.first_name, tenantProfile?.last_name].filter(Boolean).join(' ') || 'Mieter'
+      const tenantUser = users?.find(u => u.id === report.reporter_id)
+      const tenantEmail = tenantUser?.email
+      const tenantName = [tenantProfile?.first_name, tenantProfile?.last_name].filter(Boolean).join(' ') || 'Mieter'
 
-        if (tenantEmail) {
-          await sendAblehnungEmail({
-            to: tenantEmail,
-            tenantName,
-            caseNumber: report.case_number,
-            caseTitle: report.title,
-            begruendung: begruendung.trim(),
-            reportId: id,
-            orgName: org?.name || 'Hausverwaltung',
-            orgPhone: (org as any)?.phone,
-          })
-        }
-      } catch (err) {
-        console.error('Absage E-Mail Fehler:', err)
+      if (tenantEmail) {
+        await sendAblehnungEmail({
+          to: tenantEmail,
+          tenantName,
+          caseNumber: report.case_number,
+          caseTitle: report.title,
+          begruendung: begruendung.trim(),
+          reportId: id,
+          orgName: org?.name || 'Hausverwaltung',
+          orgPhone: (org as any)?.phone,
+        })
+        mailSent = true
       }
-    })()
+    } catch (err) {
+      console.error('Absage E-Mail Fehler:', err)
+      mailError = err instanceof Error ? err.message : 'Mail-Fehler'
+    }
 
-    return NextResponse.json({ success: true })
+    return NextResponse.json({ success: true, mail_sent: mailSent, mail_error: mailError })
   } catch (err) {
     console.error('Ablehnen Fehler:', err)
     return NextResponse.json({ error: 'Interner Fehler' }, { status: 500 })

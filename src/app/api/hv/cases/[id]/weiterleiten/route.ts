@@ -163,31 +163,61 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       })
     }
 
-    // Mail-Versand mit waitUntil — Vercel sorgt dafür, dass die Tasks nicht abgebrochen werden
-    waitUntil((async () => {
+    // Mail-Versand SYNCHRON — User wartet auf Bestätigung, dass Mails wirklich raus sind.
+    // waitUntil hat sich als unzuverlässig erwiesen (Mails kamen nie an), daher direkt awaiten.
+    let mailContractorOk = false
+    let mailTenantOk = false
+    let mailError: string | null = null
+    try {
+      const [{ data: tenantProfile }, { data: unit }, { data: org }, { data: { users } }] = await Promise.all([
+        adminClient.from('profiles').select('id, first_name, last_name, phone').eq('id', report.reporter_id).single(),
+        adminClient.from('units').select('name, address').eq('id', report.unit_id).single(),
+        adminClient.from('organizations').select('name, phone').eq('id', profile.organization_id).single(),
+        adminClient.auth.admin.listUsers({ perPage: 1000 }),
+      ])
+
+      const tenantUser = users?.find((u: any) => u.id === report.reporter_id)
+      const tenantEmail = tenantUser?.email
+      const tenantName = [tenantProfile?.first_name, tenantProfile?.last_name].filter(Boolean).join(' ') || 'Mieter'
+      const orgName = org?.name || 'Hausverwaltung'
+
+      const formatDate = (d: string | null) => d
+        ? new Date(d).toLocaleDateString('de-AT', { weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+        : null
+
+      const wunschterminLabel = formatDate(report.preferred_appointment)
+      const wunschtermin2Label = formatDate(report.preferred_appointment_2)
+      const appointmentForTenant = formatDate(appointmentDate)
+
+      // Werkstatt-Mail ZUERST (kritisch — ohne sie keine Reparatur)
       try {
-        const [{ data: tenantProfile }, { data: unit }, { data: org }, { data: { users } }] = await Promise.all([
-          adminClient.from('profiles').select('id, first_name, last_name, phone').eq('id', report.reporter_id).single(),
-          adminClient.from('units').select('name, address').eq('id', report.unit_id).single(),
-          adminClient.from('organizations').select('name, phone').eq('id', profile.organization_id).single(),
-          adminClient.auth.admin.listUsers({ perPage: 1000 }),
-        ])
+        await sendContractorEmail({
+          to: contractor.email,
+          contractorName: contractor.name,
+          caseNumber: report.case_number,
+          caseTitle: report.title,
+          category: report.category,
+          description: report.description,
+          unitAddress: unit?.address || '',
+          unitName: unit?.name || '',
+          wunschtermin: wunschterminLabel,
+          wunschtermin2: wunschtermin2Label,
+          tokenUrl,
+          orgName,
+          orgPhone: (org as any)?.phone,
+          personalNote: personal_note || null,
+          werkstattAuftrag: extractWerkstattAuftrag(report.ki_analyse_result),
+        })
+        mailContractorOk = true
+      } catch (err) {
+        console.error('Contractor-Mail Fehler:', err)
+        mailError = err instanceof Error ? err.message : 'Werkstatt-Mail fehlgeschlagen'
+      }
 
-        const tenantUser = users?.find((u: any) => u.id === report.reporter_id)
-        const tenantEmail = tenantUser?.email
-        const tenantName = [tenantProfile?.first_name, tenantProfile?.last_name].filter(Boolean).join(' ') || 'Mieter'
-        const orgName = org?.name || 'Hausverwaltung'
-
-        const formatDate = (d: string | null) => d
-          ? new Date(d).toLocaleDateString('de-AT', { weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })
-          : null
-
-        const wunschterminLabel = formatDate(report.preferred_appointment)
-        const wunschtermin2Label = formatDate(report.preferred_appointment_2)
-        const appointmentForTenant = formatDate(appointmentDate)
-
-        await Promise.all([
-          tenantEmail ? sendWeiterleitungTenantEmail({
+      // Mieter-Mail (Information)
+      if (tenantEmail) {
+        try {
+          await sendWeiterleitungTenantEmail({
             to: tenantEmail,
             tenantName,
             caseNumber: report.case_number,
@@ -196,31 +226,24 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
             contractorCompany: contractor.company,
             wunschtermin: appointmentForTenant,
             orgName,
-          }) : Promise.resolve(),
-          sendContractorEmail({
-            to: contractor.email,
-            contractorName: contractor.name,
-            caseNumber: report.case_number,
-            caseTitle: report.title,
-            category: report.category,
-            description: report.description,
-            unitAddress: unit?.address || '',
-            unitName: unit?.name || '',
-            wunschtermin: wunschterminLabel,
-            wunschtermin2: wunschtermin2Label,
-            tokenUrl,
-            orgName,
-            orgPhone: (org as any)?.phone,
-            personalNote: personal_note || null,
-            werkstattAuftrag: extractWerkstattAuftrag(report.ki_analyse_result),
-          }),
-        ])
-      } catch (err) {
-        console.error('Weiterleiten E-Mail Fehler:', err)
+          })
+          mailTenantOk = true
+        } catch (err) {
+          console.error('Tenant-Mail Fehler:', err)
+        }
       }
-    })())
+    } catch (err) {
+      console.error('Weiterleiten Mail-Setup Fehler:', err)
+      mailError = err instanceof Error ? err.message : 'Mail-Setup Fehler'
+    }
 
-    return NextResponse.json({ success: true, token_url: tokenUrl })
+    return NextResponse.json({
+      success: true,
+      token_url: tokenUrl,
+      mail_contractor_sent: mailContractorOk,
+      mail_tenant_sent: mailTenantOk,
+      mail_error: mailError,
+    })
   } catch (err) {
     console.error('Weiterleiten Fehler:', err)
     return NextResponse.json({ error: 'Interner Fehler' }, { status: 500 })
