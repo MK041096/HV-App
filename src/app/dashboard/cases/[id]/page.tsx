@@ -474,10 +474,6 @@ export default function CaseDetailPage({
   const [isSavingInsurance, setIsSavingInsurance] = useState(false)
   const [insuranceSuccess, setInsuranceSuccess] = useState<string | null>(null)
 
-  // Urgency edit state
-  const [urgencyEdit, setUrgencyEdit] = useState<string>("")
-  const [isSavingUrgency, setIsSavingUrgency] = useState(false)
-
   // HV-manuell: Beschreibung ergänzen vor CARL-Analyse
   const [hvDescription, setHvDescription] = useState("")
   const [isSavingHvDesc, setIsSavingHvDesc] = useState(false)
@@ -670,27 +666,6 @@ export default function CaseDetailPage({
       })
     } finally {
       setIsUpdatingStatus(false)
-    }
-  }
-
-  async function handleUrgencyUpdate() {
-    if (!urgencyEdit) return
-    setIsSavingUrgency(true)
-    try {
-      const res = await fetch(`/api/hv/cases/${id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ urgency: urgencyEdit }),
-      })
-      const json = await res.json()
-      if (!res.ok) throw new Error(json.error || "Fehler")
-      setStatusMessage({ type: "success", text: "Dringlichkeit aktualisiert" })
-      setUrgencyEdit("")
-      await fetchCase()
-    } catch (err) {
-      setStatusMessage({ type: "error", text: err instanceof Error ? err.message : "Fehler" })
-    } finally {
-      setIsSavingUrgency(false)
     }
   }
 
@@ -1485,24 +1460,6 @@ export default function CaseDetailPage({
                     <Textarea placeholder="Kommentar (Pflichtfeld)" value={statusComment} onChange={e=>setStatusComment(e.target.value)} className="resize-none min-h-[60px] text-sm"/>
                     <Button className="w-full" size="sm" disabled={!newStatus||!statusComment.trim()||isUpdatingStatus} onClick={handleStatusUpdate}>
                       {isUpdatingStatus?<Loader2 className="mr-2 h-4 w-4 animate-spin"/>:<Save className="mr-2 h-4 w-4"/>}Status speichern
-                    </Button>
-                  </CardContent>
-                </Card>
-
-                {/* Dringlichkeit */}
-                <Card>
-                  <CardHeader className="pb-2"><CardTitle className="text-sm flex items-center gap-2"><AlertTriangle className="h-3.5 w-3.5"/>Dringlichkeit</CardTitle><CardDescription className="text-xs">Aktuell: <span className={urgencyConfig.className.split(' ').filter((x: string)=>x.startsWith('text-')).join(' ')}>{urgencyConfig.label}</span></CardDescription></CardHeader>
-                  <CardContent className="space-y-2">
-                    <Select value={urgencyEdit} onValueChange={setUrgencyEdit}>
-                      <SelectTrigger className="text-sm"><SelectValue placeholder="Dringlichkeit..."/></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="notfall">🔴 Notfall</SelectItem>
-                        <SelectItem value="dringend">🟡 Dringend</SelectItem>
-                        <SelectItem value="normal">🟢 Normal</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <Button className="w-full" size="sm" disabled={!urgencyEdit||isSavingUrgency} onClick={handleUrgencyUpdate}>
-                      {isSavingUrgency?<Loader2 className="mr-2 h-4 w-4 animate-spin"/>:<Save className="mr-2 h-4 w-4"/>}Speichern
                     </Button>
                   </CardContent>
                 </Card>
