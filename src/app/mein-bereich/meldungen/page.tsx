@@ -408,7 +408,6 @@ function ReportCard({ report }: { report: DamageReportListItem }) {
   const statusBadge = STATUS_BADGE_CONFIG[report.display_status] || {
     className: "bg-gray-100 text-gray-600 border-gray-200",
   }
-  const urgencyBadge = URGENCY_BADGE[report.urgency]
   const categoryLabel =
     CATEGORY_LABELS[report.category as keyof typeof CATEGORY_LABELS] ||
     report.category
@@ -455,14 +454,6 @@ function ReportCard({ report }: { report: DamageReportListItem }) {
                 >
                   {report.display_status}
                 </Badge>
-                {urgencyBadge && report.urgency !== "normal" && (
-                  <Badge
-                    variant="outline"
-                    className={cn("text-xs", urgencyBadge.className)}
-                  >
-                    {urgencyBadge.label}
-                  </Badge>
-                )}
                 {report.photos && report.photos.length > 0 && (
                   <span className="text-xs text-muted-foreground">
                     {report.photos.length} Foto{report.photos.length !== 1 ? "s" : ""}

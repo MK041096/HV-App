@@ -15,14 +15,6 @@ export interface KiAnalyseResult {
   leaseFound: boolean
 }
 
-function parseUrgencyFromAnalysis(text: string): 'notfall' | 'dringend' | 'normal' {
-  const m = text.match(/^DRINGLICHKEIT:\s*(\S+)/mi)
-  const val = (m?.[1] || '').toLowerCase()
-  if (val === 'notfall') return 'notfall'
-  if (val === 'dringend') return 'dringend'
-  return 'normal'
-}
-
 const CARL_SYSTEM_PROMPT = `Du bist CARL — der KI-Experte von SMARTCARL für Mietrecht und Schadensmeldungsbearbeitung im deutschsprachigen Raum (Österreich, Deutschland, Schweiz).
 
 ═══════════════════════════════════════════
@@ -133,14 +125,6 @@ BEKANNTE VERSICHERER DEUTSCHLAND:
 Allianz, AXA, HUK-Coburg, Württembergische, R+V, VHV, Debeka, Signal Iduna, DEVK, Gothaer, Nürnberger, Zurich, HDI, Ergo, Inter, LVM, Barmenia, Generali, Axa
 
 ═══════════════════════════════════════════
-DRINGLICHKEITSSTUFEN (DACH)
-═══════════════════════════════════════════
-Ignoriere wie der Mieter selbst die Dringlichkeit einschätzt:
-- NOTFALL (sofort): Aktiver unkontrollierter Wasseraustritt, Stromausfall mit Brandgefahr, Heizungsausfall unter 5°C Außentemperatur, Gasleck, Einbruch/Sicherheitsmangel, Aufzug mit eingeschlossener Person
-- DRINGEND (max. 48h): Heizungsausfall (über 5°C), kein Warmwasser, defekte einzige Toilette, Wasserschaden gestoppt aber Folgeschäden möglich, Teilstromausfall
-- NORMAL (innerhalb 2 Wochen): Alles andere ohne wesentliche Nutzungseinschränkung
-
-═══════════════════════════════════════════
 HANDWERKER-GEWERKE (DACH)
 ═══════════════════════════════════════════
 - Installateur / Sanitär-Heizung-Klima (SHK): Wasser, Heizung, Sanitär, Gas, Rohre, Heizkörper
@@ -210,7 +194,6 @@ WERKSTATT_BEGRUENDUNG: [1 Satz warum genau diese Werkstatt für diesen Schaden]
 SUCHEMPFEHLUNG: [Nur wenn WERKSTATT = 'Keine Werkstätten hinterlegt': 2-3 konkrete Suchbegriffe für Google mit Stadt/Region aus der Adresse z.B. 'Installateur Rohrbruch Wien', 'SHK Notdienst Berlin', 'Elektriker München Notfall'. Sonst: NICHT_NOETIG]
 VERSICHERUNG: [Name der passenden Police aus der Liste / Keine / Prüfen]
 VERSICHERUNG_BEGRUENDUNG: [1 Satz warum diese Versicherung greift oder nicht]
-DRINGLICHKEIT: [NOTFALL / DRINGEND / NORMAL — mit kurzer Begründung]
 EMPFEHLUNG: [DIREKTE ANWEISUNG AN DIE HV, 1 Satz im Imperativ. Beispiele: "Werkstatt X mit Schadensaufnahme beauftragen.", "Leitungswasserversicherung melden, Werkstatt X parallel beauftragen.", "Mieter über Eigenverantwortung informieren — keine Werkstattbeauftragung." NIEMALS im Stil "Bitte melden Sie..." weil das wäre an den Mieter gerichtet.]
 
 BEGRUENDUNG:
@@ -239,7 +222,6 @@ WERKSTATT_BEGRUENDUNG: 24h-Notdienst für Sanitär-Installationen, spezialisiert
 SUCHEMPFEHLUNG: NICHT_NOETIG
 VERSICHERUNG: Leitungswasserversicherung Wiener Städtische
 VERSICHERUNG_BEGRUENDUNG: Schaden an wasserführender Leitung im Mauerwerk fällt unter Leitungswasser-Police der Liegenschaft.
-DRINGLICHKEIT: DRINGEND — aktiver Wasseraustritt, Folgeschäden möglich
 EMPFEHLUNG: Pappel Installationen mit Schadensaufnahme beauftragen, parallel Versicherung melden.
 
 BEGRUENDUNG:
@@ -476,15 +458,14 @@ Analysiere diese Schadensmeldung vollständig. Wähle die passendste Werkstatt a
     .map((b) => (b as Anthropic.TextBlock).text)
     .join('\n')
 
-  const carlUrgency = parseUrgencyFromAnalysis(analysisText)
-
   // ── 7. Ergebnis speichern ─────────────────────────────────────────────────
+  // urgency wird NICHT mehr von CARL überschrieben — die Dringlichkeit liegt in der
+  // Hand der HV (nicht der Algorithmus, nicht der Mieter). DB-Spalte bleibt erhalten.
   await supabase
     .from('damage_reports')
     .update({
       ki_analyse_result: analysisText,
       ki_analyse_at: new Date().toISOString(),
-      urgency: carlUrgency,
     })
     .eq('id', reportId)
     .eq('organization_id', organizationId)

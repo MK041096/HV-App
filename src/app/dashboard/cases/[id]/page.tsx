@@ -880,7 +880,6 @@ export default function CaseDetailPage({
     )
   }
 
-  const urgencyConfig = getUrgencyConfig(caseData.urgency)
   const statusConfig = getStatusConfig(caseData.status)
 
 
@@ -995,7 +994,6 @@ export default function CaseDetailPage({
               <ArrowLeft className="h-4 w-4" /> Alle Fälle
             </button>
             <div className="flex items-center gap-2 flex-wrap">
-              <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold border ${urgencyConfig.className}`}>{urgencyConfig.label}</span>
               <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold border ${statusConfig.className}`}>{statusConfig.label}</span>
               <span className="text-sm text-muted-foreground font-mono">{caseData.case_number}</span>
             </div>

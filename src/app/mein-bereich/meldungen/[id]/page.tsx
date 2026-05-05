@@ -378,16 +378,12 @@ export default function MeldungDetailPage() {
   const statusBadge = STATUS_BADGE_CONFIG[report.display_status] || {
     className: "bg-gray-100 text-gray-600 border-gray-200",
   }
-  const urgencyBadge = URGENCY_BADGE[report.urgency]
   const categoryLabel =
     CATEGORY_LABELS[report.category as keyof typeof CATEGORY_LABELS] ||
     report.category
   const roomLabel = report.room
     ? ROOM_LABELS[report.room as keyof typeof ROOM_LABELS] || report.room
     : null
-  const urgencyLabel =
-    URGENCY_LABELS[report.urgency as keyof typeof URGENCY_LABELS] ||
-    report.urgency
 
   // ─── Render ─────────────────────────────────────────────────────────────────
 
@@ -442,14 +438,6 @@ export default function MeldungDetailPage() {
             >
               {report.display_status}
             </Badge>
-            {urgencyBadge && (
-              <Badge
-                variant="outline"
-                className={cn("text-sm", urgencyBadge.className)}
-              >
-                {urgencyBadge.label}
-              </Badge>
-            )}
           </div>
 
           {/* Telefon-Termin Hinweis */}
@@ -514,7 +502,6 @@ export default function MeldungDetailPage() {
               />
             )}
             {roomLabel && <DetailItem label="Raum" value={roomLabel} />}
-            <DetailItem label="Dringlichkeit" value={urgencyLabel} />
             {report.unit && (
               <DetailItem
                 label="Wohneinheit"
