@@ -69,8 +69,6 @@ import {
 import {
   DAMAGE_CATEGORIES,
   CATEGORY_LABELS,
-  URGENCY_LEVELS,
-  URGENCY_LABELS,
 } from "@/lib/validations/damage-report"
 
 // ── Types ──
@@ -105,30 +103,10 @@ interface Pagination {
   has_prev: boolean
 }
 
-type SortField = "urgency" | "created_at" | "status" | "category" | "case_number"
+type SortField = "created_at" | "status" | "category" | "case_number"
 type SortOrder = "asc" | "desc"
 
 // ── Helpers ──
-
-function getUrgencyConfig(urgency: string) {
-  switch (urgency) {
-    case "notfall":
-      return {
-        label: "Notfall",
-        className: "bg-red-100 text-red-800 border-red-200 dark:bg-red-900/30 dark:text-red-400",
-      }
-    case "dringend":
-      return {
-        label: "Dringend",
-        className: "bg-orange-100 text-orange-800 border-orange-200 dark:bg-orange-900/30 dark:text-orange-400",
-      }
-    default:
-      return {
-        label: "Normal",
-        className: "bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-900/30 dark:text-blue-400",
-      }
-  }
-}
 
 function getStatusConfig(status: string) {
   switch (status) {
@@ -195,13 +173,12 @@ export default function CasesListPage() {
   // Filters from URL
   const [searchQuery, setSearchQuery] = useState(searchParams.get("search") || "")
   const [statusFilter, setStatusFilter] = useState(searchParams.get("status") || "")
-  const [urgencyFilter, setUrgencyFilter] = useState(searchParams.get("urgency") || "")
   const [categoryFilter, setCategoryFilter] = useState(searchParams.get("category") || "")
   const [sortBy, setSortBy] = useState<SortField>(
-    (searchParams.get("sort_by") as SortField) || "urgency"
+    (searchParams.get("sort_by") as SortField) || "created_at"
   )
   const [sortOrder, setSortOrder] = useState<SortOrder>(
-    (searchParams.get("sort_order") as SortOrder) || "asc"
+    (searchParams.get("sort_order") as SortOrder) || "desc"
   )
   const [page, setPage] = useState(parseInt(searchParams.get("page") || "1", 10))
   const [filtersOpen, setFiltersOpen] = useState(false)
@@ -214,7 +191,6 @@ export default function CasesListPage() {
   const [createError, setCreateError] = useState<string | null>(null)
   const [createTitle, setCreateTitle] = useState("")
   const [createCategory, setCreateCategory] = useState("")
-  const [createUrgency, setCreateUrgency] = useState("normal")
   const [createUnitId, setCreateUnitId] = useState("")
   const [createDescription, setCreateDescription] = useState("")
   const [units, setUnits] = useState<{ id: string; name: string; address: string | null }[]>([])
@@ -244,7 +220,6 @@ export default function CasesListPage() {
         body: JSON.stringify({
           title: createTitle.trim(),
           category: createCategory,
-          urgency: createUrgency,
           unit_id: createUnitId || null,
           description: createDescription.trim() || null,
         }),
@@ -252,7 +227,7 @@ export default function CasesListPage() {
       const json = await res.json()
       if (!res.ok) { setCreateError(json.error || "Fehler beim Anlegen"); return }
       setCreateOpen(false)
-      setCreateTitle(""); setCreateCategory(""); setCreateUrgency("normal")
+      setCreateTitle(""); setCreateCategory("")
       setCreateUnitId(""); setCreateDescription("")
       router.push(`/dashboard/cases/${json.data.id}`)
     } catch {
@@ -287,7 +262,6 @@ export default function CasesListPage() {
 
       if (debouncedSearch) params.set("search", debouncedSearch)
       if (statusFilter) params.set("status", statusFilter)
-      if (urgencyFilter) params.set("urgency", urgencyFilter)
       if (categoryFilter) params.set("category", categoryFilter)
       if (dateFrom) params.set("date_from", dateFrom)
       if (dateTo) params.set("date_to", dateTo)
@@ -306,7 +280,7 @@ export default function CasesListPage() {
     } finally {
       setIsLoading(false)
     }
-  }, [page, sortBy, sortOrder, debouncedSearch, statusFilter, urgencyFilter, categoryFilter, dateFrom, dateTo])
+  }, [page, sortBy, sortOrder, debouncedSearch, statusFilter, categoryFilter, dateFrom, dateTo])
 
   useEffect(() => {
     fetchCases()
@@ -333,11 +307,10 @@ export default function CasesListPage() {
   }
 
   // Active filter count
-  const activeFilters = [statusFilter, urgencyFilter, categoryFilter, dateFrom, dateTo].filter(Boolean).length
+  const activeFilters = [statusFilter, categoryFilter, dateFrom, dateTo].filter(Boolean).length
 
   function clearFilters() {
     setStatusFilter("")
-    setUrgencyFilter("")
     setCategoryFilter("")
     setSearchQuery("")
     setDateFrom("")
@@ -377,29 +350,16 @@ export default function CasesListPage() {
               <Label htmlFor="c-title">Titel <span className="text-destructive">*</span></Label>
               <Input id="c-title" placeholder="z.B. Wasserschaden Badezimmer" value={createTitle} onChange={(e) => setCreateTitle(e.target.value)} />
             </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1.5">
-                <Label htmlFor="c-category">Kategorie <span className="text-destructive">*</span></Label>
-                <Select value={createCategory} onValueChange={setCreateCategory}>
-                  <SelectTrigger id="c-category"><SelectValue placeholder="Wählen..." /></SelectTrigger>
-                  <SelectContent>
-                    {DAMAGE_CATEGORIES.map((c) => (
-                      <SelectItem key={c} value={c}>{CATEGORY_LABELS[c]}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="c-urgency">Dringlichkeit</Label>
-                <Select value={createUrgency} onValueChange={setCreateUrgency}>
-                  <SelectTrigger id="c-urgency"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {URGENCY_LEVELS.map((u) => (
-                      <SelectItem key={u} value={u}>{URGENCY_LABELS[u]}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="c-category">Kategorie <span className="text-destructive">*</span></Label>
+              <Select value={createCategory} onValueChange={setCreateCategory}>
+                <SelectTrigger id="c-category"><SelectValue placeholder="Wählen..." /></SelectTrigger>
+                <SelectContent>
+                  {DAMAGE_CATEGORIES.map((c) => (
+                    <SelectItem key={c} value={c}>{CATEGORY_LABELS[c]}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="c-unit">Einheit (optional)</Label>
@@ -485,16 +445,6 @@ export default function CasesListPage() {
               </Select>
             </div>
             <div>
-              <label className="text-xs font-medium text-muted-foreground mb-1 block">Dringlichkeit</label>
-              <Select value={urgencyFilter} onValueChange={(v) => { setUrgencyFilter(v === "alle" ? "" : v); setPage(1) }}>
-                <SelectTrigger><SelectValue placeholder="Alle" /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="alle">Alle</SelectItem>
-                  {URGENCY_LEVELS.map((u) => <SelectItem key={u} value={u}>{URGENCY_LABELS[u]}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
               <label className="text-xs font-medium text-muted-foreground mb-1 block">Kategorie</label>
               <Select value={categoryFilter} onValueChange={(v) => { setCategoryFilter(v === "alle" ? "" : v); setPage(1) }}>
                 <SelectTrigger><SelectValue placeholder="Alle Kategorien" /></SelectTrigger>
@@ -544,16 +494,6 @@ export default function CasesListPage() {
                     <SelectContent>
                       <SelectItem value="alle">Alle Status</SelectItem>
                       {CASE_STATUSES.map((s) => <SelectItem key={s} value={s}>{CASE_STATUS_LABELS[s]}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <label className="text-xs font-medium text-muted-foreground mb-1 block">Dringlichkeit</label>
-                  <Select value={urgencyFilter} onValueChange={(v) => { setUrgencyFilter(v === "alle" ? "" : v); setPage(1) }}>
-                    <SelectTrigger><SelectValue placeholder="Alle" /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="alle">Alle</SelectItem>
-                      {URGENCY_LEVELS.map((u) => <SelectItem key={u} value={u}>{URGENCY_LABELS[u]}</SelectItem>)}
                     </SelectContent>
                   </Select>
                 </div>
@@ -631,15 +571,6 @@ export default function CasesListPage() {
                   </TableHead>
                   <TableHead>
                     <button
-                      onClick={() => handleSort("urgency")}
-                      className="flex items-center gap-1 hover:text-foreground hover:bg-muted cursor-pointer rounded px-1 py-0.5 transition-colors"
-                    >
-                      Dringlichkeit
-                      <SortIcon field="urgency" />
-                    </button>
-                  </TableHead>
-                  <TableHead>
-                    <button
                       onClick={() => handleSort("status")}
                       className="flex items-center gap-1 hover:text-foreground hover:bg-muted cursor-pointer rounded px-1 py-0.5 transition-colors"
                     >
@@ -687,7 +618,6 @@ export default function CasesListPage() {
                   </TableRow>
                 ) : (
                   cases.map((c) => {
-                    const urgencyConfig = getUrgencyConfig(c.urgency)
                     const statusConfig = getStatusConfig(c.status)
 
                     return (
@@ -714,14 +644,6 @@ export default function CasesListPage() {
                         </TableCell>
                         <TableCell>
                           <span className="text-sm">{c.category_label}</span>
-                        </TableCell>
-                        <TableCell>
-                          <Badge
-                            variant="outline"
-                            className={urgencyConfig.className}
-                          >
-                            {urgencyConfig.label}
-                          </Badge>
                         </TableCell>
                         <TableCell>
                           <Badge
@@ -798,7 +720,6 @@ export default function CasesListPage() {
           </Card>
         ) : (
           cases.map((c) => {
-            const urgencyConfig = getUrgencyConfig(c.urgency)
             const statusConfig = getStatusConfig(c.status)
 
             return (
@@ -811,12 +732,6 @@ export default function CasesListPage() {
                           <span className="text-xs font-mono text-muted-foreground">
                             {c.case_number}
                           </span>
-                          <Badge
-                            variant="outline"
-                            className={urgencyConfig.className + " text-[10px]"}
-                          >
-                            {urgencyConfig.label}
-                          </Badge>
                           <Badge
                             variant="outline"
                             className={statusConfig.className + " text-[10px]"}
