@@ -446,9 +446,11 @@ export async function sendWeiterleitungTenantEmail(params: {
   contractorName: string
   contractorCompany: string
   wunschtermin: string | null
+  wunschtermin2?: string | null
   orgName: string
 }): Promise<void> {
-  const { to, tenantName, caseNumber, caseTitle, contractorName, contractorCompany, wunschtermin, orgName } = params
+  const { to, tenantName, caseNumber, caseTitle, contractorName, contractorCompany, wunschtermin, wunschtermin2, orgName } = params
+  const hasTermine = !!(wunschtermin || wunschtermin2)
   const content = `
     <h2 style="color:#18181b;font-size:22px;font-weight:700;margin:0 0 8px 0;">
       Ihr Schaden wurde bestätigt
@@ -465,14 +467,15 @@ export async function sendWeiterleitungTenantEmail(params: {
       <p style="color:#71717a;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;margin:0 0 4px 0;">Zugewiesene Werkstatt</p>
       <p style="color:#18181b;font-size:15px;font-weight:600;margin:0 0 2px 0;">${contractorCompany}</p>
       <p style="color:#71717a;font-size:13px;margin:0 0 12px 0;">Ansprechperson: ${contractorName}</p>
-      ${wunschtermin ? `
-      <p style="color:#71717a;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;margin:0 0 4px 0;">Ihr Wunschtermin</p>
-      <p style="color:#18181b;font-size:14px;font-weight:600;margin:0;">${wunschtermin}</p>
+      ${hasTermine ? `
+      <p style="color:#71717a;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;margin:0 0 6px 0;">Ihre Wunschtermine</p>
+      ${wunschtermin ? `<p style="color:#18181b;font-size:14px;font-weight:600;margin:0 0 4px 0;">1. ${wunschtermin}</p>` : ''}
+      ${wunschtermin2 ? `<p style="color:#18181b;font-size:14px;font-weight:600;margin:0;">2. ${wunschtermin2}</p>` : ''}
       ` : ''}
     </div>
 
     <p style="color:#52525b;font-size:14px;line-height:1.6;margin:0 0 24px 0;">
-      Die Werkstatt wurde über Ihren Wunschtermin informiert. Sobald der Termin bestätigt wird, erhalten Sie eine weitere Benachrichtigung.
+      Die Werkstatt wurde über Ihre Wunschtermine informiert und wählt einen davon aus. Sobald der Termin feststeht, erhalten Sie eine separate Bestätigung mit dem konkreten Termin.
     </p>
 
     <a href="https://smartcarl.com/mein-bereich/meldungen"

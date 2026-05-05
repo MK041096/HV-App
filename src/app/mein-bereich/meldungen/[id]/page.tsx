@@ -514,6 +514,45 @@ export default function MeldungDetailPage() {
             )
           })()}
 
+          {/* Termin-Banner — prominent bei termin_vereinbart oder termin_telefonisch */}
+          {(report.status === 'termin_vereinbart' || report.status === 'termin_telefonisch') && (
+            <div className="rounded-xl border-2 border-green-300 bg-green-50 p-5">
+              <div className="flex items-start gap-3">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-green-600 text-white">
+                  <CalendarDays className="h-5 w-5" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-semibold text-green-700 uppercase tracking-wide mb-1">Termin vereinbart</p>
+                  {report.status === 'termin_vereinbart' && report.scheduled_appointment ? (
+                    <>
+                      <p className="text-2xl font-bold text-green-900 leading-tight">
+                        {new Date(report.scheduled_appointment).toLocaleDateString("de-AT", {
+                          weekday: "long",
+                          day: "2-digit",
+                          month: "long",
+                          year: "numeric",
+                        })}
+                      </p>
+                      <p className="text-xl font-semibold text-green-800 mt-0.5">
+                        {new Date(report.scheduled_appointment).toLocaleTimeString("de-AT", {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })} Uhr
+                      </p>
+                    </>
+                  ) : (
+                    <p className="text-base font-semibold text-green-900 leading-tight">
+                      Die Werkstatt {report.assigned_to_company || ''} wird sich telefonisch bei Ihnen melden, um den Termin direkt zu vereinbaren.
+                    </p>
+                  )}
+                  {report.assigned_to_company && report.status === 'termin_vereinbart' && (
+                    <p className="text-sm text-green-700 mt-2">mit <strong>{report.assigned_to_company}</strong></p>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Description */}
           {report.description && (
             <div>
@@ -560,20 +599,7 @@ export default function MeldungDetailPage() {
                 })}
               />
             )}
-            {report.scheduled_appointment && (
-              <DetailItem
-                label="Vereinbarter Termin"
-                value={new Date(
-                  report.scheduled_appointment
-                ).toLocaleDateString("de-AT", {
-                  day: "2-digit",
-                  month: "2-digit",
-                  year: "numeric",
-                  hour: "2-digit",
-                  minute: "2-digit",
-                })}
-              />
-            )}
+            {/* Vereinbarter Termin wird prominent oben angezeigt — hier weggelassen um Doppelung zu vermeiden */}
             {report.assigned_to_name && (
               <DetailItem
                 label="Zugewiesen an"

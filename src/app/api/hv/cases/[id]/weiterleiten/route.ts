@@ -214,7 +214,8 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
         mailError = err instanceof Error ? err.message : 'Werkstatt-Mail fehlgeschlagen'
       }
 
-      // Mieter-Mail (Information)
+      // Mieter-Mail (Information) — beide Wunschtermine zeigen, da die Werkstatt
+      // einen davon waehlt. Die Werkstatt hat in der Mail beide Termine als Buttons.
       if (tenantEmail) {
         try {
           await sendWeiterleitungTenantEmail({
@@ -224,7 +225,8 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
             caseTitle: report.title,
             contractorName: contractor.name,
             contractorCompany: contractor.company,
-            wunschtermin: appointmentForTenant,
+            wunschtermin: wunschterminLabel,
+            wunschtermin2: wunschtermin2Label,
             orgName,
           })
           mailTenantOk = true
