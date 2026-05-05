@@ -200,11 +200,31 @@ VERSICHERUNG: [Name der passenden Police aus der Liste / Keine / Prüfen]
 VERSICHERUNG_BEGRUENDUNG: [PFLICHTFELD — IMMER 1 Satz, auch wenn VERSICHERUNG = Keine. Beispiele: Bei "Keine": "Defekt an Erhaltungsanlage — kein versichertes Ereignis (kein Wasseraustritt, kein Sturm, kein Glasbruch)." Bei Police: "Schaden an wasserführender Leitung im Mauerwerk fällt unter Leitungswasser-Police der Liegenschaft." NIEMALS leer lassen — die HV muss nachvollziehen können, warum eine Police greift oder nicht.]
 VERSICHERUNG_KLAUSEL: [WÖRTLICHES ZITAT (max. 200 Zeichen) aus der Police-PDF, das die Deckung belegt. Nur wenn eine Police als PDF im Kontext beigefügt war UND VERSICHERUNG ungleich Keine. Sonst: NICHT_VERFUEGBAR. Das Zitat MUSS exakt im PDF-Text vorhanden sein — keine Paraphrase, keine Zusammenfassung, kein Zitat aus dem Police-Namen. Beispiel: "Versichert sind Schäden durch bestimmungswidrig austretendes Leitungswasser aus den Zuleitungs- und Ableitungsrohren der Wasserversorgung." Falls die Police-PDF keine eindeutige Klausel zum vorliegenden Schaden enthält: NICHT_VERFUEGBAR.]
 EMPFEHLUNG: [DIREKTE ANWEISUNG AN DIE HV, 1 Satz im Imperativ. Beispiele: "Werkstatt X mit Schadensaufnahme beauftragen.", "Leitungswasserversicherung melden, Werkstatt X parallel beauftragen.", "Mieter über Eigenverantwortung informieren — keine Werkstattbeauftragung." NIEMALS im Stil "Bitte melden Sie..." weil das wäre an den Mieter gerichtet.]
-WERKSTATT_AUFTRAG: [PFLICHTFELD wenn ZUSTÄNDIGKEIT ≠ MIETER. 1-2 Sätze, professionelle Auftragsbeschreibung AN DIE WERKSTATT (geht direkt in die Werkstatt-Mail). Schreibe in dritter Person, technisch präzise, ohne ICH-Form, OHNE MRG-Paragrafen, OHNE Mieter-Zitate. Keine Kostenträger-Diskussion (das interessiert die Werkstatt nicht). Beispiele:
+WERKSTATT_AUFTRAG: [PFLICHTFELD wenn ZUSTÄNDIGKEIT ≠ MIETER. EXAKT 1-2 Sätze REIN technisch, AN DIE WERKSTATT (geht direkt in die Werkstatt-Mail).
+
+═══ WAS DIE WERKSTATT BRAUCHT ═══
+- Was ist defekt + wo (Raum, betroffenes Bauteil)
+- Aktueller Sicherheits-Zustand (z.B. "Hauptabsperrhahn geschlossen", "Strom abgeschaltet", "Tür funktioniert noch")
+- Sonst NICHTS
+
+═══ WAS ABSOLUT VERBOTEN IST ═══
+✗ KEIN Wort über Versicherung, Polizze, Versicherungsmeldung, Schadensprotokoll
+✗ KEINE Polizzennummern, keine Versicherer-Namen, kein "ist zu melden"
+✗ KEINE MRG/ABGB-Paragrafen
+✗ KEINE Kostenträger-Diskussion ("Vermieter trägt", "Mieter zahlt", "Versicherung übernimmt")
+✗ KEINE Aufträge an die HV ("HV soll X tun") — die HV-Anweisung steht im Feld EMPFEHLUNG, nicht hier
+✗ KEINE Mieter-Zitate, keine ICH-Form, keine "Seit gestern..."
+
+═══ MERKHILFE ═══
+Die Werkstatt repariert. Punkt. Sie schickt die Rechnung an die HV. Versicherungsabwicklung ist HV-Sache, nicht Werkstatt-Sache.
+
+═══ BEISPIELE ═══
 ✓ "Vor-Ort-Aufnahme und Reparatur eines undichten Eckventils der Wasserversorgungsanlage unter dem Waschbecken im Bad. Hauptabsperrhahn ist bereits geschlossen, kein aktiver Wasseraustritt."
 ✓ "Diagnose und Reparatur eines Heizelement-Defekts am festeingebauten Geschirrspüler in der Einbauküche. Maschine läuft, heizt aber das Wasser nicht mehr auf."
-✗ "Seit gestern Abend tropft es..." (NEIN — das ist Mieter-Sprache)
-✗ "Gemäß MRG § 3..." (NEIN — interessiert Werkstatt nicht)
+✓ "Reparatur einer durchgebrannten Sicherung im Verteilerkasten des Stiegenhauses. Stromkreis Wohnung Top 3 ist aktuell stromlos."
+✗ "Schadensprotokoll für Versicherungsmeldung erstellen" — VERBOTEN (Versicherung ist nicht Werkstatt-Sache)
+✗ "Reparatur durchführen, danach an HV melden" — UNNÖTIG (Standard-Vorgang)
+
 Bei ZUSTÄNDIGKEIT = MIETER: NICHT_NOETIG]
 
 BEGRUENDUNG:
