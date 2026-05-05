@@ -1554,18 +1554,29 @@ export default function CaseDetailPage({
                     )
                   })()}
 
-                  {/* WARTE_AUF_HANDWERKER */}
+                  {/* WARTE_AUF_HANDWERKER — Werkstatt informiert, wartet auf Termin-Bestätigung */}
                   {caseData.status==='warte_auf_handwerker'&&(
                     <div className="space-y-3">
-                      {caseData.assigned_to_company&&<p className="text-sm text-muted-foreground">Werkstatt: <span className="font-medium text-foreground">{caseData.assigned_to_company}</span></p>}
-                      <div className="space-y-1.5">
-                        <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Wann kommt die Werkstatt?</p>
-                        <Input type="datetime-local" value={naechsterSchrittDate} onChange={e=>setNaechsterSchrittDate(e.target.value)} className="text-sm"/>
+                      <div className="rounded-lg bg-blue-50 border border-blue-200 p-3 space-y-1.5">
+                        <p className="text-sm font-semibold text-blue-900">✓ Werkstatt wurde informiert</p>
+                        {caseData.assigned_to_company&&<p className="text-xs text-blue-800">{caseData.assigned_to_company} hat eine E-Mail mit Termin-Buttons erhalten.</p>}
+                        <p className="text-xs text-blue-700">Sobald die Werkstatt einen Termin in der Mail bestätigt, ändert sich der Status automatisch und der Mieter wird informiert.</p>
                       </div>
-                      <Button className="w-full" disabled={isSendingSchnell||!naechsterSchrittDate}
-                        onClick={async()=>{setIsSendingSchnell(true);setSchnellError(null);setSchnellSuccess(null);try{const res=await fetch(`/api/hv/cases/${id}`,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({status:'termin_vereinbart',comment:`Termin: ${new Date(naechsterSchrittDate).toLocaleString('de-AT')}`,scheduled_appointment:new Date(naechsterSchrittDate).toISOString()})});if(!res.ok)throw new Error((await res.json()).error);setSchnellSuccess('✓ Termin gespeichert — Mieter informiert');await fetchCase()}catch(err){setSchnellError(err instanceof Error?err.message:'Fehler')}finally{setIsSendingSchnell(false)}}}>
-                        {isSendingSchnell?<Loader2 className="mr-2 h-4 w-4 animate-spin"/>:<Calendar className="mr-2 h-4 w-4"/>}Termin festlegen & Mieter informieren
-                      </Button>
+
+                      <details className="group rounded-lg border bg-muted/20">
+                        <summary className="cursor-pointer text-xs font-medium text-muted-foreground px-3 py-2 list-none flex items-center justify-between">
+                          <span>📞 Werkstatt hat telefonisch geantwortet?</span>
+                          <span className="group-open:rotate-180 transition-transform">▼</span>
+                        </summary>
+                        <div className="px-3 pb-3 space-y-2 pt-1">
+                          <p className="text-[11px] text-muted-foreground leading-relaxed">Falls die Werkstatt nicht über die Mail-Buttons antwortet, sondern dich direkt anruft, kannst du den Termin hier manuell eintragen — der Mieter wird automatisch benachrichtigt.</p>
+                          <Input type="datetime-local" value={naechsterSchrittDate} onChange={e=>setNaechsterSchrittDate(e.target.value)} className="text-sm"/>
+                          <Button size="sm" className="w-full" variant="outline" disabled={isSendingSchnell||!naechsterSchrittDate}
+                            onClick={async()=>{setIsSendingSchnell(true);setSchnellError(null);setSchnellSuccess(null);try{const res=await fetch(`/api/hv/cases/${id}`,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({status:'termin_vereinbart',comment:`Termin telefonisch vereinbart: ${new Date(naechsterSchrittDate).toLocaleString('de-AT')}`,scheduled_appointment:new Date(naechsterSchrittDate).toISOString()})});if(!res.ok)throw new Error((await res.json()).error);setSchnellSuccess('✓ Termin gespeichert — Mieter informiert');await fetchCase()}catch(err){setSchnellError(err instanceof Error?err.message:'Fehler')}finally{setIsSendingSchnell(false)}}}>
+                            {isSendingSchnell?<Loader2 className="mr-2 h-4 w-4 animate-spin"/>:<Calendar className="mr-2 h-4 w-4"/>}Termin manuell eintragen
+                          </Button>
+                        </div>
+                      </details>
                     </div>
                   )}
 

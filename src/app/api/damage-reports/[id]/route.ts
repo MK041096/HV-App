@@ -44,6 +44,8 @@ export async function GET(
       .eq('id', id)
       .eq('is_deleted', false)
       .single()
+    // Note: report includes ki_analyse_result and assigned_to_* via the * spread —
+    // Tenants can see CARL's MIETERINFO + recommended workshop in their portal.
 
     if (error || !report) {
       if (error?.code === 'PGRST116') {

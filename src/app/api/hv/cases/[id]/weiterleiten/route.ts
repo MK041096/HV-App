@@ -107,17 +107,34 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       return NextResponse.json({ error: 'Status-Update fehlgeschlagen', details: updateError.message }, { status: 500 })
     }
 
-    // Save to status history so portal shows who was assigned (via admin client)
-    const { error: historyError } = await adminClient.from('damage_report_status_history').insert({
-      damage_report_id: id,
-      old_status: currentStatusData?.status ?? null,
-      new_status: 'warte_auf_handwerker',
-      note: `Weitergeleitet an ${contractor.company} (${contractor.name})`,
-      changed_by: user.id,
-    })
+    // Status-History: Trigger hat bereits einen Eintrag erstellt (note=null, changed_by=null).
+    // Wir updaten ihn mit Werkstatt-Info + User-ID, statt einen zweiten Eintrag anzulegen.
+    const historyNote = `Weitergeleitet an ${contractor.company} (${contractor.name})`
+    const { data: triggerEntry } = await adminClient
+      .from('damage_report_status_history')
+      .select('id')
+      .eq('damage_report_id', id)
+      .eq('new_status', 'warte_auf_handwerker')
+      .is('changed_by', null)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle()
 
-    if (historyError) {
-      console.error('Status-History fehlgeschlagen (non-blocking):', historyError)
+    if (triggerEntry) {
+      const { error: histErr } = await adminClient
+        .from('damage_report_status_history')
+        .update({ note: historyNote, changed_by: user.id })
+        .eq('id', triggerEntry.id)
+      if (histErr) console.error('Status-History-Update-Fehler:', histErr)
+    } else {
+      const { error: insErr } = await adminClient.from('damage_report_status_history').insert({
+        damage_report_id: id,
+        old_status: currentStatusData?.status ?? null,
+        new_status: 'warte_auf_handwerker',
+        note: historyNote,
+        changed_by: user.id,
+      })
+      if (insErr) console.error('Status-History-Insert-Fehler:', insErr)
     }
 
     // Create appointment token (contractor_id may be null for manual contractors)

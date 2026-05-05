@@ -49,17 +49,34 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       return NextResponse.json({ error: 'Fall nicht gefunden', details: updateError?.message }, { status: 404 })
     }
 
-    // Save to status history so begründung appears in portal
-    const { error: historyError } = await adminClient.from('damage_report_status_history').insert({
-      damage_report_id: id,
-      old_status: currentReport?.status ?? null,
-      new_status: 'abgelehnt',
-      note: begruendung.trim(),
-      changed_by: user.id,
-    })
+    // Status-History: Trigger fn_damage_report_status_change() hat bereits einen Eintrag
+    // erstellt (note=null, changed_by=null). Wir updaten diesen mit Begründung + User-ID.
+    const { data: triggerEntry } = await adminClient
+      .from('damage_report_status_history')
+      .select('id')
+      .eq('damage_report_id', id)
+      .eq('new_status', 'abgelehnt')
+      .is('changed_by', null)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle()
 
-    if (historyError) {
-      console.error('Ablehnen Status-History-Fehler (non-blocking):', historyError)
+    if (triggerEntry) {
+      const { error: histErr } = await adminClient
+        .from('damage_report_status_history')
+        .update({ note: begruendung.trim(), changed_by: user.id })
+        .eq('id', triggerEntry.id)
+      if (histErr) console.error('Status-History-Update-Fehler:', histErr)
+    } else {
+      // Fallback: kein Trigger-Eintrag gefunden — selbst einen anlegen
+      const { error: insErr } = await adminClient.from('damage_report_status_history').insert({
+        damage_report_id: id,
+        old_status: currentReport?.status ?? null,
+        new_status: 'abgelehnt',
+        note: begruendung.trim(),
+        changed_by: user.id,
+      })
+      if (insErr) console.error('Status-History-Insert-Fehler:', insErr)
     }
 
     // Fire-and-forget: send rejection email to tenant

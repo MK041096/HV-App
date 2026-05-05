@@ -116,6 +116,9 @@ interface DamageReportDetail {
   access_notes: string | null
   assigned_to_name: string | null
   assigned_to_company: string | null
+  assigned_to_phone: string | null
+  assigned_to_email: string | null
+  ki_analyse_result: string | null
   unit: {
     id: string
     name: string
@@ -463,17 +466,50 @@ export default function MeldungDetailPage() {
             </div>
           )}
 
-          {/* Ablehnungsgrund */}
+          {/* Ablehnungsgrund + CARL-Hilfetext + Werkstatt-Empfehlung */}
           {report.status === 'abgelehnt' && (() => {
             const ablehnungEntry = report.status_history?.find(e => e.new_status === 'abgelehnt' && e.note)
-            if (!ablehnungEntry?.note) return null
+            const begruendung = ablehnungEntry?.note?.trim() || null
+
+            // CARL's MIETERINFO + WERKSTATT aus ki_analyse_result extrahieren (falls vorhanden)
+            const ki = report.ki_analyse_result || ''
+            const get = (key: string) => ki.match(new RegExp('^' + key + ':\\s*(.+)', 'mi'))?.[1]?.trim() ?? null
+            const mieterinfoMatch = ki.match(/^MIETERINFO:\s*([\s\S]+?)(?:\n[A-ZÜÄÖ_]{3,}:|$)/mi)
+            const carlMieterinfo = mieterinfoMatch?.[1]?.trim() ?? null
+            const carlWerkstatt = get('WERKSTATT')
+            const carlGewerk = get('GEWERK')
+
+            // Begründung-Text: priorisiere note, sonst MIETERINFO
+            const finalBegruendung = begruendung || carlMieterinfo
+
+            if (!finalBegruendung && !carlWerkstatt) return null
+
             return (
-              <div className="rounded-lg border border-red-200 bg-red-50 p-4 space-y-1.5">
+              <div className="rounded-lg border border-red-200 bg-red-50 p-4 space-y-3">
                 <div className="flex items-center gap-2">
                   <AlertTriangle className="h-4 w-4 text-red-700 shrink-0" />
-                  <p className="text-sm font-semibold text-red-800">Ihre Hausverwaltung hat die Meldung abgelehnt</p>
+                  <p className="text-sm font-semibold text-red-800">Ihre Hausverwaltung sieht dies als Ihre Zuständigkeit</p>
                 </div>
-                <p className="text-sm text-red-700">{ablehnungEntry.note}</p>
+
+                {finalBegruendung && (
+                  <div className="space-y-1">
+                    <p className="text-[11px] font-semibold uppercase tracking-wide text-red-800/70">Begründung</p>
+                    <p className="text-sm text-red-900 whitespace-pre-wrap leading-relaxed">{finalBegruendung}</p>
+                  </div>
+                )}
+
+                {carlWerkstatt && carlWerkstatt.toLowerCase() !== 'keine' && !carlWerkstatt.toLowerCase().includes('keine passende') && (
+                  <div className="rounded-md bg-white border border-red-100 p-3 space-y-1.5">
+                    <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">💡 Empfehlung Ihrer Hausverwaltung</p>
+                    <p className="text-sm text-foreground">
+                      Falls Sie selbst eine Reparatur beauftragen möchten, empfehlen wir <strong>{carlWerkstatt}</strong>
+                      {carlGewerk ? ` (${carlGewerk})` : ''}.
+                    </p>
+                    <p className="text-[11px] text-muted-foreground">
+                      Hinweis: Die Beauftragung und Bezahlung liegt in Ihrer eigenen Verantwortung — Sie können auch jeden anderen Betrieb Ihrer Wahl nehmen.
+                    </p>
+                  </div>
+                )}
               </div>
             )
           })()}
