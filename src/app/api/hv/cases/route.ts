@@ -114,9 +114,16 @@ export async function GET(request: NextRequest) {
       .eq('is_deleted', false)
 
     // Apply filters to both queries
+    // Status "erledigt" inkludiert "abgelehnt" — der Fall ist mit der Ablehnung
+    // praktisch erledigt aus Sicht der HV (nichts mehr zu tun)
     if (status) {
-      countQuery = countQuery.eq('status', status)
-      dataQuery = dataQuery.eq('status', status)
+      if (status === 'erledigt') {
+        countQuery = countQuery.in('status', ['erledigt', 'abgelehnt'])
+        dataQuery = dataQuery.in('status', ['erledigt', 'abgelehnt'])
+      } else {
+        countQuery = countQuery.eq('status', status)
+        dataQuery = dataQuery.eq('status', status)
+      }
     }
     if (urgency) {
       countQuery = countQuery.eq('urgency', urgency)

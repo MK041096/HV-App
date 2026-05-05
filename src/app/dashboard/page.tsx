@@ -341,71 +341,50 @@ export default function DashboardPage() {
       {/* ── Neue Schadensmeldungen Popup (seit letztem Login) ── */}
       <Dialog open={showNewCasesPopup} onOpenChange={setShowNewCasesPopup}>
         <DialogContent className="sm:max-w-lg p-0 overflow-hidden">
-          {/* Header */}
-          {(() => {
-            const hasNotfall = newCasesPopup.some(c => c.urgency === "notfall")
-            const hasDringend = newCasesPopup.some(c => c.urgency === "dringend")
-            const bgClass = hasNotfall ? "bg-red-600" : hasDringend ? "bg-orange-500" : "bg-primary"
-            return (
-              <div className={`${bgClass} px-6 py-5`}>
-                <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/20">
-                    {hasNotfall ? <Flame className="h-5 w-5 text-white" /> : <Bell className="h-5 w-5 text-white" />}
-                  </div>
-                  <div>
-                    <p className="font-bold text-white text-lg">
-                      {newCasesPopup.length === 1
-                        ? "1 neue Schadensmeldung"
-                        : `${newCasesPopup.length} neue Schadensmeldungen`}
-                    </p>
-                    <p className="text-white/80 text-sm">
-                      {hasNotfall
-                        ? "Darunter ein Notfall — sofortiges Handeln erforderlich!"
-                        : hasDringend
-                        ? "Darunter dringende Meldungen"
-                        : "Seit Ihrem letzten Login eingegangen"}
-                    </p>
-                  </div>
-                </div>
+          {/* Header — alle Schäden gleich gewichtet (HV entscheidet manuell, kein Algorithmus) */}
+          <div className="bg-primary px-6 py-5">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/20">
+                <Bell className="h-5 w-5 text-white" />
               </div>
-            )
-          })()}
+              <div>
+                <p className="font-bold text-white text-lg">
+                  {newCasesPopup.length === 1
+                    ? "1 neue Schadensmeldung"
+                    : `${newCasesPopup.length} neue Schadensmeldungen`}
+                </p>
+                <p className="text-white/80 text-sm">
+                  Seit Ihrem letzten Login eingegangen
+                </p>
+              </div>
+            </div>
+          </div>
 
           {/* Liste der neuen Fälle */}
           <div className="px-4 py-3 space-y-2 max-h-80 overflow-y-auto">
-            {newCasesPopup.map((c) => {
-              const urgencyColor =
-                c.urgency === "notfall" ? "bg-red-100 text-red-800 border-red-200"
-                : c.urgency === "dringend" ? "bg-orange-100 text-orange-800 border-orange-200"
-                : "bg-blue-100 text-blue-800 border-blue-200"
-              const urgencyLabel =
-                c.urgency === "notfall" ? "Notfall"
-                : c.urgency === "dringend" ? "Dringend"
-                : "Normal"
-              return (
-                <Link
-                  key={c.id}
-                  href={`/dashboard/cases/${c.id}`}
-                  onClick={() => setShowNewCasesPopup(false)}
-                  className="flex items-center justify-between rounded-lg border px-3 py-2.5 hover:bg-accent transition-colors group"
-                >
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="text-xs font-mono text-muted-foreground">{c.case_number}</span>
-                      <Badge variant="outline" className={`text-[10px] px-1.5 py-0 ${urgencyColor}`}>
-                        {urgencyLabel}
-                      </Badge>
-                    </div>
-                    <p className="text-sm font-medium truncate mt-0.5">{c.title}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {c.unit?.name && `${c.unit.name} · `}
-                      {c.reporter?.first_name} {c.reporter?.last_name}
-                    </p>
+            {newCasesPopup.map((c) => (
+              <Link
+                key={c.id}
+                href={`/dashboard/cases/${c.id}`}
+                onClick={() => setShowNewCasesPopup(false)}
+                className="flex items-center justify-between rounded-lg border px-3 py-2.5 hover:bg-accent transition-colors group"
+              >
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-xs font-mono text-muted-foreground">{c.case_number}</span>
+                    <Badge variant="outline" className="text-[10px] px-1.5 py-0 bg-blue-100 text-blue-800 border-blue-200">
+                      Neu
+                    </Badge>
                   </div>
-                  <ArrowRight className="h-4 w-4 shrink-0 text-muted-foreground group-hover:text-foreground group-hover:translate-x-0.5 transition-all ml-2" />
-                </Link>
-              )
-            })}
+                  <p className="text-sm font-medium truncate mt-0.5">{c.title}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {c.unit?.name && `${c.unit.name} · `}
+                    {c.reporter?.first_name} {c.reporter?.last_name}
+                  </p>
+                </div>
+                <ArrowRight className="h-4 w-4 shrink-0 text-muted-foreground group-hover:text-foreground group-hover:translate-x-0.5 transition-all ml-2" />
+              </Link>
+            ))}
           </div>
 
           {/* Footer */}
@@ -430,29 +409,18 @@ export default function DashboardPage() {
         </p>
       </div>
 
-      {/* ── Neue Schadensmeldungen Banner ── */}
+      {/* ── Neue Schadensmeldungen Banner — HV entscheidet manuell, kein Algorithmus ── */}
       {!newCasesDismissed && (() => {
         const newCases = recentCases.filter(c => c.status === 'neu')
         if (newCases.length === 0) return null
-        const hasNotfall = newCases.some(c => c.urgency === 'notfall')
-        const hasDringend = newCases.some(c => c.urgency === 'dringend')
-        const bgClass = hasNotfall
-          ? 'bg-red-600 border-red-700'
-          : hasDringend
-          ? 'bg-orange-500 border-orange-600'
-          : 'bg-blue-600 border-blue-700'
 
         return (
-          <div className={`rounded-xl border-2 ${bgClass} text-white shadow-lg`}>
+          <div className="rounded-xl border-2 bg-blue-600 border-blue-700 text-white shadow-lg">
             <div className="p-4 sm:p-5">
               <div className="flex items-start justify-between gap-3">
                 <div className="flex items-center gap-3">
                   <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/20">
-                    {hasNotfall ? (
-                      <Flame className="h-5 w-5" />
-                    ) : (
-                      <Bell className="h-5 w-5" />
-                    )}
+                    <Bell className="h-5 w-5" />
                   </div>
                   <div>
                     <p className="font-bold text-base sm:text-lg">
@@ -460,9 +428,7 @@ export default function DashboardPage() {
                         ? '1 neue Schadensmeldung eingegangen'
                         : `${newCases.length} neue Schadensmeldungen eingegangen`}
                     </p>
-                    <p className="text-white/80 text-sm mt-0.5">
-                      {hasNotfall ? 'Darunter ein Notfall — sofortiges Handeln erforderlich' : hasDringend ? 'Darunter dringende Meldungen' : 'Bitte prüfen und bearbeiten'}
-                    </p>
+                    <p className="text-white/80 text-sm mt-0.5">Bitte prüfen und bearbeiten</p>
                   </div>
                 </div>
                 <button
@@ -482,12 +448,8 @@ export default function DashboardPage() {
                     className="flex items-center justify-between rounded-lg bg-white/15 hover:bg-white/25 transition-colors px-3 py-2.5 group"
                   >
                     <div className="flex items-center gap-3 min-w-0">
-                      <span className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-bold ${
-                        c.urgency === 'notfall' ? 'bg-white text-red-600'
-                        : c.urgency === 'dringend' ? 'bg-white text-orange-600'
-                        : 'bg-white/30 text-white'
-                      }`}>
-                        {c.urgency === 'notfall' ? 'NOTFALL' : c.urgency === 'dringend' ? 'DRINGEND' : 'NEU'}
+                      <span className="shrink-0 rounded-full px-2 py-0.5 text-xs font-bold bg-white/30 text-white">
+                        NEU
                       </span>
                       <div className="min-w-0">
                         <p className="font-medium text-sm truncate">{c.title}</p>
@@ -686,21 +648,6 @@ export default function DashboardPage() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Notfälle</CardTitle>
-            <AlertTriangle className="h-4 w-4 text-red-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-red-600">
-              {stats?.notfall || 0}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Sofortige Bearbeitung erforderlich
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Neue Meldungen</CardTitle>
             <Clock className="h-4 w-4 text-blue-500" />
           </CardHeader>
@@ -759,7 +706,6 @@ export default function DashboardPage() {
                   className="flex items-center justify-between p-3 rounded-lg border hover:bg-accent/80 hover:ring-1 hover:ring-black/20 transition-all"
                 >
                   <div className="flex items-center gap-3 min-w-0">
-                    <UrgencyDot urgency={c.urgency} />
                     <div className="min-w-0">
                       <div className="flex items-center gap-2">
                         <span className="text-xs font-mono text-muted-foreground">
