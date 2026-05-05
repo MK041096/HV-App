@@ -584,12 +584,15 @@ export default function CaseDetailPage({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [caseData?.id])
 
-  // Mieter-Absage-Begründung mit CARL's MIETERINFO vorbefüllen
-  // (HV kann editieren, aber muss nicht von Null anfangen)
+  // Mieter-Absage-Begründung mit CARL's MIETERINFO vorbefüllen — ABER NUR wenn
+  // CARL den Schaden tatsächlich dem Mieter zuordnet. Bei Vermieter/Versicherung/Unklar
+  // bleibt das Feld leer (HV soll dann bewusst entscheiden, nicht versehentlich absenden).
   useEffect(() => {
     if (!kiResult || ablehnungText.trim()) return
     const carlSections = parseCarlAnalysis(kiResult)
-    if (carlSections.mieterinfo) {
+    const zust = (carlSections.zustaendigkeit || '').toUpperCase()
+    const isMieterFall = zust.includes('MIETER') && !zust.includes('VERMIETER')
+    if (isMieterFall && carlSections.mieterinfo) {
       setAblehnungText(carlSections.mieterinfo)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -1325,7 +1328,7 @@ export default function CaseDetailPage({
                         {/* Ablehnen */}
                         <div className="border-t pt-3 space-y-2">
                           <p className="text-xs text-muted-foreground font-medium">Mieter zuständig?</p>
-                          <Textarea className="text-sm min-h-[70px] resize-none" placeholder="Begründung für den Mieter..." value={ablehnungText} onChange={e=>setAblehnungText(e.target.value)}/>
+                          <Textarea className="text-sm min-h-[180px] resize-y" placeholder="Begründung für den Mieter..." value={ablehnungText} onChange={e=>setAblehnungText(e.target.value)}/>
                           <Button variant="outline" className="w-full text-destructive border-destructive/30 hover:bg-destructive/5" disabled={isSendingAblehnung||!ablehnungText.trim()}
                             onClick={async()=>{setIsSendingAblehnung(true);setSchnellError(null);setSchnellSuccess(null);try{const res=await fetch(`/api/hv/cases/${id}/ablehnen`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({begruendung:ablehnungText})});if(!res.ok)throw new Error((await res.json()).error);setSchnellSuccess('✓ Absage gesendet — Mieter per E-Mail informiert');await fetchCase()}catch(err){setSchnellError(err instanceof Error?err.message:'Fehler')}finally{setIsSendingAblehnung(false)}}}>
                             {isSendingAblehnung?<Loader2 className="mr-2 h-4 w-4 animate-spin"/>:null}Ablehnen — Mieter zuständig
@@ -1387,7 +1390,7 @@ export default function CaseDetailPage({
                         <div className="border-t pt-3 space-y-2">
                           <p className="text-xs text-muted-foreground font-medium">Mieter zuständig?</p>
                           <Textarea
-                            className="text-sm min-h-[70px] resize-none"
+                            className="text-sm min-h-[180px]"
                             placeholder="Begründung für den Mieter..."
                             value={ablehnungText}
                             onChange={e=>setAblehnungText(e.target.value)}
