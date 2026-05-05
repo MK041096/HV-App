@@ -582,8 +582,8 @@ export function buildContractorEmail(params: ContractorEmailParams): { subject: 
     ${orgPhone ? `<p style="color:#71717a;font-size:13px;margin:0;">Rückfragen: ${escapeHtml(orgName)} &mdash; ${escapeHtml(orgPhone)}</p>` : `<p style="color:#71717a;font-size:13px;margin:0;">Rückfragen direkt an ${escapeHtml(orgName)}.</p>`}
   `
   return {
-    subject: `[Auftrag ${caseNumber}] ${caseTitle} – ${unitAddress}`,
-    from: `${orgName} via SMARTCARL <noreply@smartcarl.com>`,
+    subject: `[${orgName}] Auftrag ${caseNumber} – ${caseTitle}`,
+    from: FROM_EMAIL,
     html: baseTemplate(content, orgName),
   }
 }
@@ -915,7 +915,7 @@ export async function sendWerkstattWillkommensmail(params: {
   `
 
   await resend.emails.send({
-    from: `${orgName} via SMARTCARL <noreply@smartcarl.com>`,
+    from: FROM_EMAIL,
     to,
     subject: `${orgName} nutzt jetzt SMARTCARL – so funktioniert die Auftragsabwicklung`,
     html: baseTemplate(content, orgName),
@@ -1033,9 +1033,9 @@ export async function sendAnfrageEmail(params: {
   `
 
   await resend.emails.send({
-    from: `${orgName} <noreply@smartcarl.com>`,
+    from: FROM_EMAIL,
     to,
-    subject: `Anfrage Reparaturauftrag: ${caseTitle} – ${unitAddress}`,
+    subject: `[${orgName}] Anfrage Reparaturauftrag: ${caseTitle} – ${unitAddress}`,
     html: anfrageTemplate(content, orgName),
   })
 }
