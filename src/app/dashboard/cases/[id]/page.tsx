@@ -460,6 +460,12 @@ export default function CaseDetailPage({
   const [leaseSheetLoading, setLeaseSheetLoading] = useState(false)
   const [leaseSheetData, setLeaseSheetData] = useState<{ name: string; pdfUrl: string; hint: string | null } | null>(null)
   const [leaseSheetError, setLeaseSheetError] = useState<string | null>(null)
+
+  // Abschluss-Dialog (Fall abschließen)
+  const [closeDialogOpen, setCloseDialogOpen] = useState(false)
+  const [closeNote, setCloseNote] = useState('')
+  const [isClosingCase, setIsClosingCase] = useState(false)
+  const [closeError, setCloseError] = useState<string | null>(null)
   const [aktionSuccess, setAktionSuccess] = useState<string | null>(null)
   const [aktionError, setAktionError] = useState<string | null>(null)
 
@@ -1584,9 +1590,9 @@ export default function CaseDetailPage({
                   {caseData.status==='termin_vereinbart'&&(
                     <div className="space-y-3">
                       {caseData.scheduled_appointment&&<p className="text-sm text-muted-foreground">Termin: <span className="font-medium text-foreground">{formatDateTime(caseData.scheduled_appointment)}</span></p>}
-                      <Button className="w-full bg-green-700 hover:bg-green-800 text-white" disabled={isSendingSchnell}
-                        onClick={async()=>{setIsSendingSchnell(true);setSchnellError(null);setSchnellSuccess(null);try{const res=await fetch(`/api/hv/cases/${id}`,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({status:'erledigt',comment:'Schaden behoben — Fall abgeschlossen.'})});if(!res.ok)throw new Error((await res.json()).error);setSchnellSuccess('✓ Fall abgeschlossen');await fetchCase()}catch(err){setSchnellError(err instanceof Error?err.message:'Fehler')}finally{setIsSendingSchnell(false)}}}>
-                        {isSendingSchnell?<Loader2 className="mr-2 h-4 w-4 animate-spin"/>:<CheckCircle2 className="mr-2 h-4 w-4"/>}Schaden behoben — Fall abschließen
+                      <Button className="w-full bg-green-700 hover:bg-green-800 text-white"
+                        onClick={() => { setCloseError(null); setCloseNote(''); setCloseDialogOpen(true) }}>
+                        <CheckCircle2 className="mr-2 h-4 w-4"/>Schaden behoben — Fall abschließen
                       </Button>
                     </div>
                   )}
@@ -1776,6 +1782,109 @@ export default function CaseDetailPage({
           </div>
         </SheetContent>
       </Sheet>
+
+      {/* Abschluss-Dialog: Fall abschließen mit Dokumenten-Checkliste */}
+      <Dialog open={closeDialogOpen} onOpenChange={(o) => { if (!isClosingCase) setCloseDialogOpen(o) }}>
+        <DialogContent className="max-w-lg max-h-[90vh] flex flex-col p-0 gap-0">
+          <DialogHeader className="px-6 pt-6 pb-3 border-b">
+            <DialogTitle>Fall abschließen</DialogTitle>
+            <DialogDescription>Vor dem Abschluss prüfen, ob alle Unterlagen für die Akte hinterlegt sind.</DialogDescription>
+          </DialogHeader>
+
+          <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
+            {/* Checkliste */}
+            <div className="rounded-lg border bg-muted/20 p-4 space-y-2.5">
+              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">Optional vor Abschluss</p>
+
+              {/* Versicherungsblatt — nur wenn Versicherungsfall */}
+              {caseData.is_insurance_damage && (
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <span className="text-base">🛡️</span>
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium">Versicherungsblatt</p>
+                      <p className="text-xs text-muted-foreground">Schadensanzeige für die Versicherung</p>
+                    </div>
+                  </div>
+                  <Button size="sm" variant="outline" className="text-xs shrink-0"
+                    onClick={() => window.open(`/dashboard/cases/${caseData.id}/versicherungsblatt`, '_blank')}>
+                    <ExternalLink className="h-3 w-3 mr-1" />Erstellen
+                  </Button>
+                </div>
+              )}
+
+              {/* Rechnung-Status */}
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2 min-w-0">
+                  <span className="text-base">📄</span>
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium">Werkstatt-Rechnung</p>
+                    {caseData.invoice_filename ? (
+                      <p className="text-xs text-green-700">✓ {caseData.invoice_filename}</p>
+                    ) : (
+                      <p className="text-xs text-muted-foreground">Noch keine hochgeladen</p>
+                    )}
+                  </div>
+                </div>
+                {!caseData.invoice_filename && (
+                  <Button size="sm" variant="outline" className="text-xs shrink-0"
+                    onClick={() => {
+                      // Tab "Dokumente" aktivieren + Dialog schließen
+                      const tab = document.querySelector('[role="tab"][value="dokumente"]') as HTMLElement | null
+                      tab?.click()
+                      setCloseDialogOpen(false)
+                    }}>
+                    <Upload className="h-3 w-3 mr-1" />Hochladen
+                  </Button>
+                )}
+              </div>
+
+              <p className="text-[11px] text-muted-foreground pt-1 border-t">
+                Beides ist optional — der Fall kann auch ohne Rechnung abgeschlossen werden, falls die Werkstatt direkt mit der Versicherung abrechnet.
+              </p>
+            </div>
+
+            {/* Abschluss-Notiz */}
+            <div className="space-y-1.5">
+              <Label htmlFor="close-note" className="text-sm">Abschluss-Notiz <span className="text-muted-foreground font-normal">(optional, für die Akte)</span></Label>
+              <Textarea id="close-note" placeholder="z.B. Reparatur durch Werkstatt erfolgreich durchgeführt am ..., Rechnung erhalten, Schadensanzeige bei UNIQA eingereicht."
+                value={closeNote} onChange={e => setCloseNote(e.target.value)} rows={4} className="resize-none text-sm" />
+              <p className="text-[11px] text-muted-foreground">Diese Notiz erscheint im Verlauf des Falls.</p>
+            </div>
+
+            {closeError && (
+              <div className="rounded-lg bg-red-50 border border-red-200 px-3 py-2 text-sm text-red-800">{closeError}</div>
+            )}
+          </div>
+
+          <div className="px-6 py-4 border-t flex flex-col-reverse sm:flex-row sm:justify-end gap-2 bg-muted/20">
+            <Button variant="outline" onClick={() => setCloseDialogOpen(false)} disabled={isClosingCase}>Abbrechen</Button>
+            <Button className="bg-green-700 hover:bg-green-800 text-white" disabled={isClosingCase}
+              onClick={async () => {
+                setIsClosingCase(true); setCloseError(null)
+                try {
+                  const note = closeNote.trim() || 'Schaden behoben — Fall abgeschlossen.'
+                  const res = await fetch(`/api/hv/cases/${id}`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ new_status: 'erledigt', comment: note })
+                  })
+                  if (!res.ok) throw new Error((await res.json()).error || 'Fehler')
+                  setSchnellSuccess('✓ Fall erfolgreich abgeschlossen')
+                  setCloseDialogOpen(false)
+                  await fetchCase()
+                } catch (err) {
+                  setCloseError(err instanceof Error ? err.message : 'Fehler')
+                } finally {
+                  setIsClosingCase(false)
+                }
+              }}>
+              {isClosingCase ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <CheckCircle2 className="mr-2 h-4 w-4" />}
+              Fall jetzt abschließen
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* PROJ-23 Erweiterung: Mietvertrag-PDF Sheet */}
       <Sheet open={leaseSheetOpen} onOpenChange={setLeaseSheetOpen}>
