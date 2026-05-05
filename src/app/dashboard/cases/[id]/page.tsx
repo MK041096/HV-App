@@ -454,6 +454,12 @@ export default function CaseDetailPage({
   const [insuranceSheetLoading, setInsuranceSheetLoading] = useState(false)
   const [insuranceSheetData, setInsuranceSheetData] = useState<{ name: string; pdfUrl: string; clause: string | null } | null>(null)
   const [insuranceSheetError, setInsuranceSheetError] = useState<string | null>(null)
+
+  // Mietvertrag-PDF Sheet (PROJ-23 Erweiterung)
+  const [leaseSheetOpen, setLeaseSheetOpen] = useState(false)
+  const [leaseSheetLoading, setLeaseSheetLoading] = useState(false)
+  const [leaseSheetData, setLeaseSheetData] = useState<{ name: string; pdfUrl: string; hint: string | null } | null>(null)
+  const [leaseSheetError, setLeaseSheetError] = useState<string | null>(null)
   const [aktionSuccess, setAktionSuccess] = useState<string | null>(null)
   const [aktionError, setAktionError] = useState<string | null>(null)
 
@@ -957,6 +963,34 @@ export default function CaseDetailPage({
       setInsuranceSheetError(err instanceof Error ? err.message : 'Fehler')
     } finally {
       setInsuranceSheetLoading(false)
+    }
+  }
+
+  // ── Helper: Erkennt ob CARL den Mietvertrag in der Rechtsgrundlage zitiert ──
+  // Match auf "Mietvertrag § X" oder "MV § X" — case-insensitive
+  const extractMietvertragRef = (rechtsgrundlage: string | null | undefined): string | null => {
+    if (!rechtsgrundlage) return null
+    const match = rechtsgrundlage.match(/(?:Mietvertrag|MV)\s*§\s*\d+(?:\s*Abs\.\s*\d+)?/i)
+    return match ? match[0] : null
+  }
+
+  // ── Lädt Mietvertrag-PDF + CARL-Hinweis ──
+  const openLeaseSheet = async () => {
+    setLeaseSheetOpen(true)
+    setLeaseSheetLoading(true)
+    setLeaseSheetError(null)
+    setLeaseSheetData(null)
+    try {
+      const res = await fetch(`/api/hv/cases/${id}/mietvertrag-pdf`)
+      if (!res.ok) {
+        const j = await res.json().catch(() => ({}))
+        throw new Error(j.error || 'Mietvertrag nicht verfügbar')
+      }
+      setLeaseSheetData(await res.json())
+    } catch (err) {
+      setLeaseSheetError(err instanceof Error ? err.message : 'Fehler')
+    } finally {
+      setLeaseSheetLoading(false)
     }
   }
 
@@ -1700,6 +1734,91 @@ export default function CaseDetailPage({
                 <p className="text-[11px] text-muted-foreground pt-2 border-t">
                   Quelle: {legalSheetData.country === 'AT' ? 'Republik Österreich · Rechtsinformationssystem (RIS)' : 'Bundesministerium der Justiz · gesetze-im-internet.de'} · Zuletzt verifiziert: {new Date(legalSheetData.last_verified_at).toLocaleDateString('de-AT')}
                 </p>
+
+                {/* Mietvertrag-Verweis: zeigt Button wenn CARL einen MV-Paragraf zitiert hat */}
+                {(() => {
+                  const mvRef = extractMietvertragRef(carlData?.rechtsgrundlage)
+                  if (!mvRef) return null
+                  return (
+                    <div className="rounded-lg border-2 border-amber-200 bg-amber-50/50 p-4 mt-4 space-y-2">
+                      <p className="text-xs font-semibold text-amber-900 uppercase tracking-wide flex items-center gap-1.5">
+                        📜 CARL zitiert auch den Mietvertrag
+                      </p>
+                      <p className="text-sm text-amber-900">
+                        Die Rechtsgrundlage verweist zusätzlich auf <strong>{mvRef}</strong>. Im Mietvertrag-PDF prüfen?
+                      </p>
+                      <Button
+                        size="sm"
+                        className="bg-amber-700 hover:bg-amber-800 text-white text-xs"
+                        onClick={() => {
+                          setLegalSheetOpen(false)
+                          openLeaseSheet()
+                        }}
+                      >
+                        <FileSearch className="h-3.5 w-3.5 mr-1.5"/>Mietvertrag öffnen ({mvRef})
+                      </Button>
+                    </div>
+                  )
+                })()}
+              </>
+            )}
+          </div>
+        </SheetContent>
+      </Sheet>
+
+      {/* PROJ-23 Erweiterung: Mietvertrag-PDF Sheet */}
+      <Sheet open={leaseSheetOpen} onOpenChange={setLeaseSheetOpen}>
+        <SheetContent className="w-full sm:max-w-3xl overflow-y-auto">
+          <SheetHeader className="space-y-1">
+            <SheetTitle className="flex items-center gap-2">
+              <span className="text-lg">📜</span>
+              {leaseSheetData?.name || 'Mietvertrag'}
+            </SheetTitle>
+            <SheetDescription>
+              Original-Mietvertrag dieser Wohneinheit — relevant für die juristische Einschätzung
+            </SheetDescription>
+          </SheetHeader>
+
+          <div className="mt-6 space-y-3">
+            {leaseSheetLoading && (
+              <div className="flex items-center gap-2 py-12 justify-center text-muted-foreground">
+                <Loader2 className="h-4 w-4 animate-spin"/>Lade Mietvertrag…
+              </div>
+            )}
+            {leaseSheetError && (
+              <div className="rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 text-sm text-amber-900">
+                {leaseSheetError}
+              </div>
+            )}
+            {leaseSheetData && (
+              <>
+                {leaseSheetData.hint && (() => {
+                  const mvRef = extractMietvertragRef(carlData?.rechtsgrundlage)
+                  return (
+                    <div className="rounded-lg border-2 border-amber-300 bg-amber-50 p-3 space-y-1.5">
+                      <p className="text-[11px] font-semibold text-amber-800 uppercase tracking-wide">CARL hat aus dem Mietvertrag entnommen:</p>
+                      <p className="text-sm text-amber-900 leading-relaxed">{leaseSheetData.hint}</p>
+                      {mvRef && (
+                        <p className="text-xs text-amber-700 pt-1">
+                          Relevant: <strong>{mvRef}</strong> — im PDF unten mit Strg+F suchen
+                        </p>
+                      )}
+                    </div>
+                  )
+                })()}
+                <PdfViewer pdfUrl={leaseSheetData.pdfUrl} highlightText={extractMietvertragRef(carlData?.rechtsgrundlage)} />
+                <div className="flex gap-2 pt-2">
+                  <Button asChild variant="outline" size="sm" className="text-xs">
+                    <a href={leaseSheetData.pdfUrl} target="_blank" rel="noopener noreferrer">
+                      <ExternalLink className="h-3 w-3 mr-1.5"/>In neuem Tab öffnen
+                    </a>
+                  </Button>
+                  <Button asChild variant="outline" size="sm" className="text-xs">
+                    <a href={leaseSheetData.pdfUrl} download>
+                      <FileSearch className="h-3 w-3 mr-1.5"/>Herunterladen
+                    </a>
+                  </Button>
+                </div>
               </>
             )}
           </div>
