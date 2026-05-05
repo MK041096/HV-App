@@ -588,28 +588,60 @@ export default function CaseDetailPage({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [caseData?.id])
 
-  // Auto-suggest contractor based on damage category
+  // Mieter-Absage-Begründung mit CARL's MIETERINFO vorbefüllen
+  // (HV kann editieren, aber muss nicht von Null anfangen)
+  useEffect(() => {
+    if (!kiResult || ablehnungText.trim()) return
+    const carlSections = parseCarlAnalysis(kiResult)
+    if (carlSections.mieterinfo) {
+      setAblehnungText(carlSections.mieterinfo)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [kiResult])
+
+  // Auto-Vorauswahl der von CARL empfohlenen Werkstatt:
+  // 1. Erste Wahl: CARL hat eine konkrete Werkstatt im 'WERKSTATT:'-Feld benannt → nehme die
+  // 2. Fallback: keine CARL-Empfehlung → nimm die erste passende Werkstatt der Kategorie
   useEffect(() => {
     if (!caseData || contractors.length === 0 || selectedContractorId) return
+
+    // 1. CARL-Empfehlung aus Analysetext parsen
+    if (kiResult) {
+      const carlSections = parseCarlAnalysis(kiResult)
+      const empfohleneWerkstatt = carlSections.werkstatt?.trim()
+      if (empfohleneWerkstatt
+          && empfohleneWerkstatt.toLowerCase() !== 'keine passende partnerwerkstatt'
+          && empfohleneWerkstatt.toLowerCase() !== 'keine werkstätten hinterlegt') {
+        const carlMatch = contractors.find(c =>
+          c.company.toLowerCase() === empfohleneWerkstatt.toLowerCase() ||
+          empfohleneWerkstatt.toLowerCase().includes(c.company.toLowerCase()) ||
+          c.company.toLowerCase().includes(empfohleneWerkstatt.toLowerCase())
+        )
+        if (carlMatch) {
+          setSelectedContractorId(carlMatch.id)
+          return
+        }
+      }
+    }
+
+    // 2. Fallback: Kategorie-basiertes Matching
     const categoryToSpecialty: Record<string, string> = {
-      wasserschaden: 'wasser',
+      wasserschaden: 'wasserschaden',
       heizung: 'heizung',
       elektrik: 'elektrik',
       fenster_tueren: 'fenster_tueren',
-      boeden_waende: 'boeden',
+      boeden_waende: 'boeden_waende',
       schimmel: 'schimmel',
-      sanitaer: 'wasser',
+      sanitaer: 'sanitaer',
       aussenbereich: 'aussenbereich',
-      sonstiges: 'allgemein',
+      sonstiges: 'sonstiges',
     }
     const neededSpecialty = categoryToSpecialty[caseData.category]
     if (!neededSpecialty) return
-    const match =
-      contractors.find(c => c.specialties.includes(neededSpecialty)) ||
-      contractors.find(c => c.specialties.includes('allgemein'))
+    const match = contractors.find(c => c.specialties.includes(neededSpecialty))
     if (match) setSelectedContractorId(match.id)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [caseData?.id, contractors])
+  }, [caseData?.id, contractors, kiResult])
 
   // ── Actions ──
 
@@ -874,18 +906,22 @@ export default function CaseDetailPage({
   const statusConfig = getStatusConfig(caseData.status)
 
 
-  // ── Parse CARL structured output (inline, for verdict bar) ──
+  // ── Parse CARL structured output (inline) ──
   const parseCarlAnalysis = (text: string) => {
     const get = (key: string) => text.match(new RegExp('^' + key + ':\\s*(.+)', 'mi'))?.[1]?.trim() ?? null
     const zustaendigkeit = get('ZUSTÄNDIGKEIT') || get('ZUSTäNDIGKEIT') || get('ZUSTAENDIGKEIT')
     const erklaerungMatch = text.match(/^(?:BEGRÜNDUNG|ERKLÄRUNG):\s*([\s\S]+?)(?:\n[A-ZÜÄÖ_]{3,}:|$)/mi)
+    // MIETERINFO ist mehrzeilig — bis zum nächsten Schlüsselwort
+    const mieterinfoMatch = text.match(/^MIETERINFO:\s*([\s\S]+?)(?:\n[A-ZÜÄÖ_]{3,}:|$)/mi)
     const suchempfehlung = get('SUCHEMPFEHLUNG')
     return {
       zustaendigkeit,
       rechtsgrundlage: get('RECHTSGRUNDLAGE'),
       versicherung: get('VERSICHERUNG'),
       empfehlung: get('EMPFEHLUNG'),
+      werkstatt: get('WERKSTATT'),
       erklaerung: erklaerungMatch?.[1]?.trim() ?? null,
+      mieterinfo: mieterinfoMatch?.[1]?.trim() ?? null,
       suchempfehlung: suchempfehlung && suchempfehlung !== 'NICHT_NOETIG' ? suchempfehlung : null,
     }
   }
@@ -1344,7 +1380,16 @@ export default function CaseDetailPage({
                             </Select>
                           </div>
                         )}
-                        {caseData.preferred_appointment&&<p className="text-xs text-muted-foreground">Wunschtermin: <span className="font-medium text-foreground">{formatDateTime(caseData.preferred_appointment)}</span></p>}
+                        {(caseData.preferred_appointment || caseData.preferred_appointment_2) && (
+                          <div className="text-xs text-muted-foreground space-y-0.5">
+                            {caseData.preferred_appointment && (
+                              <p>Wunschtermin{caseData.preferred_appointment_2 ? ' 1' : ''}: <span className="font-medium text-foreground">{formatDateTime(caseData.preferred_appointment)}</span></p>
+                            )}
+                            {caseData.preferred_appointment_2 && (
+                              <p>Wunschtermin 2: <span className="font-medium text-foreground">{formatDateTime(caseData.preferred_appointment_2)}</span></p>
+                            )}
+                          </div>
+                        )}
 
                         {/* Analyse bestätigen */}
                         <div className="space-y-1">
