@@ -83,16 +83,16 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
     const appointmentDate = scheduled_appointment || report.preferred_appointment || null
 
-    // Load current status
-    const { data: currentStatusData } = await supabase
+    // Load current status (via admin client — Tenant-Isolation oben bereits verifiziert)
+    const { data: currentStatusData } = await adminClient
       .from('damage_reports')
       .select('status')
       .eq('id', id)
       .eq('organization_id', profile.organization_id)
       .single()
 
-    // Update damage report
-    await supabase.from('damage_reports').update({
+    // Update damage report (admin client — bypass RLS, da Auth+Role+Tenant manuell geprüft)
+    const { error: updateError } = await adminClient.from('damage_reports').update({
       status: 'warte_auf_handwerker',
       assigned_to_name: contractor.name,
       assigned_to_company: contractor.company,
@@ -100,16 +100,25 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       assigned_to_phone: contractor.phone,
       scheduled_appointment: appointmentDate,
       updated_at: new Date().toISOString(),
-    }).eq('id', id)
+    }).eq('id', id).eq('organization_id', profile.organization_id)
 
-    // Save to status history so portal shows who was assigned
-    await supabase.from('damage_report_status_history').insert({
+    if (updateError) {
+      console.error('Status-Update fehlgeschlagen:', updateError)
+      return NextResponse.json({ error: 'Status-Update fehlgeschlagen', details: updateError.message }, { status: 500 })
+    }
+
+    // Save to status history so portal shows who was assigned (via admin client)
+    const { error: historyError } = await adminClient.from('damage_report_status_history').insert({
       damage_report_id: id,
       old_status: currentStatusData?.status ?? null,
       new_status: 'warte_auf_handwerker',
       note: `Weitergeleitet an ${contractor.company} (${contractor.name})`,
       changed_by: user.id,
     })
+
+    if (historyError) {
+      console.error('Status-History fehlgeschlagen (non-blocking):', historyError)
+    }
 
     // Create appointment token (contractor_id may be null for manual contractors)
     const { data: tokenData } = await adminClient.from('appointment_tokens').insert({

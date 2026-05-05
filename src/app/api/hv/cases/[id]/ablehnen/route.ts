@@ -26,15 +26,17 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       return NextResponse.json({ error: 'Keine Berechtigung' }, { status: 403 })
     }
 
-    // Load current status + update
-    const { data: currentReport } = await supabase
+    const adminClient = createAdminClient()
+
+    // Load current status + update via admin client (Tenant manuell geprüft)
+    const { data: currentReport } = await adminClient
       .from('damage_reports')
       .select('status')
       .eq('id', id)
       .eq('organization_id', profile.organization_id)
       .single()
 
-    const { data: report, error: updateError } = await supabase
+    const { data: report, error: updateError } = await adminClient
       .from('damage_reports')
       .update({ status: 'abgelehnt', updated_at: new Date().toISOString() })
       .eq('id', id)
@@ -43,17 +45,22 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       .single()
 
     if (updateError || !report) {
-      return NextResponse.json({ error: 'Fall nicht gefunden' }, { status: 404 })
+      console.error('Ablehnen Update-Fehler:', updateError)
+      return NextResponse.json({ error: 'Fall nicht gefunden', details: updateError?.message }, { status: 404 })
     }
 
     // Save to status history so begründung appears in portal
-    await supabase.from('damage_report_status_history').insert({
+    const { error: historyError } = await adminClient.from('damage_report_status_history').insert({
       damage_report_id: id,
       old_status: currentReport?.status ?? null,
       new_status: 'abgelehnt',
       note: begruendung.trim(),
       changed_by: user.id,
     })
+
+    if (historyError) {
+      console.error('Ablehnen Status-History-Fehler (non-blocking):', historyError)
+    }
 
     // Fire-and-forget: send rejection email to tenant
     ;(async () => {
