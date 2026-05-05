@@ -1,6 +1,7 @@
 import Anthropic from '@anthropic-ai/sdk'
 import { SupabaseClient } from '@supabase/supabase-js'
 import { extractLiegenschaftFromAddress } from './liegenschaft'
+import { pdfParse } from './pdf-parse'
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
@@ -13,6 +14,9 @@ const CATEGORY_LABELS: Record<string, string> = {
 export interface KiAnalyseResult {
   analysisText: string
   leaseFound: boolean
+  insuranceFound: boolean
+  photoCount: number
+  recommendedContractorId: string | null
 }
 
 const CARL_SYSTEM_PROMPT = `Du bist CARL — der KI-Experte von SMARTCARL für Mietrecht und Schadensmeldungsbearbeitung im deutschsprachigen Raum (Österreich, Deutschland, Schweiz).
@@ -193,7 +197,8 @@ WERKSTATT: [Firmenname aus der Liste / Keine passende Partnerwerkstatt / Keine W
 WERKSTATT_BEGRUENDUNG: [1 Satz warum genau diese Werkstatt für diesen Schaden]
 SUCHEMPFEHLUNG: [Nur wenn WERKSTATT = 'Keine Werkstätten hinterlegt': 2-3 konkrete Suchbegriffe für Google mit Stadt/Region aus der Adresse z.B. 'Installateur Rohrbruch Wien', 'SHK Notdienst Berlin', 'Elektriker München Notfall'. Sonst: NICHT_NOETIG]
 VERSICHERUNG: [Name der passenden Police aus der Liste / Keine / Prüfen]
-VERSICHERUNG_BEGRUENDUNG: [1 Satz warum diese Versicherung greift oder nicht]
+VERSICHERUNG_BEGRUENDUNG: [PFLICHTFELD — IMMER 1 Satz, auch wenn VERSICHERUNG = Keine. Beispiele: Bei "Keine": "Defekt an Erhaltungsanlage — kein versichertes Ereignis (kein Wasseraustritt, kein Sturm, kein Glasbruch)." Bei Police: "Schaden an wasserführender Leitung im Mauerwerk fällt unter Leitungswasser-Police der Liegenschaft." NIEMALS leer lassen — die HV muss nachvollziehen können, warum eine Police greift oder nicht.]
+VERSICHERUNG_KLAUSEL: [WÖRTLICHES ZITAT (max. 200 Zeichen) aus der Police-PDF, das die Deckung belegt. Nur wenn eine Police als PDF im Kontext beigefügt war UND VERSICHERUNG ungleich Keine. Sonst: NICHT_VERFUEGBAR. Das Zitat MUSS exakt im PDF-Text vorhanden sein — keine Paraphrase, keine Zusammenfassung, kein Zitat aus dem Police-Namen. Beispiel: "Versichert sind Schäden durch bestimmungswidrig austretendes Leitungswasser aus den Zuleitungs- und Ableitungsrohren der Wasserversorgung." Falls die Police-PDF keine eindeutige Klausel zum vorliegenden Schaden enthält: NICHT_VERFUEGBAR.]
 EMPFEHLUNG: [DIREKTE ANWEISUNG AN DIE HV, 1 Satz im Imperativ. Beispiele: "Werkstatt X mit Schadensaufnahme beauftragen.", "Leitungswasserversicherung melden, Werkstatt X parallel beauftragen.", "Mieter über Eigenverantwortung informieren — keine Werkstattbeauftragung." NIEMALS im Stil "Bitte melden Sie..." weil das wäre an den Mieter gerichtet.]
 
 BEGRUENDUNG:
@@ -222,6 +227,7 @@ WERKSTATT_BEGRUENDUNG: 24h-Notdienst für Sanitär-Installationen, spezialisiert
 SUCHEMPFEHLUNG: NICHT_NOETIG
 VERSICHERUNG: Leitungswasserversicherung Wiener Städtische
 VERSICHERUNG_BEGRUENDUNG: Schaden an wasserführender Leitung im Mauerwerk fällt unter Leitungswasser-Police der Liegenschaft.
+VERSICHERUNG_KLAUSEL: Versichert sind Schäden durch bestimmungswidrig austretendes Leitungswasser aus den Zuleitungs- und Ableitungsrohren der Wasserversorgung.
 EMPFEHLUNG: Pappel Installationen mit Schadensaufnahme beauftragen, parallel Versicherung melden.
 
 BEGRUENDUNG:
@@ -330,7 +336,7 @@ export async function runKiAnalyse(params: {
   // ── 3. Partnerwerkstätten laden ───────────────────────────────────────────
   const { data: contractors } = await supabase
     .from('contractors')
-    .select('company, name, specialties, description, notes, carl_hint, search_keywords')
+    .select('id, company, name, specialties, description, notes, carl_hint, search_keywords')
     .eq('organization_id', organizationId)
     .eq('is_active', true)
 
@@ -352,18 +358,18 @@ export async function runKiAnalyse(params: {
     }).join('\n')
   }
 
-  // ── 4. Versicherungspolicen laden ─────────────────────────────────────────
+  // ── 4. Versicherungspolicen laden + Texte extrahieren ─────────────────────
   // 4a. Liegenschafts-Policen (für das gesamte Gebäude)
   // 4b. Einheits-Policen (speziell für diese Wohnung)
   const liegenschaft = unitAddress ? extractLiegenschaftFromAddress(unitAddress) : null
   let insuranceText = 'Keine Versicherungspolicen hinterlegt.'
 
-  const insurancePolicies: { name: string; scope: string }[] = []
+  const insurancePolicies: { name: string; scope: string; id: string; file_path: string; mime_type: string | null }[] = []
 
   if (liegenschaft) {
     const { data: lgPolicies } = await supabase
       .from('documents')
-      .select('name')
+      .select('id, name, file_path, mime_type')
       .eq('organization_id', organizationId)
       .eq('document_type', 'versicherung')
       .eq('liegenschaft', liegenschaft)
@@ -371,28 +377,47 @@ export async function runKiAnalyse(params: {
       .eq('is_deleted', false)
 
     if (lgPolicies) {
-      lgPolicies.forEach(p => insurancePolicies.push({ name: p.name, scope: 'Liegenschaft' }))
+      lgPolicies.forEach(p => insurancePolicies.push({ id: p.id, name: p.name, file_path: p.file_path, mime_type: p.mime_type, scope: 'Liegenschaft' }))
     }
   }
 
   if (unitId) {
     const { data: unitPolicies } = await supabase
       .from('documents')
-      .select('name')
+      .select('id, name, file_path, mime_type')
       .eq('organization_id', organizationId)
       .eq('document_type', 'versicherung')
       .eq('unit_id', unitId)
       .eq('is_deleted', false)
 
     if (unitPolicies) {
-      unitPolicies.forEach(p => insurancePolicies.push({ name: p.name, scope: `Einheit ${unitName || ''}` }))
+      unitPolicies.forEach(p => insurancePolicies.push({ id: p.id, name: p.name, file_path: p.file_path, mime_type: p.mime_type, scope: `Einheit ${unitName || ''}` }))
     }
   }
 
   if (insurancePolicies.length > 0) {
-    insuranceText = insurancePolicies
-      .map(p => `- ${p.name} [${p.scope}]`)
-      .join('\n')
+    // Texte aus PDFs extrahieren — für Klausel-Zitat-Extraktion durch CARL
+    const policyTextBlocks: string[] = []
+    for (const policy of insurancePolicies) {
+      let extractedText = ''
+      if (policy.mime_type === 'application/pdf') {
+        try {
+          const { data: fileData } = await supabase.storage.from('documents').download(policy.file_path)
+          if (fileData) {
+            const buffer = Buffer.from(await fileData.arrayBuffer())
+            const parsed = await pdfParse(buffer)
+            // Limit: 8000 Zeichen pro Police, um Token-Budget zu schonen
+            extractedText = (parsed.text || '').slice(0, 8000)
+          }
+        } catch (err) {
+          console.error(`Police-PDF Extraktion fehlgeschlagen (${policy.name}):`, err)
+        }
+      }
+      policyTextBlocks.push(
+        `═══ POLICE: ${policy.name} [${policy.scope}] ═══\n${extractedText || '(PDF-Text nicht extrahierbar — analysiere nur nach Police-Name + Standardwissen)'}\n`
+      )
+    }
+    insuranceText = policyTextBlocks.join('\n')
   }
 
   // ── 5. Schadensdaten zusammenstellen ─────────────────────────────────────
@@ -413,8 +438,10 @@ export async function runKiAnalyse(params: {
 PARTNERWERKSTÄTTEN DIESER HAUSVERWALTUNG:
 ${contractorsText}
 
-VERFÜGBARE VERSICHERUNGSPOLICEN:
+VERFÜGBARE VERSICHERUNGSPOLICEN (Volltext aus PDF):
 ${insuranceText}
+
+WICHTIG zum Feld VERSICHERUNG_KLAUSEL: Wenn eine Police greift, suche im obigen Police-Volltext eine konkrete Stelle (max. 200 Zeichen) die die Deckung explizit benennt — und gib sie WÖRTLICH wieder. Keine Paraphrase.
 `
 
   const leaseInstruction = leaseFound
@@ -447,7 +474,7 @@ Analysiere diese Schadensmeldung vollständig. Wähle die passendste Werkstatt a
 
   const response = await anthropic.messages.create({
     model: 'claude-sonnet-4-6',
-    max_tokens: 1500,
+    max_tokens: 1800,
     temperature: 0, // Deterministisch — gleicher Schaden = gleiche Analyse
     system: CARL_SYSTEM_PROMPT,
     messages: [{ role: 'user', content: userContent }],
@@ -458,7 +485,23 @@ Analysiere diese Schadensmeldung vollständig. Wähle die passendste Werkstatt a
     .map((b) => (b as Anthropic.TextBlock).text)
     .join('\n')
 
-  // ── 7. Ergebnis speichern ─────────────────────────────────────────────────
+  // ── 7. Werkstatt-Match aus CARLs WERKSTATT-Feld ───────────────────────────
+  let recommendedContractorId: string | null = null
+  if (contractors && contractors.length > 0) {
+    const werkstattMatch = analysisText.match(/^WERKSTATT:\s*(.+)$/mi)
+    if (werkstattMatch) {
+      const named = werkstattMatch[1].trim().replace(/[*_]/g, '').toLowerCase()
+      if (named && !named.startsWith('keine')) {
+        const found = contractors.find(ct => {
+          const company = (ct.company || '').toLowerCase()
+          return company && (named.includes(company) || company.includes(named))
+        })
+        if (found) recommendedContractorId = found.id
+      }
+    }
+  }
+
+  // ── 8. Ergebnis speichern ─────────────────────────────────────────────────
   // urgency wird NICHT mehr von CARL überschrieben — die Dringlichkeit liegt in der
   // Hand der HV (nicht der Algorithmus, nicht der Mieter). DB-Spalte bleibt erhalten.
   await supabase
@@ -470,5 +513,11 @@ Analysiere diese Schadensmeldung vollständig. Wähle die passendste Werkstatt a
     .eq('id', reportId)
     .eq('organization_id', organizationId)
 
-  return { analysisText, leaseFound }
+  return {
+    analysisText,
+    leaseFound,
+    insuranceFound: insurancePolicies.length > 0,
+    photoCount: photoBlocks.length,
+    recommendedContractorId,
+  }
 }

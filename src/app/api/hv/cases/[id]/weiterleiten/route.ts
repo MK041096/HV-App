@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { waitUntil } from '@vercel/functions'
 import { createServerSupabaseClient, createAdminClient } from '@/lib/supabase-server'
 import { sendWeiterleitungTenantEmail, sendContractorEmail } from '@/lib/email'
 
@@ -10,7 +11,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     if (!user) return NextResponse.json({ error: 'Nicht authentifiziert' }, { status: 401 })
 
     const body = await request.json()
-    const { contractor_id, manual_contractor, scheduled_appointment, save_to_list } = body
+    const { contractor_id, manual_contractor, scheduled_appointment, save_to_list, personal_note } = body
 
     // Either contractor_id (from list) or manual_contractor (name + email + phone) must be provided
     if (!contractor_id && (!manual_contractor?.name || !manual_contractor?.email || !manual_contractor?.phone)) {
@@ -126,8 +127,8 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       })
     }
 
-    // Fire-and-forget: emails
-    ;(async () => {
+    // Mail-Versand mit waitUntil — Vercel sorgt dafür, dass die Tasks nicht abgebrochen werden
+    waitUntil((async () => {
       try {
         const [{ data: tenantProfile }, { data: unit }, { data: org }, { data: { users } }] = await Promise.all([
           adminClient.from('profiles').select('id, first_name, last_name, phone').eq('id', report.reporter_id).single(),
@@ -174,12 +175,13 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
             tokenUrl,
             orgName,
             orgPhone: (org as any)?.phone,
+            personalNote: personal_note || null,
           }),
         ])
       } catch (err) {
         console.error('Weiterleiten E-Mail Fehler:', err)
       }
-    })()
+    })())
 
     return NextResponse.json({ success: true, token_url: tokenUrl })
   } catch (err) {

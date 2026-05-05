@@ -75,6 +75,14 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet"
+import { PdfViewer } from "@/components/pdf-viewer"
 
 import {
   CASE_STATUSES,
@@ -132,8 +140,6 @@ interface CaseDetail {
   subcategory: string | null
   status: string
   status_label: string
-  urgency: string
-  urgency_label: string
   room: string | null
   access_notes: string | null
   preferred_appointment: string | null
@@ -428,6 +434,26 @@ export default function CaseDetailPage({
   const [schnellError, setSchnellError] = useState<string | null>(null)
   const [schnellSuccess, setSchnellSuccess] = useState<string | null>(null)
   const [showContractorChange, setShowContractorChange] = useState(false)
+
+  // Werkstatt-Mail-Vorschau Dialog
+  const [previewOpen, setPreviewOpen] = useState(false)
+  const [previewLoading, setPreviewLoading] = useState(false)
+  const [previewError, setPreviewError] = useState<string | null>(null)
+  const [previewData, setPreviewData] = useState<{ to: string; subject: string; html: string } | null>(null)
+  const [personalNote, setPersonalNote] = useState('')
+
+  // Rechtsgrundlage-Sheet (PROJ-23)
+  const [legalSheetOpen, setLegalSheetOpen] = useState(false)
+  const [legalSheetLoading, setLegalSheetLoading] = useState(false)
+  const [legalSheetData, setLegalSheetData] = useState<{ paragraph: string; country: string; law: string; title: string; text: string; source_url: string; last_verified_at: string } | null>(null)
+  const [legalSheetError, setLegalSheetError] = useState<string | null>(null)
+  const [legalSheetParagraph, setLegalSheetParagraph] = useState<string | null>(null)
+
+  // Versicherungs-PDF Sheet (PROJ-23)
+  const [insuranceSheetOpen, setInsuranceSheetOpen] = useState(false)
+  const [insuranceSheetLoading, setInsuranceSheetLoading] = useState(false)
+  const [insuranceSheetData, setInsuranceSheetData] = useState<{ name: string; pdfUrl: string; clause: string | null } | null>(null)
+  const [insuranceSheetError, setInsuranceSheetError] = useState<string | null>(null)
   const [aktionSuccess, setAktionSuccess] = useState<string | null>(null)
   const [aktionError, setAktionError] = useState<string | null>(null)
 
@@ -882,6 +908,58 @@ export default function CaseDetailPage({
 
   const statusConfig = getStatusConfig(caseData.status)
 
+  // ── Helper: Extrahiert Paragraf aus RECHTSGRUNDLAGE-Text ──
+  // z.B. "Österreich — MRG § 8 Abs. 2 i.V.m. ..." → "MRG § 8"
+  // Absatz/Ziffer bewusst weglassen — DB hat den Paragraf-Volltext, der alle Absätze enthält
+  const extractParagraph = (rechtsgrundlage: string | null | undefined): string | null => {
+    if (!rechtsgrundlage) return null
+    const match = rechtsgrundlage.match(/(MRG|ABGB|BGB|WEG)\s*§\s*(\d+)/i)
+    if (!match) return null
+    return `${match[1].toUpperCase()} § ${match[2]}`
+  }
+
+  // ── Lädt Volltext zu Paragraf via API ──
+  const openLegalSheet = async (paragraph: string) => {
+    setLegalSheetParagraph(paragraph)
+    setLegalSheetOpen(true)
+    setLegalSheetLoading(true)
+    setLegalSheetError(null)
+    setLegalSheetData(null)
+    try {
+      const res = await fetch(`/api/legal/${encodeURIComponent(paragraph)}`)
+      if (res.status === 404) {
+        setLegalSheetError(`Volltext für ${paragraph} ist noch nicht hinterlegt. Bitte direkt in der offiziellen Quelle prüfen.`)
+        return
+      }
+      if (!res.ok) throw new Error('Fehler beim Laden')
+      setLegalSheetData(await res.json())
+    } catch (err) {
+      setLegalSheetError(err instanceof Error ? err.message : 'Fehler')
+    } finally {
+      setLegalSheetLoading(false)
+    }
+  }
+
+  // ── Lädt Versicherungs-PDF + Klausel ──
+  const openInsuranceSheet = async () => {
+    setInsuranceSheetOpen(true)
+    setInsuranceSheetLoading(true)
+    setInsuranceSheetError(null)
+    setInsuranceSheetData(null)
+    try {
+      const res = await fetch(`/api/hv/cases/${id}/insurance-clause`)
+      if (!res.ok) {
+        const j = await res.json().catch(() => ({}))
+        throw new Error(j.error || 'Police nicht verfügbar')
+      }
+      setInsuranceSheetData(await res.json())
+    } catch (err) {
+      setInsuranceSheetError(err instanceof Error ? err.message : 'Fehler')
+    } finally {
+      setInsuranceSheetLoading(false)
+    }
+  }
+
 
   // ── Parse CARL structured output (inline) ──
   const parseCarlAnalysis = (text: string) => {
@@ -895,8 +973,10 @@ export default function CaseDetailPage({
       zustaendigkeit,
       rechtsgrundlage: get('RECHTSGRUNDLAGE'),
       versicherung: get('VERSICHERUNG'),
+      versicherungBegruendung: get('VERSICHERUNG_BEGRUENDUNG'),
       empfehlung: get('EMPFEHLUNG'),
       werkstatt: get('WERKSTATT'),
+      werkstattBegruendung: get('WERKSTATT_BEGRUENDUNG'),
       erklaerung: erklaerungMatch?.[1]?.trim() ?? null,
       mieterinfo: mieterinfoMatch?.[1]?.trim() ?? null,
       suchempfehlung: suchempfehlung && suchempfehlung !== 'NICHT_NOETIG' ? suchempfehlung : null,
@@ -1052,14 +1132,45 @@ export default function CaseDetailPage({
                         <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1">👤 Zuständigkeit</p>
                         <p className={`font-bold text-base ${isMieterFall ? 'text-red-800' : isUnklarFall ? 'text-amber-800' : 'text-green-800'}`}>{carlData.zustaendigkeit || '—'}</p>
                       </div>
-                      <div className="rounded-xl border bg-muted/30 p-4">
-                        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1">⚖️ Rechtsgrundlage</p>
-                        <p className="font-medium text-sm">{carlData.rechtsgrundlage || '—'}</p>
-                      </div>
-                      <div className="rounded-xl border bg-muted/30 p-4">
-                        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1">🛡️ Versicherung</p>
-                        <p className="font-medium text-sm">{carlData.versicherung || '—'}</p>
-                      </div>
+                      {(() => {
+                        const para = extractParagraph(carlData.rechtsgrundlage)
+                        const clickable = !!para
+                        return (
+                          <button
+                            type="button"
+                            onClick={clickable ? () => openLegalSheet(para!) : undefined}
+                            disabled={!clickable}
+                            className={`group relative text-left rounded-xl border-2 p-4 transition-all ${clickable ? 'border-blue-200 bg-blue-50/40 hover:bg-blue-100/60 hover:border-blue-400 hover:shadow-md cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-400' : 'border-border bg-muted/30 cursor-default'}`}
+                          >
+                            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1 flex items-center justify-between gap-1.5">
+                              <span>⚖️ Rechtsgrundlage</span>
+                              {clickable && <span className="text-[10px] font-bold text-blue-700 normal-case bg-blue-100 px-1.5 py-0.5 rounded group-hover:bg-blue-200 transition">Volltext öffnen →</span>}
+                            </p>
+                            <p className="font-medium text-sm">{carlData.rechtsgrundlage || '—'}</p>
+                          </button>
+                        )
+                      })()}
+                      {(() => {
+                        const v = carlData.versicherung?.toLowerCase() || ''
+                        const clickable = !!carlData.versicherung && !v.startsWith('keine') && !v.startsWith('prüfen') && !v.startsWith('pruefen')
+                        return (
+                          <button
+                            type="button"
+                            onClick={clickable ? () => openInsuranceSheet() : undefined}
+                            disabled={!clickable}
+                            className={`group relative text-left rounded-xl border-2 p-4 transition-all ${clickable ? 'border-blue-200 bg-blue-50/40 hover:bg-blue-100/60 hover:border-blue-400 hover:shadow-md cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-400' : 'border-border bg-muted/30 cursor-default'}`}
+                          >
+                            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1 flex items-center justify-between gap-1.5">
+                              <span>🛡️ Versicherung</span>
+                              {clickable && <span className="text-[10px] font-bold text-blue-700 normal-case bg-blue-100 px-1.5 py-0.5 rounded group-hover:bg-blue-200 transition">Police öffnen →</span>}
+                            </p>
+                            <p className="font-medium text-sm">{carlData.versicherung || '—'}</p>
+                            {carlData.versicherungBegruendung && (
+                              <p className="text-xs text-muted-foreground mt-1.5 leading-snug">{carlData.versicherungBegruendung}</p>
+                            )}
+                          </button>
+                        )
+                      })()}
                       <div className="rounded-xl border bg-purple-50 border-purple-200 p-4">
                         <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1">🔧 Empfehlung</p>
                         <p className="font-medium text-sm text-purple-900">{carlData.empfehlung || '—'}</p>
@@ -1367,13 +1478,20 @@ export default function CaseDetailPage({
                           </div>
                         )}
 
-                        {/* Analyse bestätigen */}
+                        {/* Analyse bestätigen — öffnet Mail-Vorschau Dialog */}
                         <div className="space-y-1">
                           <Button className="w-full bg-green-700 hover:bg-green-800 text-white" disabled={isSendingSchnell||!selectedContractorId}
-                            onClick={async()=>{setIsSendingSchnell(true);setSchnellError(null);setSchnellSuccess(null);try{const res=await fetch(`/api/hv/cases/${id}/weiterleiten`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contractor_id:selectedContractorId,scheduled_appointment:caseData.preferred_appointment||null})});if(!res.ok)throw new Error((await res.json()).error);setSchnellSuccess('✓ Analyse bestätigt — Prozess gestartet');await fetchCase()}catch(err){setSchnellError(err instanceof Error?err.message:'Fehler')}finally{setIsSendingSchnell(false)}}}>
-                            {isSendingSchnell?<Loader2 className="mr-2 h-4 w-4 animate-spin"/>:<Send className="mr-2 h-4 w-4"/>}Analyse bestätigen
+                            onClick={async()=>{
+                              setPreviewError(null);setPreviewData(null);setPersonalNote('');setPreviewOpen(true);setPreviewLoading(true);
+                              try{
+                                const res=await fetch(`/api/hv/cases/${id}/weiterleiten/preview`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contractor_id:selectedContractorId})})
+                                if(!res.ok) throw new Error((await res.json()).error||'Vorschau fehlgeschlagen')
+                                setPreviewData(await res.json())
+                              }catch(err){setPreviewError(err instanceof Error?err.message:'Fehler')}finally{setPreviewLoading(false)}
+                            }}>
+                            <Send className="mr-2 h-4 w-4"/>Analyse bestätigen
                           </Button>
-                          <p className="text-xs text-muted-foreground text-center">Werkstatt wird beauftragt · Mieter & HV werden informiert</p>
+                          <p className="text-xs text-muted-foreground text-center">Werkstatt wird beauftragt · Mieter wird informiert</p>
                         </div>
 
                         {/* Externe Werkstatt — nur wenn CARL keine Empfehlung hat */}
@@ -1471,6 +1589,173 @@ export default function CaseDetailPage({
           </div>{/* end right column */}
         </div>{/* end grid */}
       </div>{/* end max-w container */}
+
+      {/* Werkstatt-Mail-Vorschau Dialog */}
+      <Dialog open={previewOpen} onOpenChange={(o)=>{ setPreviewOpen(o); if(!o){ setPreviewData(null); setPreviewError(null); setPersonalNote('') } }}>
+        <DialogContent className="max-w-3xl max-h-[90vh] flex flex-col p-0 gap-0">
+          <DialogHeader className="px-6 pt-6 pb-3 border-b">
+            <DialogTitle>Mail-Vorschau an Werkstatt</DialogTitle>
+            <DialogDescription>Diese Mail wird an die Werkstatt gesendet, sobald du auf "Senden" klickst. Optional: persönliche Nachricht ergänzen.</DialogDescription>
+          </DialogHeader>
+
+          <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
+            {previewLoading && (
+              <div className="flex items-center justify-center py-12 text-muted-foreground gap-2">
+                <Loader2 className="h-4 w-4 animate-spin"/>Vorschau wird erstellt…
+              </div>
+            )}
+            {previewError && <div className="rounded-lg bg-red-50 border border-red-200 px-3 py-2 text-sm text-red-800">{previewError}</div>}
+            {previewData && (
+              <>
+                <div className="rounded-lg border bg-muted/30 p-3 space-y-1.5 text-sm">
+                  <div className="flex gap-2"><span className="text-muted-foreground w-16 shrink-0">An:</span><span className="font-medium break-all">{previewData.to}</span></div>
+                  <div className="flex gap-2"><span className="text-muted-foreground w-16 shrink-0">Betreff:</span><span className="font-medium">{previewData.subject}</span></div>
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="personal-note" className="text-sm">Persönliche Nachricht (optional)</Label>
+                  <Textarea id="personal-note" placeholder="z.B. „Hallo Frau Müller, wie immer freundliche Grüße — bitte direkt mit dem Mieter koordinieren." value={personalNote} onChange={async(e)=>{
+                    const v=e.target.value;setPersonalNote(v);
+                    if(!selectedContractorId)return;
+                    try{
+                      const res=await fetch(`/api/hv/cases/${id}/weiterleiten/preview`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contractor_id:selectedContractorId,personal_note:v})})
+                      if(res.ok){ setPreviewData(await res.json()) }
+                    }catch{}
+                  }} rows={3} className="resize-none text-sm" />
+                  <p className="text-[11px] text-muted-foreground">Wird oben in der Mail eingebaut, gelb hervorgehoben.</p>
+                </div>
+                <div className="rounded-lg border bg-white overflow-hidden">
+                  <div className="px-3 py-1.5 bg-muted/40 border-b text-[11px] text-muted-foreground uppercase tracking-wide">Vorschau</div>
+                  <iframe srcDoc={previewData.html} className="w-full h-[450px] border-0" sandbox="" title="E-Mail Vorschau" />
+                </div>
+              </>
+            )}
+          </div>
+
+          <div className="px-6 py-4 border-t flex flex-col-reverse sm:flex-row sm:justify-end gap-2 bg-muted/20">
+            <Button variant="outline" onClick={()=>setPreviewOpen(false)} disabled={isSendingSchnell}>Abbrechen</Button>
+            <Button className="bg-green-700 hover:bg-green-800 text-white" disabled={isSendingSchnell||!previewData||!!previewError}
+              onClick={async()=>{
+                setIsSendingSchnell(true);setSchnellError(null);setSchnellSuccess(null);
+                try{
+                  const res=await fetch(`/api/hv/cases/${id}/weiterleiten`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contractor_id:selectedContractorId,scheduled_appointment:caseData?.preferred_appointment||null,personal_note:personalNote||null})})
+                  if(!res.ok)throw new Error((await res.json()).error)
+                  setSchnellSuccess('✓ Analyse bestätigt — Werkstatt + Mieter informiert')
+                  setPreviewOpen(false)
+                  await fetchCase()
+                }catch(err){setSchnellError(err instanceof Error?err.message:'Fehler')}finally{setIsSendingSchnell(false)}
+              }}>
+              {isSendingSchnell?<Loader2 className="mr-2 h-4 w-4 animate-spin"/>:<Send className="mr-2 h-4 w-4"/>}Senden
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* PROJ-23: Rechtsgrundlage-Sheet */}
+      <Sheet open={legalSheetOpen} onOpenChange={setLegalSheetOpen}>
+        <SheetContent className="w-full sm:max-w-xl overflow-y-auto">
+          <SheetHeader className="space-y-1">
+            <SheetTitle className="flex items-center gap-2">
+              <span className="text-lg">⚖️</span>
+              {legalSheetData?.paragraph || legalSheetParagraph || 'Rechtsgrundlage'}
+            </SheetTitle>
+            <SheetDescription>
+              {legalSheetData?.law || 'Original-Gesetzestext'}
+              {legalSheetData?.country && (
+                <span className="ml-2 inline-block px-1.5 py-0.5 rounded bg-muted text-[10px] font-medium uppercase tracking-wide">{legalSheetData.country}</span>
+              )}
+            </SheetDescription>
+          </SheetHeader>
+
+          <div className="mt-6 space-y-4">
+            {legalSheetLoading && (
+              <div className="flex items-center gap-2 py-12 justify-center text-muted-foreground">
+                <Loader2 className="h-4 w-4 animate-spin"/>Lade Volltext…
+              </div>
+            )}
+            {legalSheetError && (
+              <div className="rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 text-sm text-amber-900">
+                {legalSheetError}
+                {legalSheetParagraph && (
+                  <p className="mt-2 text-xs">
+                    Suche auf{' '}
+                    <a className="underline" href={`https://www.ris.bka.gv.at/Ergebnis.wxe?Abfrage=Bundesnormen&Suchworte=${encodeURIComponent(legalSheetParagraph)}`} target="_blank" rel="noopener noreferrer">RIS (AT)</a>{' '} oder{' '}
+                    <a className="underline" href={`https://www.gesetze-im-internet.de/`} target="_blank" rel="noopener noreferrer">gesetze-im-internet.de (DE)</a>
+                  </p>
+                )}
+              </div>
+            )}
+            {legalSheetData && (
+              <>
+                <div className="rounded-lg border bg-muted/20 p-4">
+                  <p className="text-sm font-semibold mb-2">{legalSheetData.title}</p>
+                  <p className="text-sm whitespace-pre-line leading-relaxed text-foreground">{legalSheetData.text}</p>
+                </div>
+                <div className="flex flex-col sm:flex-row gap-2 pt-2">
+                  <Button asChild variant="outline" size="sm" className="text-xs">
+                    <a href={legalSheetData.source_url} target="_blank" rel="noopener noreferrer">
+                      <ExternalLink className="h-3 w-3 mr-1.5"/>Auf {legalSheetData.country === 'AT' ? 'ris.bka.gv.at' : 'gesetze-im-internet.de'} öffnen
+                    </a>
+                  </Button>
+                </div>
+                <p className="text-[11px] text-muted-foreground pt-2 border-t">
+                  Quelle: {legalSheetData.country === 'AT' ? 'Republik Österreich · Rechtsinformationssystem (RIS)' : 'Bundesministerium der Justiz · gesetze-im-internet.de'} · Zuletzt verifiziert: {new Date(legalSheetData.last_verified_at).toLocaleDateString('de-AT')}
+                </p>
+              </>
+            )}
+          </div>
+        </SheetContent>
+      </Sheet>
+
+      {/* PROJ-23: Versicherungs-PDF Sheet */}
+      <Sheet open={insuranceSheetOpen} onOpenChange={setInsuranceSheetOpen}>
+        <SheetContent className="w-full sm:max-w-3xl overflow-y-auto">
+          <SheetHeader className="space-y-1">
+            <SheetTitle className="flex items-center gap-2">
+              <span className="text-lg">🛡️</span>
+              {insuranceSheetData?.name || 'Versicherungspolice'}
+            </SheetTitle>
+            <SheetDescription>
+              Police-Volltext mit markierter relevanter Klausel
+            </SheetDescription>
+          </SheetHeader>
+
+          <div className="mt-6 space-y-3">
+            {insuranceSheetLoading && (
+              <div className="flex items-center gap-2 py-12 justify-center text-muted-foreground">
+                <Loader2 className="h-4 w-4 animate-spin"/>Lade Police…
+              </div>
+            )}
+            {insuranceSheetError && (
+              <div className="rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 text-sm text-amber-900">
+                {insuranceSheetError}
+              </div>
+            )}
+            {insuranceSheetData && (
+              <>
+                {insuranceSheetData.clause && (
+                  <div className="rounded-lg border-2 border-yellow-300 bg-yellow-50 p-3">
+                    <p className="text-[11px] font-semibold text-yellow-800 uppercase tracking-wide mb-1.5">CARL hat folgende Klausel als relevant identifiziert:</p>
+                    <p className="text-sm text-yellow-900 italic leading-relaxed">„{insuranceSheetData.clause}"</p>
+                  </div>
+                )}
+                <PdfViewer pdfUrl={insuranceSheetData.pdfUrl} highlightText={insuranceSheetData.clause} />
+                <div className="flex gap-2 pt-2">
+                  <Button asChild variant="outline" size="sm" className="text-xs">
+                    <a href={insuranceSheetData.pdfUrl} target="_blank" rel="noopener noreferrer">
+                      <ExternalLink className="h-3 w-3 mr-1.5"/>In neuem Tab öffnen
+                    </a>
+                  </Button>
+                  <Button asChild variant="outline" size="sm" className="text-xs">
+                    <a href={insuranceSheetData.pdfUrl} download>
+                      <FileSearch className="h-3 w-3 mr-1.5"/>Herunterladen
+                    </a>
+                  </Button>
+                </div>
+              </>
+            )}
+          </div>
+        </SheetContent>
+      </Sheet>
     </div>
   )
 }

@@ -129,7 +129,7 @@ function createMietvertrag(outputPath) {
     doc.moveDown(1.5)
 
     H2('abgeschlossen zwischen')
-    P('Kracher ImmoGmbH\nWildgansgasse 8/2, 7400 Oberwart\nFirmenbuchnummer: FN 123456a, Landesgericht Eisenstadt\nUID: ATU12345678\nTel.: +43 664 46 82 910 | E-Mail: kracherdigital@gmail.com')
+    P('Muster HV GmbH\nWildgansgasse 8/2, 7400 Oberwart\nFirmenbuchnummer: FN 123456a, Landesgericht Eisenstadt\nUID: ATU12345678\nTel.: +43 664 46 82 910 | E-Mail: kracherdigital@gmail.com')
     doc.font('Helvetica-Oblique').fontSize(9).text('— im Folgenden „Vermieter" genannt —', { align: 'right' }).font('Helvetica').fontSize(10).moveDown()
 
     H2('und')
@@ -233,7 +233,7 @@ function createMietvertrag(outputPath) {
     P('Wien, am 01.05.2026')
     doc.moveDown(2)
     doc.fontSize(10).text('________________________________          ________________________________')
-    doc.text('Kracher ImmoGmbH                          Mathias Kracher')
+    doc.text('Muster HV GmbH                          Mathias Kracher')
     doc.fontSize(9).fillColor('#666').text('(Vermieter)                              (Mieter)').fillColor('#000')
 
     doc.end()
@@ -264,7 +264,7 @@ function createVersicherung(outputPath, vers) {
     }
 
     row('Polizzennummer:', vers.polNr)
-    row('Versicherungsnehmer:', 'Kracher ImmoGmbH, Wildgansgasse 8/2, 7400 Oberwart')
+    row('Versicherungsnehmer:', 'Muster HV GmbH, Wildgansgasse 8/2, 7400 Oberwart')
     row('FN / UID:', 'FN 123456a / ATU12345678')
     row('Versicherte Liegenschaft:', 'Mariahilfer Straße 88, 1060 Wien')
     row('Versicherungssumme:', 'EUR ' + vers.summe + ',00')
@@ -301,7 +301,7 @@ function createVersicherung(outputPath, vers) {
     doc.fontSize(9).fillColor('#666').text('Wien, 01.01.2026', { align: 'left' })
     doc.moveDown(1.5)
     doc.fontSize(10).fillColor('#000').text('________________________          ________________________')
-    doc.text(vers.versicherer + '          Kracher ImmoGmbH')
+    doc.text(vers.versicherer + '          Muster HV GmbH')
 
     doc.end()
     stream.on('finish', resolve)

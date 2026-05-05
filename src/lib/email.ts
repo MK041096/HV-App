@@ -488,7 +488,7 @@ export async function sendWeiterleitungTenantEmail(params: {
   })
 }
 
-export async function sendContractorEmail(params: {
+export interface ContractorEmailParams {
   to: string
   contractorName: string
   caseNumber: string
@@ -502,30 +502,45 @@ export async function sendContractorEmail(params: {
   tokenUrl: string
   orgName: string
   orgPhone?: string
-}): Promise<void> {
-  const { to, contractorName, caseNumber, caseTitle, category, description, unitAddress, unitName, wunschtermin, wunschtermin2, tokenUrl, orgName, orgPhone } = params
+  personalNote?: string | null
+}
+
+function escapeHtml(s: string): string {
+  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
+}
+
+export function buildContractorEmail(params: ContractorEmailParams): { subject: string; html: string; from: string } {
+  const { to: _to, contractorName, caseNumber, caseTitle, description, unitAddress, unitName, wunschtermin, wunschtermin2, tokenUrl, orgName, orgPhone, personalNote } = params
+  const noteHtml = personalNote && personalNote.trim()
+    ? `<div style="background-color:#fef9c3;border-left:4px solid #eab308;border-radius:6px;padding:12px 16px;margin-bottom:20px;">
+         <p style="color:#71717a;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;margin:0 0 6px 0;">Persönliche Nachricht von ${escapeHtml(orgName)}</p>
+         <p style="color:#18181b;font-size:14px;line-height:1.6;margin:0;white-space:pre-wrap;">${escapeHtml(personalNote.trim())}</p>
+       </div>`
+    : ''
+
   const content = `
     <h2 style="color:#18181b;font-size:22px;font-weight:700;margin:0 0 8px 0;">
       Neuer Reparaturauftrag
     </h2>
-    <p style="color:#71717a;font-size:14px;margin:0 0 24px 0;">Guten Tag ${contractorName},</p>
+    <p style="color:#71717a;font-size:14px;margin:0 0 24px 0;">Guten Tag ${escapeHtml(contractorName)},</p>
+    ${noteHtml}
     <p style="color:#52525b;font-size:14px;line-height:1.6;margin:0 0 24px 0;">
-      <strong>${orgName}</strong> beauftragt Sie mit folgendem Auftrag:
+      <strong>${escapeHtml(orgName)}</strong> beauftragt Sie mit folgendem Auftrag:
     </p>
 
     <div style="background-color:#f4f4f5;border-radius:8px;padding:16px 20px;margin-bottom:16px;">
       <p style="color:#71717a;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;margin:0 0 4px 0;">Fall-Nr.</p>
-      <p style="color:#18181b;font-size:15px;font-weight:700;margin:0 0 12px 0;">${caseNumber}</p>
+      <p style="color:#18181b;font-size:15px;font-weight:700;margin:0 0 12px 0;">${escapeHtml(caseNumber)}</p>
 
       <p style="color:#71717a;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;margin:0 0 4px 0;">Schadensart</p>
-      <p style="color:#18181b;font-size:14px;font-weight:600;margin:0 0 12px 0;">${caseTitle}</p>
+      <p style="color:#18181b;font-size:14px;font-weight:600;margin:0 0 12px 0;">${escapeHtml(caseTitle)}</p>
 
       <p style="color:#71717a;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;margin:0 0 4px 0;">Adresse</p>
-      <p style="color:#18181b;font-size:14px;margin:0 0 12px 0;">${unitAddress} &mdash; ${unitName}</p>
+      <p style="color:#18181b;font-size:14px;margin:0 0 12px 0;">${escapeHtml(unitAddress)} &mdash; ${escapeHtml(unitName)}</p>
 
       ${description ? `
       <p style="color:#71717a;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;margin:0 0 4px 0;">Schadensbeschreibung</p>
-      <p style="color:#18181b;font-size:14px;line-height:1.6;margin:0;">${description}</p>
+      <p style="color:#18181b;font-size:14px;line-height:1.6;margin:0;">${escapeHtml(description)}</p>
       ` : ''}
     </div>
 
@@ -536,14 +551,14 @@ export async function sendContractorEmail(params: {
     ${wunschtermin ? `
     <a href="${tokenUrl}?w=1"
        style="display:block;background-color:#16a34a;color:#ffffff;text-decoration:none;padding:14px 20px;border-radius:8px;font-size:14px;font-weight:700;margin-bottom:10px;text-align:center;">
-      &#10003; Wunschtermin 1 bestätigen: ${wunschtermin}
+      &#10003; Wunschtermin 1 bestätigen: ${escapeHtml(wunschtermin)}
     </a>
     ` : ''}
 
     ${wunschtermin2 ? `
     <a href="${tokenUrl}?w=2"
        style="display:block;background-color:#16a34a;color:#ffffff;text-decoration:none;padding:14px 20px;border-radius:8px;font-size:14px;font-weight:700;margin-bottom:10px;text-align:center;">
-      &#10003; Wunschtermin 2 bestätigen: ${wunschtermin2}
+      &#10003; Wunschtermin 2 bestätigen: ${escapeHtml(wunschtermin2)}
     </a>
     ` : ''}
 
@@ -552,13 +567,22 @@ export async function sendContractorEmail(params: {
       &#128222; Termin persönlich mit Mieter vereinbaren
     </a>
 
-    ${orgPhone ? `<p style="color:#71717a;font-size:13px;margin:0;">Rückfragen: ${orgName} &mdash; ${orgPhone}</p>` : `<p style="color:#71717a;font-size:13px;margin:0;">Rückfragen direkt an ${orgName}.</p>`}
+    ${orgPhone ? `<p style="color:#71717a;font-size:13px;margin:0;">Rückfragen: ${escapeHtml(orgName)} &mdash; ${escapeHtml(orgPhone)}</p>` : `<p style="color:#71717a;font-size:13px;margin:0;">Rückfragen direkt an ${escapeHtml(orgName)}.</p>`}
   `
-  await resend.emails.send({
-    from: `${orgName} via SMARTCARL <noreply@smartcarl.com>`,
-    to,
+  return {
     subject: `[Auftrag ${caseNumber}] ${caseTitle} – ${unitAddress}`,
+    from: `${orgName} via SMARTCARL <noreply@smartcarl.com>`,
     html: baseTemplate(content, orgName),
+  }
+}
+
+export async function sendContractorEmail(params: ContractorEmailParams): Promise<void> {
+  const { subject, html, from } = buildContractorEmail(params)
+  await resend.emails.send({
+    from,
+    to: params.to,
+    subject,
+    html,
   })
 }
 

@@ -82,8 +82,6 @@ interface CaseItem {
   subcategory: string | null
   status: string
   status_label: string
-  urgency: string
-  urgency_label: string
   created_at: string
   updated_at: string
   assigned_to_name: string | null
