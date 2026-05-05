@@ -503,6 +503,8 @@ export interface ContractorEmailParams {
   orgName: string
   orgPhone?: string
   personalNote?: string | null
+  /** Professionelle Auftragsbeschreibung von CARL (an die Werkstatt gerichtet) — ersetzt Mieter-Beschreibung */
+  werkstattAuftrag?: string | null
 }
 
 function escapeHtml(s: string): string {
@@ -510,13 +512,23 @@ function escapeHtml(s: string): string {
 }
 
 export function buildContractorEmail(params: ContractorEmailParams): { subject: string; html: string; from: string } {
-  const { to: _to, contractorName, caseNumber, caseTitle, description, unitAddress, unitName, wunschtermin, wunschtermin2, tokenUrl, orgName, orgPhone, personalNote } = params
+  const { to: _to, contractorName, caseNumber, caseTitle, description, unitAddress, unitName, wunschtermin, wunschtermin2, tokenUrl, orgName, orgPhone, personalNote, werkstattAuftrag } = params
   const noteHtml = personalNote && personalNote.trim()
     ? `<div style="background-color:#fef9c3;border-left:4px solid #eab308;border-radius:6px;padding:12px 16px;margin-bottom:20px;">
          <p style="color:#71717a;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;margin:0 0 6px 0;">Persönliche Nachricht von ${escapeHtml(orgName)}</p>
          <p style="color:#18181b;font-size:14px;line-height:1.6;margin:0;white-space:pre-wrap;">${escapeHtml(personalNote.trim())}</p>
        </div>`
     : ''
+
+  // Adresse: weglassen wenn Address und Name redundant sind (gleicher Text oder einer im anderen enthalten)
+  const addrTrim = (unitAddress || '').trim()
+  const nameTrim = (unitName || '').trim()
+  const addressLine = addrTrim && nameTrim && addrTrim !== nameTrim && !addrTrim.includes(nameTrim) && !nameTrim.includes(addrTrim)
+    ? `${escapeHtml(addrTrim)} &mdash; ${escapeHtml(nameTrim)}`
+    : escapeHtml(addrTrim || nameTrim)
+
+  // Auftragsbeschreibung: bevorzugt CARL's professionelle Beschreibung, sonst Mieter-Text als Fallback
+  const auftragText = (werkstattAuftrag && werkstattAuftrag.trim()) || description || null
 
   const content = `
     <h2 style="color:#18181b;font-size:22px;font-weight:700;margin:0 0 8px 0;">
@@ -536,11 +548,11 @@ export function buildContractorEmail(params: ContractorEmailParams): { subject: 
       <p style="color:#18181b;font-size:14px;font-weight:600;margin:0 0 12px 0;">${escapeHtml(caseTitle)}</p>
 
       <p style="color:#71717a;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;margin:0 0 4px 0;">Adresse</p>
-      <p style="color:#18181b;font-size:14px;margin:0 0 12px 0;">${escapeHtml(unitAddress)} &mdash; ${escapeHtml(unitName)}</p>
+      <p style="color:#18181b;font-size:14px;margin:0 0 12px 0;">${addressLine}</p>
 
-      ${description ? `
-      <p style="color:#71717a;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;margin:0 0 4px 0;">Schadensbeschreibung</p>
-      <p style="color:#18181b;font-size:14px;line-height:1.6;margin:0;">${escapeHtml(description)}</p>
+      ${auftragText ? `
+      <p style="color:#71717a;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;margin:0 0 4px 0;">Auftrag</p>
+      <p style="color:#18181b;font-size:14px;line-height:1.6;margin:0;">${escapeHtml(auftragText)}</p>
       ` : ''}
     </div>
 

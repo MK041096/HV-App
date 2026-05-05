@@ -3,6 +3,16 @@ import { waitUntil } from '@vercel/functions'
 import { createServerSupabaseClient, createAdminClient } from '@/lib/supabase-server'
 import { sendWeiterleitungTenantEmail, sendContractorEmail } from '@/lib/email'
 
+// Extrahiert CARL's WERKSTATT_AUFTRAG-Feld aus dem ki_analyse_result-Text
+function extractWerkstattAuftrag(analysisText: string | null | undefined): string | null {
+  if (!analysisText) return null
+  const m = analysisText.match(/^WERKSTATT_AUFTRAG:\s*([\s\S]+?)(?:\n[A-ZÜÄÖ_]{3,}:|$)/mi)
+  if (!m) return null
+  const v = m[1].trim()
+  if (!v || v === 'NICHT_NOETIG' || v === 'NICHT_VERFUEGBAR') return null
+  return v
+}
+
 export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params
@@ -33,7 +43,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
     // Load case + (optionally) contractor from DB
     const reportPromise = adminClient.from('damage_reports')
-      .select('id, case_number, title, description, category, urgency, reporter_id, unit_id, preferred_appointment, preferred_appointment_2')
+      .select('id, case_number, title, description, category, urgency, reporter_id, unit_id, preferred_appointment, preferred_appointment_2, ki_analyse_result')
       .eq('id', id)
       .eq('organization_id', profile.organization_id)
       .single()
@@ -176,6 +186,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
             orgName,
             orgPhone: (org as any)?.phone,
             personalNote: personal_note || null,
+            werkstattAuftrag: extractWerkstattAuftrag(report.ki_analyse_result),
           }),
         ])
       } catch (err) {

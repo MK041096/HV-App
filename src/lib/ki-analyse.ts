@@ -200,6 +200,12 @@ VERSICHERUNG: [Name der passenden Police aus der Liste / Keine / Prüfen]
 VERSICHERUNG_BEGRUENDUNG: [PFLICHTFELD — IMMER 1 Satz, auch wenn VERSICHERUNG = Keine. Beispiele: Bei "Keine": "Defekt an Erhaltungsanlage — kein versichertes Ereignis (kein Wasseraustritt, kein Sturm, kein Glasbruch)." Bei Police: "Schaden an wasserführender Leitung im Mauerwerk fällt unter Leitungswasser-Police der Liegenschaft." NIEMALS leer lassen — die HV muss nachvollziehen können, warum eine Police greift oder nicht.]
 VERSICHERUNG_KLAUSEL: [WÖRTLICHES ZITAT (max. 200 Zeichen) aus der Police-PDF, das die Deckung belegt. Nur wenn eine Police als PDF im Kontext beigefügt war UND VERSICHERUNG ungleich Keine. Sonst: NICHT_VERFUEGBAR. Das Zitat MUSS exakt im PDF-Text vorhanden sein — keine Paraphrase, keine Zusammenfassung, kein Zitat aus dem Police-Namen. Beispiel: "Versichert sind Schäden durch bestimmungswidrig austretendes Leitungswasser aus den Zuleitungs- und Ableitungsrohren der Wasserversorgung." Falls die Police-PDF keine eindeutige Klausel zum vorliegenden Schaden enthält: NICHT_VERFUEGBAR.]
 EMPFEHLUNG: [DIREKTE ANWEISUNG AN DIE HV, 1 Satz im Imperativ. Beispiele: "Werkstatt X mit Schadensaufnahme beauftragen.", "Leitungswasserversicherung melden, Werkstatt X parallel beauftragen.", "Mieter über Eigenverantwortung informieren — keine Werkstattbeauftragung." NIEMALS im Stil "Bitte melden Sie..." weil das wäre an den Mieter gerichtet.]
+WERKSTATT_AUFTRAG: [PFLICHTFELD wenn ZUSTÄNDIGKEIT ≠ MIETER. 1-2 Sätze, professionelle Auftragsbeschreibung AN DIE WERKSTATT (geht direkt in die Werkstatt-Mail). Schreibe in dritter Person, technisch präzise, ohne ICH-Form, OHNE MRG-Paragrafen, OHNE Mieter-Zitate. Keine Kostenträger-Diskussion (das interessiert die Werkstatt nicht). Beispiele:
+✓ "Vor-Ort-Aufnahme und Reparatur eines undichten Eckventils der Wasserversorgungsanlage unter dem Waschbecken im Bad. Hauptabsperrhahn ist bereits geschlossen, kein aktiver Wasseraustritt."
+✓ "Diagnose und Reparatur eines Heizelement-Defekts am festeingebauten Geschirrspüler in der Einbauküche. Maschine läuft, heizt aber das Wasser nicht mehr auf."
+✗ "Seit gestern Abend tropft es..." (NEIN — das ist Mieter-Sprache)
+✗ "Gemäß MRG § 3..." (NEIN — interessiert Werkstatt nicht)
+Bei ZUSTÄNDIGKEIT = MIETER: NICHT_NOETIG]
 
 BEGRUENDUNG:
 [3-4 Sätze. Sachlich und professionell. Erklärt die Entscheidung, nennt die Rechtsgrundlage und was als nächstes passiert. Direkt verwendbar für interne Dokumentation.]
@@ -229,6 +235,7 @@ VERSICHERUNG: Leitungswasserversicherung Wiener Städtische
 VERSICHERUNG_BEGRUENDUNG: Schaden an wasserführender Leitung im Mauerwerk fällt unter Leitungswasser-Police der Liegenschaft.
 VERSICHERUNG_KLAUSEL: Versichert sind Schäden durch bestimmungswidrig austretendes Leitungswasser aus den Zuleitungs- und Ableitungsrohren der Wasserversorgung.
 EMPFEHLUNG: Pappel Installationen mit Schadensaufnahme beauftragen, parallel Versicherung melden.
+WERKSTATT_AUFTRAG: Vor-Ort-Aufnahme und Reparatur eines undichten Eckventils der Wasserversorgungsanlage unter dem Waschbecken im Bad. Hauptabsperrhahn ist bereits geschlossen, kein aktiver Wasseraustritt.
 
 BEGRUENDUNG:
 Es liegt ein Defekt an einer festeingebauten Sanitäranlage vor. Gemäß MRG § 3 trägt der Vermieter die Kosten für Erhaltungsarbeiten an wesentlichen Anlagen. Die Leitungswasserversicherung der Liegenschaft greift bei Schäden durch ausgetretenes Leitungswasser. Werkstatt direkt beauftragen, Versicherungsmeldung parallel zur Schadensaufnahme erstellen.

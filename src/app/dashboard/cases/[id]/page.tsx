@@ -1113,7 +1113,7 @@ export default function CaseDetailPage({
             </div>
             <h1 className="text-2xl font-bold text-foreground truncate">{caseData.title}</h1>
             <div className="flex items-center gap-4 text-sm text-muted-foreground flex-wrap">
-              {caseData.unit && <span className="flex items-center gap-1"><MapPin className="h-3.5 w-3.5" />{caseData.unit.name}{caseData.unit.address ? ` · ${caseData.unit.address}` : ''}</span>}
+              {caseData.unit && <span className="flex items-center gap-1"><MapPin className="h-3.5 w-3.5" />{caseData.unit.address && caseData.unit.address !== caseData.unit.name ? `${caseData.unit.name} · ${caseData.unit.address}` : caseData.unit.name}</span>}
               {caseData.reporter && <span className="flex items-center gap-1"><User className="h-3.5 w-3.5" />{caseData.reporter.first_name} {caseData.reporter.last_name}</span>}
               <span className="flex items-center gap-1"><Clock className="h-3.5 w-3.5" />{formatDateTime(caseData.created_at)}</span>
             </div>
@@ -1321,7 +1321,7 @@ export default function CaseDetailPage({
                   {caseData.unit && (
                     <div className="flex items-start gap-3">
                       <MapPin className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
-                      <div><p className="text-xs text-muted-foreground">Wohneinheit</p><p className="text-sm font-medium">{caseData.unit.name}</p>{caseData.unit.address && <p className="text-xs text-muted-foreground">{caseData.unit.address}</p>}{caseData.unit.floor && <p className="text-xs text-muted-foreground">Stockwerk: {caseData.unit.floor}</p>}</div>
+                      <div><p className="text-xs text-muted-foreground">Wohneinheit</p><p className="text-sm font-medium">{caseData.unit.name}</p>{caseData.unit.address && caseData.unit.address !== caseData.unit.name && <p className="text-xs text-muted-foreground">{caseData.unit.address}</p>}{caseData.unit.floor && <p className="text-xs text-muted-foreground">Stockwerk: {caseData.unit.floor}</p>}</div>
                     </div>
                   )}
                 </div>
