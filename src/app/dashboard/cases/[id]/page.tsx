@@ -1586,10 +1586,19 @@ export default function CaseDetailPage({
                     </div>
                   )}
 
-                  {/* TERMIN_VEREINBART */}
-                  {caseData.status==='termin_vereinbart'&&(
+                  {/* TERMIN_VEREINBART oder TERMIN_TELEFONISCH — beide Wege fuehren zu "Fall abschliessen" */}
+                  {(caseData.status==='termin_vereinbart' || caseData.status==='termin_telefonisch')&&(
                     <div className="space-y-3">
-                      {caseData.scheduled_appointment&&<p className="text-sm text-muted-foreground">Termin: <span className="font-medium text-foreground">{formatDateTime(caseData.scheduled_appointment)}</span></p>}
+                      {caseData.status==='termin_vereinbart' && caseData.scheduled_appointment && (
+                        <p className="text-sm text-muted-foreground">Termin: <span className="font-medium text-foreground">{formatDateTime(caseData.scheduled_appointment)}</span></p>
+                      )}
+                      {caseData.status==='termin_telefonisch' && (
+                        <div className="rounded-lg bg-blue-50 border border-blue-200 p-3 space-y-1">
+                          <p className="text-sm font-semibold text-blue-900">📞 Werkstatt vereinbart Termin telefonisch</p>
+                          {caseData.assigned_to_company && <p className="text-xs text-blue-800">{caseData.assigned_to_company} meldet sich direkt beim Mieter.</p>}
+                          <p className="text-xs text-blue-700">Sobald die Reparatur erledigt ist, kannst du den Fall hier abschließen.</p>
+                        </div>
+                      )}
                       <Button className="w-full bg-green-700 hover:bg-green-800 text-white"
                         onClick={() => { setCloseError(null); setCloseNote(''); setCloseDialogOpen(true) }}>
                         <CheckCircle2 className="mr-2 h-4 w-4"/>Schaden behoben — Fall abschließen
