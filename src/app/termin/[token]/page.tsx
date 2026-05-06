@@ -48,11 +48,17 @@ export default function TerminPage({ params }: { params: Promise<{ token: string
         if (d.error) setError(d.error)
         else {
           setData(d.data)
-          // Pre-select action from URL param (?w=1, ?w=2, ?w=phone)
+          // Auto-trigger action from URL param (?w=1, ?w=2, ?w=phone) — kein zweiter Klick noetig
           const w = searchParams.get('w')
-          if (w === '1') setAction('confirm_1')
-          else if (w === '2') setAction('confirm_2')
-          else if (w === 'phone') handlePhone()
+          if (w === '1') {
+            setAction('confirm_1')
+            handleConfirm('confirm_1')
+          } else if (w === '2') {
+            setAction('confirm_2')
+            handleConfirm('confirm_2')
+          } else if (w === 'phone') {
+            handlePhone()
+          }
         }
       })
       .catch(() => setError('Fehler beim Laden'))
