@@ -113,10 +113,10 @@ export async function GET(
       innen: 'Innenseite (Wohnung)', aussen: 'Außenseite (Gebäude)', beides: 'Innen- und Außenseite',
     }
 
-    const today = new Date().toLocaleDateString('de-AT')
-    const caseDate = new Date(caseData.created_at).toLocaleDateString('de-AT')
+    const today = new Date().toLocaleDateString('de-AT', { timeZone: 'Europe/Vienna' })
+    const caseDate = new Date(caseData.created_at).toLocaleDateString('de-AT', { timeZone: 'Europe/Vienna' })
     const damageSince = caseData.damage_since
-      ? new Date(caseData.damage_since).toLocaleDateString('de-AT')
+      ? new Date(caseData.damage_since).toLocaleDateString('de-AT', { timeZone: 'Europe/Vienna' })
       : '—'
 
     const subcategoriesList = (caseData.subcategories as string[] || []).join(', ') || caseData.subcategory || '—'

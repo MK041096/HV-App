@@ -77,7 +77,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   if (action === 'confirm_2') finalDate = report?.preferred_appointment_2 || null
 
   const finalDateLabel = finalDate
-    ? new Date(finalDate).toLocaleDateString('de-AT', { weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+    ? new Date(finalDate).toLocaleString('de-AT', { weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Vienna' })
     : 'Termin folgt'
 
   const { data: currentDR } = await adminClient

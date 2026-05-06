@@ -136,6 +136,7 @@ export async function sendTenantInviteEmail(params: {
   const greeting = firstName ? `Hallo ${firstName},` : 'Guten Tag,'
 
   const expiryDate = new Date(expiresAt).toLocaleDateString('de-AT', {
+    timeZone: 'Europe/Vienna',
     day: '2-digit',
     month: '2-digit',
     year: 'numeric',
@@ -297,8 +298,9 @@ export async function sendTerminVereinbartEmail(params: {
   if (scheduledAppointment) {
     const date = new Date(scheduledAppointment)
     const formatted = date.toLocaleDateString('de-AT', {
+      timeZone: 'Europe/Vienna',
       weekday: 'long', day: '2-digit', month: 'long', year: 'numeric',
-    }) + ', ' + date.toLocaleTimeString('de-AT', { hour: '2-digit', minute: '2-digit' }) + ' Uhr'
+    }) + ', ' + date.toLocaleTimeString('de-AT', { timeZone: 'Europe/Vienna', hour: '2-digit', minute: '2-digit' }) + ' Uhr'
     appointmentHtml = `
     <div style="background-color:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:16px 20px;margin-bottom:24px;">
       <p style="color:#16a34a;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;margin:0 0 6px 0;">&#128197; Bestätigter Termin</p>

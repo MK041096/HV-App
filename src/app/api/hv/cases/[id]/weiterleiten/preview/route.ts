@@ -65,7 +65,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     const { data: unit } = await adminClient.from('units').select('name, address').eq('id', report.unit_id).single()
 
     const formatDate = (d: string | null) => d
-      ? new Date(d).toLocaleDateString('de-AT', { weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+      ? new Date(d).toLocaleString('de-AT', { weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Vienna' })
       : null
 
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://smartcarl.com'

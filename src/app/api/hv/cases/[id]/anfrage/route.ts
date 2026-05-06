@@ -68,6 +68,7 @@ export async function POST(
     const formatDate = (iso: string | null) => {
       if (!iso) return null
       return new Date(iso).toLocaleString('de-AT', {
+        timeZone: 'Europe/Vienna',
         weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric',
         hour: '2-digit', minute: '2-digit',
       })
