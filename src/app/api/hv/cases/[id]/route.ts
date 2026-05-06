@@ -279,15 +279,35 @@ export async function PATCH(
         return NextResponse.json({ error: 'Fehler beim Aktualisieren des Status' }, { status: 500 })
       }
 
-      // Insert status history entry
-      await supabase.from('damage_report_status_history').insert({
-        damage_report_id: id,
-        organization_id: profile.organization_id,
-        old_status,
-        new_status,
-        changed_by: user.id,
-        note: comment,
-      })
+      // Status-History: Trigger fn_damage_report_status_change hat bereits einen Eintrag
+      // erstellt. Wir UPDATEn ihn mit Begründung statt einen zweiten einzufügen
+      // (sonst doppelter Eintrag im Verlauf).
+      const adminClient = createAdminClient()
+      const { data: triggerEntry } = await adminClient
+        .from('damage_report_status_history')
+        .select('id')
+        .eq('damage_report_id', id)
+        .eq('new_status', new_status)
+        .is('note', null)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle()
+
+      if (triggerEntry) {
+        await adminClient.from('damage_report_status_history')
+          .update({ note: comment, changed_by: user.id })
+          .eq('id', triggerEntry.id)
+      } else {
+        // Fallback: Trigger hat keinen Eintrag erzeugt → selbst inserten
+        await adminClient.from('damage_report_status_history').insert({
+          damage_report_id: id,
+          organization_id: profile.organization_id,
+          old_status,
+          new_status,
+          changed_by: user.id,
+          note: comment,
+        })
+      }
 
       // Insert public comment (status change comments are visible to tenants)
       await supabase.from('damage_report_comments').insert({

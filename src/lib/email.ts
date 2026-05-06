@@ -215,7 +215,7 @@ export async function sendDamageReportNotificationEmail(params: {
   caseNumber: string
   title: string
   category: string
-  urgency: string
+  urgency?: string  // ungenutzt, bleibt aus Kompatibilität — nicht mehr in Mail angezeigt
   unitName: string
   tenantName: string
   orgName: string
@@ -223,13 +223,9 @@ export async function sendDamageReportNotificationEmail(params: {
   kiAnalysis?: string | null
   kiLeaseFound?: boolean
 }): Promise<void> {
-  const { to, caseNumber, title, category, urgency, unitName, tenantName, orgName, reportId, kiAnalysis, kiLeaseFound } = params
+  const { to, caseNumber, title, unitName, tenantName, orgName, reportId, kiAnalysis, kiLeaseFound } = params
   if (!to.length) return
 
-  const urgencyLabel: Record<string, string> = { notfall: 'Notfall', dringend: 'Dringend', normal: 'Normal', hoch: 'Dringend', mittel: 'Normal', niedrig: 'Niedrig' }
-  const urgencyColor: Record<string, string> = { notfall: '#ef4444', dringend: '#f59e0b', normal: '#22c55e', hoch: '#ef4444', mittel: '#f59e0b', niedrig: '#22c55e' }
-  const urg = urgencyLabel[urgency] || urgency
-  const urgColor = urgencyColor[urgency] || '#18181b'
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://smartcarl.com'
   const caseUrl = reportId ? appUrl + '/dashboard/cases/' + reportId : appUrl + '/dashboard/cases'
 
@@ -267,11 +263,7 @@ export async function sendDamageReportNotificationEmail(params: {
       <p style="color:#71717a;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;margin:0 0 4px 0;">Titel</p>
       <p style="color:#18181b;font-size:15px;font-weight:600;margin:0 0 12px 0;">${title}</p>
       <p style="color:#71717a;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;margin:0 0 4px 0;">Einheit &middot; Mieter</p>
-      <p style="color:#18181b;font-size:14px;margin:0 0 12px 0;">${unitName} &middot; ${tenantName}</p>
-      <p style="color:#71717a;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;margin:0 0 4px 0;">Dringlichkeit</p>
-      <div style="display:inline-block;background-color:${urgColor}20;border:1px solid ${urgColor}40;border-radius:6px;padding:4px 12px;">
-        <span style="color:${urgColor};font-size:13px;font-weight:600;">${urg}</span>
-      </div>
+      <p style="color:#18181b;font-size:14px;margin:0 0 0 0;">${unitName} &middot; ${tenantName}</p>
     </div>
 
     ${kiSection}
