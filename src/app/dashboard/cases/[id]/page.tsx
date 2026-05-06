@@ -683,7 +683,7 @@ export default function CaseDetailPage({
   // ── Actions ──
 
   async function handleStatusUpdate() {
-    if (!newStatus || !statusComment.trim()) return
+    if (!newStatus) return
     setIsUpdatingStatus(true)
     setStatusMessage(null)
 
@@ -1636,8 +1636,8 @@ export default function CaseDetailPage({
                       <SelectTrigger className="text-sm"><SelectValue placeholder="Status wählen..."/></SelectTrigger>
                       <SelectContent>{CASE_STATUSES.filter(s=>s!==caseData.status).map(s=><SelectItem key={s} value={s}>{CASE_STATUS_LABELS[s]}</SelectItem>)}</SelectContent>
                     </Select>
-                    <Textarea placeholder="Kommentar (Pflichtfeld)" value={statusComment} onChange={e=>setStatusComment(e.target.value)} className="resize-none min-h-[60px] text-sm"/>
-                    <Button className="w-full" size="sm" disabled={!newStatus||!statusComment.trim()||isUpdatingStatus} onClick={handleStatusUpdate}>
+                    <Textarea placeholder="Kommentar (optional) — z.B. Werkstatt war vor Ort, Reparatur erfolgreich" value={statusComment} onChange={e=>setStatusComment(e.target.value)} className="resize-none min-h-[60px] text-sm"/>
+                    <Button className="w-full" size="sm" disabled={!newStatus||isUpdatingStatus} onClick={handleStatusUpdate}>
                       {isUpdatingStatus?<Loader2 className="mr-2 h-4 w-4 animate-spin"/>:<Save className="mr-2 h-4 w-4"/>}Status speichern
                     </Button>
                   </CardContent>

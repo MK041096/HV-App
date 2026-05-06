@@ -251,7 +251,10 @@ export async function PATCH(
         )
       }
 
-      const { new_status, comment } = parsed.data
+      // Comment ist optional — bei leerem Wert eine sensible Default-Notiz speichern,
+      // damit der Verlauf-Eintrag nicht leer ist
+      const { new_status, comment: rawComment } = parsed.data
+      const comment = (rawComment && rawComment.trim()) || `Status manuell geändert auf "${CASE_STATUS_LABELS[new_status as keyof typeof CASE_STATUS_LABELS] || new_status}"`
       const old_status = existingReport.status
 
       // Update status

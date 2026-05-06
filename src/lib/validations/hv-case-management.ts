@@ -59,10 +59,12 @@ export const hvStatusUpdateSchema = z.object({
   new_status: z.enum(CASE_STATUSES, {
     error: 'Ungültiger Status',
   }),
+  // Kommentar ist optional — Default ist eine generische Notiz wenn HV nichts schreibt
   comment: z
     .string()
-    .min(1, 'Kommentar ist bei Status-Änderungen erforderlich')
-    .max(2000, 'Kommentar darf maximal 2000 Zeichen lang sein'),
+    .max(2000, 'Kommentar darf maximal 2000 Zeichen lang sein')
+    .optional()
+    .default(''),
 })
 
 // ── Comment Schema ──
