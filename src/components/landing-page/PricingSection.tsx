@@ -40,20 +40,18 @@ export default function PricingSection() {
 
           {/* Monatlich */}
           <div style={{ background: '#FFFFFF', border: '1px solid #E0E0E0', borderRadius: 10, padding: '36px 32px', position: 'relative', display: 'flex', flexDirection: 'column' }}>
-            <p style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 13, fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#C74229', margin: '0 0 20px' }}>April-Aktion · Monatlich</p>
+            <p style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 13, fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#C74229', margin: '0 0 20px' }}>Monatlich</p>
 
             <div style={{ marginBottom: 24 }}>
-              <span style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 13, color: '#888', textDecoration: 'line-through', display: 'block', marginBottom: 4 }}>1,00 € / Einheit / Monat</span>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
-                <span style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 40, fontWeight: 700, color: '#000', lineHeight: 1 }}>0,50 €</span>
+                <span style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 40, fontWeight: 700, color: '#000', lineHeight: 1 }}>1,00 €</span>
                 <span style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 13, color: '#555' }}>/ Einheit / Monat</span>
               </div>
-              <span style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 13, color: '#555', display: 'block', marginTop: 6 }}>im 1. Jahr</span>
+              <span style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 13, color: '#555', display: 'block', marginTop: 6 }}>flexibel monatlich kündbar</span>
             </div>
 
             <div style={{ marginBottom: 24, paddingBottom: 24, borderBottom: '1px solid #E0E0E0' }}>
-              <span style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 13, color: '#888', textDecoration: 'line-through', display: 'block', marginBottom: 2 }}>699 € Onboarding</span>
-              <span style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 15, fontWeight: 600, color: '#000' }}>349 € Onboarding <span style={{ fontWeight: 400, color: '#555' }}>(einmalig)</span></span>
+              <span style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 15, fontWeight: 600, color: '#000' }}>699 € Onboarding <span style={{ fontWeight: 400, color: '#555' }}>(einmalig)</span></span>
             </div>
 
             <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 32px', display: 'flex', flexDirection: 'column', gap: 10, flex: 1 }}>
@@ -84,20 +82,18 @@ export default function PricingSection() {
               <span style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 11, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#fff' }}>Empfohlen</span>
             </div>
 
-            <p style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 13, fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#C74229', margin: '0 0 20px' }}>April-Aktion · Jährlich</p>
+            <p style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 13, fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#C74229', margin: '0 0 20px' }}>Jährlich</p>
 
             <div style={{ marginBottom: 24 }}>
-              <span style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 13, color: '#888', textDecoration: 'line-through', display: 'block', marginBottom: 4 }}>0,85 € / Einheit / Monat</span>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
-                <span style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 40, fontWeight: 700, color: '#000', lineHeight: 1 }}>0,43 €</span>
+                <span style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 40, fontWeight: 700, color: '#000', lineHeight: 1 }}>0,85 €</span>
                 <span style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 13, color: '#555' }}>/ Einheit / Monat</span>
               </div>
-              <span style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 13, color: '#555', display: 'block', marginTop: 6 }}>im 1. Jahr, bei jährlicher Zahlung</span>
+              <span style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 13, color: '#555', display: 'block', marginTop: 6 }}>15% Rabatt bei jährlicher Zahlung</span>
             </div>
 
             <div style={{ marginBottom: 24, paddingBottom: 24, borderBottom: '1px solid #E0E0E0' }}>
-              <span style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 13, color: '#888', textDecoration: 'line-through', display: 'block', marginBottom: 2 }}>699 € Onboarding</span>
-              <span style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 15, fontWeight: 600, color: '#000' }}>349 € Onboarding <span style={{ fontWeight: 400, color: '#555' }}>(einmalig)</span></span>
+              <span style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 15, fontWeight: 600, color: '#000' }}>699 € Onboarding <span style={{ fontWeight: 400, color: '#555' }}>(einmalig)</span></span>
             </div>
 
             <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 32px', display: 'flex', flexDirection: 'column', gap: 10, flex: 1 }}>
@@ -150,17 +146,17 @@ export default function PricingSection() {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16 }}>
             <div style={{ background: '#F9F9F9', borderRadius: 8, padding: '16px 20px' }}>
               <p style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 12, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#888', margin: '0 0 8px' }}>Monatlich</p>
-              <p style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 28, fontWeight: 700, color: '#000', margin: '0 0 2px' }}>{(units * 0.5).toFixed(2).replace('.', ',')} €</p>
-              <p style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 13, color: '#555', margin: 0 }}>pro Monat im 1. Jahr</p>
+              <p style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 28, fontWeight: 700, color: '#000', margin: '0 0 2px' }}>{(units * 1.0).toFixed(2).replace('.', ',')} €</p>
+              <p style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 13, color: '#555', margin: 0 }}>pro Monat</p>
             </div>
             <div style={{ background: '#FFF5F3', border: '1px solid rgba(199,66,41,0.2)', borderRadius: 8, padding: '16px 20px' }}>
               <p style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 12, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#C74229', margin: '0 0 8px' }}>Jährlich (empfohlen)</p>
-              <p style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 28, fontWeight: 700, color: '#000', margin: '0 0 2px' }}>{(units * 0.43 * 12).toFixed(2).replace('.', ',')} €</p>
-              <p style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 13, color: '#555', margin: 0 }}>pro Jahr im 1. Jahr</p>
+              <p style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 28, fontWeight: 700, color: '#000', margin: '0 0 2px' }}>{(units * 0.85 * 12).toFixed(2).replace('.', ',')} €</p>
+              <p style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 13, color: '#555', margin: 0 }}>pro Jahr (15% gespart)</p>
             </div>
             <div style={{ background: '#F9F9F9', borderRadius: 8, padding: '16px 20px' }}>
               <p style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 12, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#888', margin: '0 0 8px' }}>Onboarding</p>
-              <p style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 28, fontWeight: 700, color: '#000', margin: '0 0 2px' }}>349,00 €</p>
+              <p style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 28, fontWeight: 700, color: '#000', margin: '0 0 2px' }}>699,00 €</p>
               <p style={{ fontFamily: 'var(--font-dm-sans, sans-serif)', fontSize: 13, color: '#555', margin: 0 }}>einmalig</p>
             </div>
           </div>
