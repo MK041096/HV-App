@@ -101,18 +101,37 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     updated_at: new Date().toISOString(),
   }).eq('id', tokenData.damage_report_id)
 
-  // Status history entry
+  // Status-History: Trigger fn_damage_report_status_change() hat bereits einen
+  // Eintrag erstellt (note=null). Wir updaten ihn mit der note statt einen
+  // doppelten Eintrag anzulegen (gleiches Pattern wie /weiterleiten und /ablehnen).
   const historyNote = isPhone
     ? 'Werkstatt vereinbart Termin persönlich mit Mieter'
     : `Termin bestätigt durch Werkstatt: ${finalDateLabel}`
 
-  await adminClient.from('damage_report_status_history').insert({
-    damage_report_id: tokenData.damage_report_id,
-    old_status: currentDR?.status ?? null,
-    new_status: newStatus,
-    note: historyNote,
-    changed_by: null,
-  })
+  const { data: triggerEntry } = await adminClient
+    .from('damage_report_status_history')
+    .select('id')
+    .eq('damage_report_id', tokenData.damage_report_id)
+    .eq('new_status', newStatus)
+    .is('note', null)
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle()
+
+  if (triggerEntry) {
+    await adminClient
+      .from('damage_report_status_history')
+      .update({ note: historyNote })
+      .eq('id', triggerEntry.id)
+  } else {
+    await adminClient.from('damage_report_status_history').insert({
+      damage_report_id: tokenData.damage_report_id,
+      old_status: currentDR?.status ?? null,
+      new_status: newStatus,
+      note: historyNote,
+      changed_by: null,
+    })
+  }
 
   // Notify HV-Admins + Mieter for ALL 3 actions
   if (report?.reporter_id) {
