@@ -466,9 +466,15 @@ export async function sendWeiterleitungTenantEmail(params: {
       ` : ''}
     </div>
 
-    <p style="color:#52525b;font-size:14px;line-height:1.6;margin:0 0 24px 0;">
+    <p style="color:#52525b;font-size:14px;line-height:1.6;margin:0 0 16px 0;">
       Die Werkstatt wurde über Ihre Wunschtermine informiert und wählt einen davon aus. Sobald der Termin feststeht, erhalten Sie eine separate Bestätigung mit dem konkreten Termin.
     </p>
+
+    <div style="background-color:#fef3c7;border-left:4px solid #f59e0b;border-radius:6px;padding:12px 16px;margin-bottom:24px;">
+      <p style="color:#78350f;font-size:13px;line-height:1.6;margin:0;">
+        <strong>📞 Hinweis:</strong> Sollte keiner Ihrer Wunschtermine passen, kann sich die Werkstatt auch direkt telefonisch bei Ihnen melden. Bitte rechnen Sie in den nächsten Tagen mit einem Anruf von einer unbekannten Nummer.
+      </p>
+    </div>
 
     <a href="https://smartcarl.com/mein-bereich/meldungen"
        style="display:inline-block;background-color:#18181b;color:#ffffff;text-decoration:none;padding:12px 24px;border-radius:8px;font-size:14px;font-weight:600;">
