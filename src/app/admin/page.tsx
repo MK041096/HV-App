@@ -29,6 +29,39 @@ interface SuspiciousTenant {
   is_blocked: boolean | null | undefined
 }
 
+interface Organization {
+  id: string
+  name: string
+  created_at: string
+  avv_accepted_at: string | null
+  is_suspended: boolean
+  status: string
+  admin_email: string
+  admin_name: string
+  unit_count: number
+  tenant_count: number
+  case_count: number
+  open_case_count: number
+}
+
+function formatOrgDate(dateStr: string) {
+  return new Date(dateStr).toLocaleDateString("de-AT", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  })
+}
+
+function OrgStatusBadge({ status }: { status: string }) {
+  if (status === "pending") {
+    return <Badge className="text-[10px] bg-yellow-100 text-yellow-800 border-yellow-300 hover:bg-yellow-100">Ausstehend</Badge>
+  }
+  if (status === "suspended") {
+    return <Badge variant="destructive" className="text-[10px]">Gesperrt</Badge>
+  }
+  return <Badge className="text-[10px] bg-green-100 text-green-800 border-green-300 hover:bg-green-100">Aktiv</Badge>
+}
+
 interface PlatformStats {
   total_organizations: number
   total_users: number
@@ -110,6 +143,9 @@ export default function AdminOverviewPage() {
   const [suspicious, setSuspicious] = useState<SuspiciousTenant[]>([])
   const [blockingId, setBlockingId] = useState<string | null>(null)
 
+  // Registrierte HVs (Detail-Liste)
+  const [organizations, setOrganizations] = useState<Organization[]>([])
+
   async function loadStats() {
     setIsLoading(true)
     try {
@@ -134,6 +170,16 @@ export default function AdminOverviewPage() {
     } catch { /* still show main page */ }
   }
 
+  async function loadOrganizations() {
+    try {
+      const res = await fetch("/api/admin/organizations")
+      if (res.ok) {
+        const json = await res.json()
+        setOrganizations(json.data || [])
+      }
+    } catch { /* keep empty */ }
+  }
+
   async function handleBlock(tenantId: string, action: "block_1day" | "unblock") {
     setBlockingId(tenantId)
     try {
@@ -153,6 +199,7 @@ export default function AdminOverviewPage() {
   useEffect(() => {
     loadStats()
     loadSuspicious()
+    loadOrganizations()
     // Auto-refresh Alarm alle 60 Sekunden
     const interval = setInterval(loadSuspicious, 60_000)
     return () => clearInterval(interval)
@@ -333,6 +380,108 @@ export default function AdminOverviewPage() {
           color="bg-purple-500 text-purple-600"
         />
       </div>
+
+      {/* Registrierte Hausverwaltungen — Detail-Liste */}
+      <Card>
+        <CardHeader className="pb-3">
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="text-base flex items-center gap-2">
+                <Building2 className="h-4 w-4 text-blue-500" />
+                Registrierte Hausverwaltungen
+                {organizations.length > 0 && (
+                  <Badge variant="outline" className="ml-1 text-[10px]">{organizations.length}</Badge>
+                )}
+              </CardTitle>
+              <CardDescription className="mt-1">
+                Welche HVs sich angemeldet haben — Name, Admin, Status & Aktivität
+              </CardDescription>
+            </div>
+            {organizations.length > 0 && (
+              <Button variant="ghost" size="sm" asChild className="h-7 text-xs">
+                <Link href="/admin/organizations">
+                  Alle anzeigen
+                  <ArrowRight className="ml-1 h-3 w-3" />
+                </Link>
+              </Button>
+            )}
+          </div>
+        </CardHeader>
+        <CardContent>
+          {organizations.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-10 text-center">
+              <Building2 className="h-10 w-10 mb-3 text-muted-foreground/30" />
+              <p className="text-sm font-medium text-muted-foreground">Noch keine Hausverwaltungen registriert</p>
+              <p className="text-xs text-muted-foreground mt-1 max-w-md">
+                Sobald sich erste HVs anmelden, erscheinen sie hier mit Name, Admin-Kontakt, Status, Einheiten/Mieter-Zahlen und Registrierungsdatum.
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-0">
+              {organizations.slice(0, 8).map((org, i) => {
+                const statusKey = org.status ?? (org.is_suspended ? "suspended" : "active")
+                return (
+                  <div key={org.id}>
+                    {i > 0 && <Separator />}
+                    <div className="flex items-start justify-between gap-4 py-3">
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="font-medium text-sm">{org.name}</span>
+                          <OrgStatusBadge status={statusKey} />
+                          {!org.avv_accepted_at && (
+                            <Badge variant="outline" className="text-[10px] bg-red-50 text-red-700 border-red-200">
+                              Kein AVV
+                            </Badge>
+                          )}
+                        </div>
+                        <div className="text-xs text-muted-foreground mt-1">
+                          <span className="font-medium text-foreground/80">{org.admin_name || "—"}</span>
+                          {org.admin_email && <span className="ml-1">· {org.admin_email}</span>}
+                        </div>
+                        <div className="text-xs text-muted-foreground mt-1 flex items-center gap-3 flex-wrap">
+                          <span><strong>{org.unit_count}</strong> Einheiten</span>
+                          <span><strong>{org.tenant_count}</strong> Mieter</span>
+                          <span>
+                            <strong>{org.case_count}</strong> Fälle
+                            {org.open_case_count > 0 && (
+                              <span className="text-orange-600"> ({org.open_case_count} offen)</span>
+                            )}
+                          </span>
+                          <span className="text-muted-foreground/70">· angemeldet {formatOrgDate(org.created_at)}</span>
+                        </div>
+                      </div>
+                      <div className="shrink-0 flex gap-2">
+                        {statusKey === "pending" && (
+                          <Badge className="text-[10px] bg-yellow-50 text-yellow-800 border-yellow-200 h-6">
+                            <Clock className="h-2.5 w-2.5 mr-1" />
+                            Aktivieren
+                          </Badge>
+                        )}
+                        <Button asChild variant="outline" size="sm" className="h-7 text-xs">
+                          <Link href={`/admin/organizations/${org.id}`}>Details</Link>
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                )
+              })}
+              {organizations.length > 8 && (
+                <>
+                  <Separator />
+                  <div className="pt-3 text-center">
+                    <Button variant="ghost" size="sm" asChild className="text-xs">
+                      <Link href="/admin/organizations">
+                        + {organizations.length - 8} weitere anzeigen
+                        <ArrowRight className="ml-1 h-3 w-3" />
+                      </Link>
+                    </Button>
+                  </div>
+                </>
+              )}
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Charts Row 1 */}
       <div className="grid gap-6 lg:grid-cols-2">
