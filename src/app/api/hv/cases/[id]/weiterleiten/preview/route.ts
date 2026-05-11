@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabaseClient, createAdminClient } from '@/lib/supabase-server'
 import { buildContractorEmail } from '@/lib/email'
+import { extractLiegenschaftFromAddress } from '@/lib/liegenschaft'
 
 function extractWerkstattAuftrag(analysisText: string | null | undefined): string | null {
   if (!analysisText) return null
@@ -64,6 +65,34 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
     const { data: unit } = await adminClient.from('units').select('name, address').eq('id', report.unit_id).single()
 
+    // PROJ-24: Rechnungsadresse pro Liegenschaft laden
+    let billingAddressForMail: {
+      name: string; street: string; zip: string; city: string; country: string
+      uid?: string | null; email?: string | null; reference?: string | null
+    } | null = null
+    if (unit?.address) {
+      const liegenschaft = extractLiegenschaftFromAddress(unit.address)
+      const { data: billing } = await adminClient
+        .from('billing_addresses')
+        .select('billing_name, billing_street, billing_zip, billing_city, billing_country, billing_uid, billing_email, billing_reference')
+        .eq('organization_id', profile.organization_id)
+        .eq('liegenschaft_address', liegenschaft)
+        .eq('is_deleted', false)
+        .maybeSingle()
+      if (billing) {
+        billingAddressForMail = {
+          name: billing.billing_name,
+          street: billing.billing_street,
+          zip: billing.billing_zip,
+          city: billing.billing_city,
+          country: billing.billing_country,
+          uid: billing.billing_uid,
+          email: billing.billing_email,
+          reference: billing.billing_reference,
+        }
+      }
+    }
+
     const formatDate = (d: string | null) => d
       ? new Date(d).toLocaleString('de-AT', { weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Vienna' })
       : null
@@ -88,6 +117,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       orgPhone: (org as any)?.phone,
       personalNote: personal_note || null,
       werkstattAuftrag: extractWerkstattAuftrag(report.ki_analyse_result),
+      billingAddress: billingAddressForMail,
     })
 
     return NextResponse.json({

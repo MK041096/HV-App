@@ -18,6 +18,7 @@ import {
   Wrench,
   CreditCard,
   Settings,
+  Receipt,
 } from "lucide-react"
 
 import { supabase } from "@/lib/supabase"
@@ -45,6 +46,7 @@ const NAV_ITEMS = [
   { label: "Einheiten", href: "/dashboard/units", icon: Home, dividerAfter: false },
   { label: "Mieter", href: "/dashboard/tenants", icon: Users, dividerAfter: false },
   { label: "Dokumente", href: "/dashboard/dokumente", icon: FolderOpen, dividerAfter: false },
+  { label: "Rechnungsadressen", href: "/dashboard/rechnungsadressen", icon: Receipt, dividerAfter: false },
   { label: "Werkstätten", href: "/dashboard/werkstaetten", icon: Wrench, dividerAfter: true },
   { label: "Abonnement", href: "/dashboard/billing", icon: CreditCard, dividerAfter: false },
   { label: "Aktivierungscodes", href: "/dashboard/codes", icon: KeyRound, dividerAfter: false },

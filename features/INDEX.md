@@ -41,7 +41,9 @@
 
 | PROJ-23 | Klickbare Rechtsgrundlage + Versicherungspolice mit Highlight | Deployed | PROJ-23-rechtsgrundlage-versicherung-quellen.md | 2026-05-05 |
 
-## Next Available ID: PROJ-24
+| PROJ-24 | Rechnungsadressen pro Liegenschaft + Werkstatt-Mail | Deployed | – | 2026-05-11 |
+
+## Next Available ID: PROJ-25
 
 ## Build Order (empfohlen)
 **Phase 1 — MVP (P0):** PROJ-1 → PROJ-2 → PROJ-3 → PROJ-4 → PROJ-5 → PROJ-6 → PROJ-7

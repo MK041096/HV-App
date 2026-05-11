@@ -508,6 +508,17 @@ export interface ContractorEmailParams {
   personalNote?: string | null
   /** Professionelle Auftragsbeschreibung von CARL (an die Werkstatt gerichtet) — ersetzt Mieter-Beschreibung */
   werkstattAuftrag?: string | null
+  /** Rechnungsadresse pro Liegenschaft (PROJ-24) — wird in Werkstatt-Mail als Block angezeigt */
+  billingAddress?: {
+    name: string
+    street: string
+    zip: string
+    city: string
+    country: string
+    uid?: string | null
+    email?: string | null
+    reference?: string | null
+  } | null
 }
 
 function escapeHtml(s: string): string {
@@ -515,7 +526,7 @@ function escapeHtml(s: string): string {
 }
 
 export function buildContractorEmail(params: ContractorEmailParams): { subject: string; html: string; from: string } {
-  const { to: _to, contractorName, caseNumber, caseTitle, description, unitAddress, unitName, wunschtermin, wunschtermin2, tokenUrl, orgName, orgPhone, personalNote, werkstattAuftrag } = params
+  const { to: _to, contractorName, caseNumber, caseTitle, description, unitAddress, unitName, wunschtermin, wunschtermin2, tokenUrl, orgName, orgPhone, personalNote, werkstattAuftrag, billingAddress } = params
   const noteHtml = personalNote && personalNote.trim()
     ? `<div style="background-color:#fef9c3;border-left:4px solid #eab308;border-radius:6px;padding:12px 16px;margin-bottom:20px;">
          <p style="color:#71717a;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;margin:0 0 6px 0;">Persönliche Nachricht von ${escapeHtml(orgName)}</p>
@@ -558,6 +569,19 @@ export function buildContractorEmail(params: ContractorEmailParams): { subject: 
       <p style="color:#18181b;font-size:14px;line-height:1.6;margin:0;">${escapeHtml(auftragText)}</p>
       ` : ''}
     </div>
+
+    ${billingAddress ? `
+    <div style="background-color:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:16px 20px;margin-bottom:20px;">
+      <p style="color:#1e40af;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;margin:0 0 8px 0;">&#129534; Rechnungsadresse</p>
+      <p style="color:#52525b;font-size:13px;margin:0 0 8px 0;">Bitte stellen Sie die Rechnung an:</p>
+      <p style="color:#18181b;font-size:14px;font-weight:700;margin:0 0 2px 0;">${escapeHtml(billingAddress.name)}</p>
+      <p style="color:#18181b;font-size:14px;margin:0 0 2px 0;">${escapeHtml(billingAddress.street)}</p>
+      <p style="color:#18181b;font-size:14px;margin:0 0 8px 0;">${escapeHtml(billingAddress.zip)} ${escapeHtml(billingAddress.city)}${billingAddress.country && billingAddress.country !== 'Österreich' ? ', ' + escapeHtml(billingAddress.country) : ''}</p>
+      ${billingAddress.uid ? `<p style="color:#52525b;font-size:13px;margin:0 0 2px 0;"><strong>UID:</strong> ${escapeHtml(billingAddress.uid)}</p>` : ''}
+      ${billingAddress.reference ? `<p style="color:#52525b;font-size:13px;margin:0 0 2px 0;"><strong>Referenz:</strong> ${escapeHtml(billingAddress.reference)}</p>` : ''}
+      ${billingAddress.email ? `<p style="color:#52525b;font-size:13px;margin:8px 0 0 0;">R&uuml;ckfragen zur Rechnung: <a href="mailto:${escapeHtml(billingAddress.email)}" style="color:#1e40af;">${escapeHtml(billingAddress.email)}</a></p>` : ''}
+    </div>
+    ` : ''}
 
     ${(wunschtermin || wunschtermin2) ? `
     <p style="color:#18181b;font-size:14px;font-weight:600;margin:0 0 12px 0;">Terminwünsche des Mieters:</p>
