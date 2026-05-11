@@ -12,6 +12,7 @@ import {
   Menu,
   X,
   Settings,
+  ShieldCheck,
 } from "lucide-react"
 
 import { supabase } from "@/lib/supabase"
@@ -114,6 +115,18 @@ function TenantSidebarContent({
             </span>
           </div>
         )}
+        <Link
+          href="/mein-bereich/datenschutz"
+          className={cn(
+            "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+            pathname.startsWith("/mein-bereich/datenschutz")
+              ? "bg-primary text-primary-foreground"
+              : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+          )}
+        >
+          <ShieldCheck className="h-4 w-4 shrink-0" />
+          Datenschutz
+        </Link>
         <Link
           href="/mein-bereich/einstellungen"
           className={cn(

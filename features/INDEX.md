@@ -30,7 +30,7 @@
 | PROJ-12 | KI-Mietvertragsanalyse (Claude API) | Deployed | [PROJ-12](PROJ-12-ki-mietvertragsanalyse.md) | 2026-03-07 |
 | PROJ-13 | HV-Onboarding & Aktivierungscode-Generator | Deployed | [PROJ-13](PROJ-13-hv-onboarding-aktivierungscode-generator.md) | 2026-03-07 |
 | PROJ-14 | Subscription & Billing (Stripe) | Planned | [PROJ-14](PROJ-14-subscription-billing-stripe.md) | 2026-03-07 |
-| PROJ-15 | DSGVO-Betroffenenrechte (Datenexport & Löschung) | Planned | [PROJ-15](PROJ-15-dsgvo-betroffenenrechte.md) | 2026-03-07 |
+| PROJ-15 | DSGVO-Betroffenenrechte (Datenexport & Löschung) | Deployed | [PROJ-15](PROJ-15-dsgvo-betroffenenrechte.md) | 2026-03-07 |
 | PROJ-16 | Öffentliche Landing-Page für Kundengewinnung | Deployed | [PROJ-16](PROJ-16-landing-page.md) | 2026-03-09 |
 
 <!-- Add features above this line -->
