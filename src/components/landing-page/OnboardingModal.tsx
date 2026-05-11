@@ -55,7 +55,7 @@ export default function OnboardingModal({ onClose }: { onClose: () => void }) {
 
   // Price display
   const unitCount = parseInt(form.einheiten_anzahl || '0', 10)
-  const monthlyPricePerUnit = form.plan === 'yearly' ? 0.85 : 1.00
+  const monthlyPricePerUnit = form.plan === 'yearly' ? 0.10 : 0.15
   const isYearly = form.plan === 'yearly'
   const totalLabel = isYearly ? 'Ihr Jahresbeitrag' : 'Ihr monatlicher Beitrag'
   const totalAmount = unitCount > 0
@@ -270,8 +270,8 @@ export default function OnboardingModal({ onClose }: { onClose: () => void }) {
                       {p === 'monthly' ? 'Monatlich' : 'Jährlich'}
                     </div>
                     <div style={{ fontSize: '11px', color: '#777', marginTop: '2px' }}>
-                      {p === 'monthly' ? '1,00 € / Einheit' : '0,85 € / Einheit '}
-                      {p === 'yearly' && <span style={{ color: '#16a34a', fontWeight: 600 }}>-15%</span>}
+                      {p === 'monthly' ? '0,15 € / Einheit' : '0,10 € / Einheit '}
+                      {p === 'yearly' && <span style={{ color: '#16a34a', fontWeight: 600 }}>-33%</span>}
                     </div>
                   </button>
                 ))}
